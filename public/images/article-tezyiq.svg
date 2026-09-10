@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 480" width="800" height="480" role="img" aria-label="Tezyiq">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0f2c3f"/><stop offset="100%" stop-color="#1b6b51"/>
+    </linearGradient>
+    <pattern id="p" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M0 40 L40 0" stroke="#ffffff" stroke-opacity="0.05" stroke-width="1"/>
+    </pattern>
+  </defs>
+  <rect width="800" height="480" fill="url(#g)"/>
+  <rect width="800" height="480" fill="url(#p)"/>
+  <circle cx="660" cy="90" r="150" fill="#a6f2d1" fill-opacity="0.16"/>
+  <circle cx="120" cy="420" r="110" fill="#a6f2d1" fill-opacity="0.10"/>
+  <path d="M60 300 H220 l24 -70 l26 150 l28 -190 l26 110 h60 l20 -40 l22 80 h240" fill="none" stroke="#dae2fd" stroke-opacity="0.65" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

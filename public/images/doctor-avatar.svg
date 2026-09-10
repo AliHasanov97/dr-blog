@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200" role="img" aria-label="Dr. Nərmin Əliyeva">
+  <defs><linearGradient id="a" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#dee8ff"/><stop offset="100%" stop-color="#bec6e0"/></linearGradient></defs>
+  <rect width="200" height="200" fill="url(#a)"/>
+  <circle cx="100" cy="78" r="34" fill="#131b2e" fill-opacity="0.75"/>
+  <path d="M28 200 C28 145 60 118 100 118 C140 118 172 145 172 200 Z" fill="#131b2e" fill-opacity="0.75"/>
+  <path d="M74 124 L100 176 L126 124" fill="none" stroke="#ffffff" stroke-opacity="0.85" stroke-width="7" stroke-linecap="round"/>
+</svg>

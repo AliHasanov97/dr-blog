@@ -1,0 +1,32 @@
+import { SiteHeader, BottomNav, SiteFooter, SplashScreen } from "@/components/layout";
+import { getSearchIndex } from "@/lib/api";
+import { getSiteSettings } from "@/lib/admin/queries";
+
+/** Publik saytın bəzəyi: üst panel, altlıq və mobil naviqasiya */
+export default async function SiteLayout({
+  children,
+}: Readonly<{ children: React.ReactNode }>) {
+  /* Parametrlər admin panelindən idarə olunur. Əvvəllər burada mock anbarı
+   * oxunurdu — baza rejimində admin nə saxlasa da açılış ekranı dəyişmirdi. */
+  const [searchSuggestions, settings] = await Promise.all([
+    /* Yalnız bir neçə təklif — bütün indeks deyil */
+    getSearchIndex(undefined, 6),
+    getSiteSettings(),
+  ]);
+  const { loadingText, loadingLogo, loadingShowText, loadingShowLogo } = settings;
+
+  return (
+    <div className="min-h-screen flex flex-col">
+      <SplashScreen
+        text={loadingText}
+        logoUrl={loadingLogo || undefined}
+        showText={loadingShowText}
+        showLogo={loadingShowLogo}
+      />
+      <SiteHeader searchSuggestions={searchSuggestions} />
+      {children}
+      <SiteFooter />
+      <BottomNav />
+    </div>
+  );
+}

@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400" width="800" height="400" role="img" aria-label="Xəritə">
+  <rect width="800" height="400" fill="#f0f3ff"/>
+  <g stroke="#cfdaf2" stroke-width="10" fill="none">
+    <path d="M0 120 H800 M0 280 H800 M200 0 V400 M560 0 V400"/>
+  </g>
+  <g stroke="#dee8ff" stroke-width="4" fill="none">
+    <path d="M0 60 H800 M0 200 H800 M0 340 H800 M100 0 V400 M340 0 V400 M440 0 V400 M680 0 V400"/>
+  </g>
+  <path d="M0 330 C160 300 300 350 460 320 C600 296 700 330 800 310 L800 400 L0 400 Z" fill="#bee3f8" fill-opacity="0.55"/>
+  <g transform="translate(400 190)">
+    <path d="M0 -46 C24 -46 44 -27 44 -3 C44 26 0 62 0 62 C0 62 -44 26 -44 -3 C-44 -27 -24 -46 0 -46 Z" fill="#1b6b51"/>
+    <circle cx="0" cy="-4" r="15" fill="#ffffff"/>
+  </g>
+</svg>

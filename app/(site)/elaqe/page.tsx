@@ -1,0 +1,132 @@
+import type { Metadata } from "next";
+import { PageShell } from "@/components/layout";
+import {
+  ContactChannelCard,
+  ContactForm,
+  FaqList,
+  LocationCard,
+} from "@/components/contact";
+import { SocialLinkList } from "@/components/doctor";
+import { Alert, Badge, Icon, SectionHeader } from "@/components/ui";
+import {
+  getContactChannels,
+  getDoctorProfile,
+  getFaq,
+  getOfficeLocation,
+} from "@/lib/api";
+import { siteConfig } from "@/lib/site";
+
+export const metadata: Metadata = {
+  title: "Əlaqə",
+  description:
+    "Elmi əməkdaşlıq, mühazirə dəvətləri və məqalələr üzrə suallar üçün Dr. Nərmin Əliyeva ilə birbaşa əlaqə kanalları.",
+};
+
+export default async function ContactPage() {
+  const [channels, office, faq, doctor] = await Promise.all([
+    getContactChannels(),
+    getOfficeLocation(),
+    getFaq(),
+    getDoctorProfile(),
+  ]);
+
+  return (
+    <PageShell className="flex flex-col gap-space-xl lg:gap-space-2xl">
+      {/* Başlıq */}
+      <section className="flex flex-col gap-space-sm">
+        <div className="flex items-center gap-space-xs flex-wrap">
+          <Badge tone="secondary" icon="verified" uppercase>
+            Rəsmi Əlaqə & Müraciət
+          </Badge>
+          <Badge tone="tertiary" icon="schedule">
+            Aktiv Xətt
+          </Badge>
+        </div>
+        <h1 className="font-headline text-headline-lg-mobile lg:text-display text-on-surface leading-tight">
+          Bizimlə Əlaqə Saxlayın
+        </h1>
+        <p className="font-body text-body-md text-on-surface-variant leading-relaxed max-w-2xl">
+          Elmi əməkdaşlıq, mühazirə və çıxış dəvətləri, məqalələr üzrə suallar və
+          pasiyent məlumat xətti üçün birbaşa əlaqə kanalları.
+        </p>
+      </section>
+
+      <Alert tone="danger" title="Kritik Təcili Xəbərdarlıq" icon="e911_emergency">
+        Kəskin sinə ağrıları, ritm itkisi və ya asfiksiya hallarında vaxt
+        itirmədən dərhal {siteConfig.emergencyNumber} Təcili Tibbi Yardıma
+        müraciət edin. Bu platforma təcili kardiometrik yardım üçün nəzərdə
+        tutulmayıb.
+      </Alert>
+
+      {/* Sürətli əlaqə kanalları */}
+      <section className="flex flex-col gap-space-sm">
+        <SectionHeader
+          title="Sürətli Əlaqə Kanalları"
+          icon="contact_support"
+          hint="Cavab: 09:00 - 18:00"
+        />
+        <div className="grid gap-space-md lg:grid-cols-3">
+          {channels.map((channel) => (
+            <ContactChannelCard key={channel.id} channel={channel} />
+          ))}
+        </div>
+      </section>
+
+      {/* Forma + lokasiya */}
+      <div className="grid gap-space-xl lg:grid-cols-2 lg:gap-space-2xl">
+        <section className="flex flex-col gap-space-sm">
+          <SectionHeader title="Məlumat və Sorğu" icon="edit_note" size="sm" />
+          <ContactForm />
+        </section>
+
+        <section className="flex flex-col gap-space-sm">
+          <SectionHeader
+            title="Klinika və Elmi Qərargah"
+            icon="domain"
+            size="sm"
+            hint={office.city}
+          />
+          <LocationCard office={office} />
+        </section>
+      </div>
+
+      {/* Sosial kanallar */}
+      <section className="flex flex-col gap-space-sm">
+        <SectionHeader
+          title="Sosial Şəbəkələr & Elmi Baza"
+          icon="hub"
+          size="sm"
+          hint="Elmi xülasələr və videolar"
+        />
+        <SocialLinkList links={doctor.socialLinks} />
+      </section>
+
+      {/* FAQ */}
+      <section className="flex flex-col gap-space-sm">
+        <SectionHeader title="Tez-tez Verilən Suallar" icon="quiz" />
+        <p className="font-body text-body-sm text-on-surface-variant">
+          Əlaqə və elmi materiallar barədə aydınlaşdırıcı qeydlər.
+        </p>
+        <FaqList items={faq} />
+      </section>
+
+      {/* İmza sitatı */}
+      <section className="relative overflow-hidden rounded-xl bg-primary-container text-on-primary p-space-lg lg:p-space-2xl">
+        <span
+          aria-hidden="true"
+          className="absolute -right-16 -bottom-16 w-52 h-52 rounded-full bg-secondary/15 blur-3xl pointer-events-none"
+        />
+        <div className="relative flex flex-col items-center text-center gap-space-xs">
+          <Icon name="cardiology" size={28} className="text-secondary-fixed" />
+          <p className="font-display italic text-headline-md lg:text-headline-lg text-on-primary leading-relaxed max-w-2xl">
+            «Ürək ritminizin harmoniyası elmi dəqiqlik və vaxtında qurulan
+            dialoqdan başlayır.»
+          </p>
+          <span className="font-label text-label-md text-tertiary-fixed">
+            {doctor.fullName} — T.E.N., Kardioloq-Aritmoloq
+          </span>
+        </div>
+      </section>
+    </PageShell>
+  );
+}

@@ -1,0 +1,38 @@
+# Bagimliliqlar ve qurulus artefaktlari — image icinde yenidan qurulur
+node_modules
+.next
+out
+build
+coverage
+
+# GIZLI ACARLAR — image-e hec vaxt dusmemelidir.
+# Deyerler ise vaxti `docker run --env-file` ve ya compose ile verilir.
+.env
+.env.*
+!.env.example
+
+# Versiya nezareti ve redaktor
+.git
+.gitignore
+.idea
+.vscode
+*.swp
+
+# Agent aletlerinin yerli qovluqlari
+.agents
+.claude
+.cursor
+.devin
+
+# Yerli yuklenmis fayllar (artiq R2-dedir)
+public/uploads/*
+!public/uploads/.gitkeep
+
+# Sened ve gundelik fayllar
+*.log
+*.tsbuildinfo
+nul
+Dockerfile
+.dockerignore
+docker-compose*.yml
+README.md

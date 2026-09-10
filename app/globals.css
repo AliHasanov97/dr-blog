@@ -1,0 +1,608 @@
+@import "tailwindcss";
+
+/* =============================================================
+   Clinical Editorial & Portfolio — Design Tokens
+   Mənbə: stitch_modern_doctor_blog_redesign/clinical_editorial_portfolio/DESIGN.md
+   Tailwind v4 @theme — bütün token-lər utility class kimi işləyir
+   (məs. bg-surface, text-on-surface, font-display, p-space-md)
+   ============================================================= */
+@theme {
+  /* ---------- Rəng sistemi (Material 3 rol adları) ---------- */
+  --color-surface: #f9f9ff;
+  --color-surface-dim: #cfdaf2;
+  --color-surface-bright: #f9f9ff;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #f0f3ff;
+  --color-surface-container: #e7eeff;
+  --color-surface-container-high: #dee8ff;
+  --color-surface-container-highest: #d8e3fb;
+  --color-surface-variant: #d8e3fb;
+  --color-surface-tint: #565e74;
+
+  --color-on-surface: #111c2d;
+  --color-on-surface-variant: #45464d;
+  --color-inverse-surface: #263143;
+  --color-inverse-on-surface: #ecf1ff;
+
+  --color-outline: #76777d;
+  --color-outline-variant: #c6c6cd;
+
+  --color-primary: #000000;
+  --color-on-primary: #ffffff;
+  --color-primary-container: #131b2e;
+  --color-on-primary-container: #7c839b;
+  --color-inverse-primary: #bec6e0;
+  --color-primary-fixed: #dae2fd;
+  --color-primary-fixed-dim: #bec6e0;
+  --color-on-primary-fixed: #131b2e;
+  --color-on-primary-fixed-variant: #3f465c;
+
+  --color-secondary: #1b6b51;
+  --color-on-secondary: #ffffff;
+  --color-secondary-container: #a6f2d1;
+  --color-on-secondary-container: #237157;
+  --color-secondary-fixed: #a6f2d1;
+  --color-secondary-fixed-dim: #8bd6b6;
+  --color-on-secondary-fixed: #002116;
+  --color-on-secondary-fixed-variant: #00513b;
+
+  --color-tertiary: #000000;
+  --color-on-tertiary: #ffffff;
+  --color-tertiary-container: #281800;
+  --color-on-tertiary-container: #9a805b;
+  --color-tertiary-fixed: #fedeb2;
+  --color-tertiary-fixed-dim: #e0c298;
+  --color-on-tertiary-fixed: #281800;
+  --color-on-tertiary-fixed-variant: #584323;
+
+  --color-error: #ba1a1a;
+  --color-on-error: #ffffff;
+  --color-error-container: #ffdad6;
+  --color-on-error-container: #93000a;
+
+  --color-background: #f9f9ff;
+  --color-on-background: #111c2d;
+
+  /* ---------- Şrift ailələri ---------- */
+  --font-display: var(--font-newsreader), "Newsreader", Georgia, serif;
+  --font-headline: var(--font-newsreader), "Newsreader", Georgia, serif;
+  --font-body: var(--font-jakarta), "Plus Jakarta Sans", system-ui, sans-serif;
+  --font-label: var(--font-jakarta), "Plus Jakarta Sans", system-ui, sans-serif;
+  --font-sans: var(--font-jakarta), "Plus Jakarta Sans", system-ui, sans-serif;
+
+  /* Stitch adları ilə uyğunluq üçün alias-lar */
+  --font-headline-lg: var(--font-newsreader), "Newsreader", Georgia, serif;
+  --font-headline-md: var(--font-newsreader), "Newsreader", Georgia, serif;
+  --font-headline-sm: var(--font-newsreader), "Newsreader", Georgia, serif;
+  --font-body-lg: var(--font-jakarta), "Plus Jakarta Sans", system-ui, sans-serif;
+  --font-body-md: var(--font-jakarta), "Plus Jakarta Sans", system-ui, sans-serif;
+  --font-body-sm: var(--font-jakarta), "Plus Jakarta Sans", system-ui, sans-serif;
+  --font-label-lg: var(--font-jakarta), "Plus Jakarta Sans", system-ui, sans-serif;
+  --font-label-md: var(--font-jakarta), "Plus Jakarta Sans", system-ui, sans-serif;
+  --font-label-sm: var(--font-jakarta), "Plus Jakarta Sans", system-ui, sans-serif;
+
+  /* ---------- Tipoqrafik şkala ---------- */
+  --text-display: 38px;
+  --text-display--line-height: 46px;
+  --text-display--letter-spacing: -0.02em;
+  --text-display--font-weight: 500;
+
+  --text-headline-lg: 30px;
+  --text-headline-lg--line-height: 38px;
+  --text-headline-lg--letter-spacing: -0.015em;
+  --text-headline-lg--font-weight: 600;
+
+  --text-headline-lg-mobile: 26px;
+  --text-headline-lg-mobile--line-height: 34px;
+  --text-headline-lg-mobile--letter-spacing: -0.01em;
+  --text-headline-lg-mobile--font-weight: 600;
+
+  --text-headline-md: 22px;
+  --text-headline-md--line-height: 30px;
+  --text-headline-md--letter-spacing: -0.01em;
+  --text-headline-md--font-weight: 600;
+
+  --text-headline-sm: 19px;
+  --text-headline-sm--line-height: 26px;
+  --text-headline-sm--font-weight: 500;
+
+  --text-body-lg: 17px;
+  --text-body-lg--line-height: 28px;
+  --text-body-lg--font-weight: 400;
+
+  --text-body-md: 15px;
+  --text-body-md--line-height: 24px;
+  --text-body-md--font-weight: 400;
+
+  --text-body-sm: 13px;
+  --text-body-sm--line-height: 20px;
+  --text-body-sm--font-weight: 400;
+
+  --text-label-lg: 14px;
+  --text-label-lg--line-height: 20px;
+  --text-label-lg--letter-spacing: 0.01em;
+  --text-label-lg--font-weight: 600;
+
+  --text-label-md: 12px;
+  --text-label-md--line-height: 16px;
+  --text-label-md--letter-spacing: 0.03em;
+  --text-label-md--font-weight: 600;
+
+  --text-label-sm: 11px;
+  --text-label-sm--line-height: 14px;
+  --text-label-sm--letter-spacing: 0.05em;
+  --text-label-sm--font-weight: 700;
+
+  /* ---------- Boşluq şkalası ---------- */
+  --spacing-space-2xs: 0.25rem;
+  --spacing-space-xs: 0.5rem;
+  --spacing-space-sm: 0.75rem;
+  --spacing-space-md: 1rem;
+  --spacing-space-lg: 1.5rem;
+  --spacing-space-xl: 2rem;
+  --spacing-space-2xl: 2.5rem;
+  --spacing-space-3xl: 3.5rem;
+  --spacing-margin-mobile: 1.25rem;
+  --spacing-gutter-mobile: 0.875rem;
+  --spacing-card-padding: 1.25rem;
+
+  /* ---------- Radius ---------- */
+  --radius-sm: 0.125rem;
+  --radius-DEFAULT: 0.25rem;
+  --radius-md: 0.375rem;
+  --radius-lg: 0.5rem;
+  --radius-xl: 0.75rem;
+
+  /* ---------- Elevasiya (DESIGN.md — Elevation & Depth) ---------- */
+  --shadow-level-1: 0 2px 10px -2px rgba(15, 23, 42, 0.04),
+    0 1px 3px -1px rgba(15, 23, 42, 0.02);
+  --shadow-level-2: 0 8px 24px -4px rgba(15, 23, 42, 0.08),
+    0 2px 6px -2px rgba(15, 23, 42, 0.04);
+
+  /* ---------- Konteyner ölçüləri ---------- */
+  --container-content: 44rem;
+  --container-shell: 80rem;
+}
+
+/* =============================================================
+   Baza qatı
+   ============================================================= */
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: var(--color-surface);
+    color: var(--color-on-surface);
+    font-family: var(--font-body);
+    font-size: var(--text-body-md);
+    line-height: var(--text-body-md--line-height);
+    overscroll-behavior-y: none;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-headline);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-secondary);
+    outline-offset: 2px;
+  }
+
+  /* Mobil toxunma təkmilləşdirmələri */
+  button,
+  a,
+  [role="button"] {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+}
+
+/* =============================================================
+   Utilities
+   ============================================================= */
+@utility pt-safe {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+@utility pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+@utility scrollbar-none {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* Material Symbols ikon şrifti */
+.material-symbols-outlined {
+  font-family: "Material Symbols Outlined";
+  font-weight: normal;
+  font-style: normal;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
+  -webkit-font-feature-settings: "liga";
+  -webkit-font-smoothing: antialiased;
+  user-select: none;
+}
+
+.material-symbols-outlined[data-filled="true"] {
+  font-variation-settings: "FILL" 1, "wght" 400, "GRAD" 0, "opsz" 24;
+}
+
+/* Məqalə mətninin oxunma ölçüsü (A- / A+ nəzarəti) */
+[data-reading-size="sm"] .article-prose {
+  font-size: 15px;
+  line-height: 26px;
+}
+[data-reading-size="md"] .article-prose {
+  font-size: 17px;
+  line-height: 30px;
+}
+[data-reading-size="lg"] .article-prose {
+  font-size: 19px;
+  line-height: 34px;
+}
+[data-reading-size="xl"] .article-prose {
+  font-size: 21px;
+  line-height: 38px;
+}
+
+/* Geniş ekranda sütun da genişlənir — sətir uzunluğu tarazda qalsın deyə
+ * mətn bir pillə böyüyür. */
+@media (min-width: 1280px) {
+  [data-reading-size="sm"] .article-prose {
+    font-size: 16px;
+    line-height: 28px;
+  }
+  [data-reading-size="md"] .article-prose {
+    font-size: 18px;
+    line-height: 32px;
+  }
+  [data-reading-size="lg"] .article-prose {
+    font-size: 20px;
+    line-height: 36px;
+  }
+  [data-reading-size="xl"] .article-prose {
+    font-size: 22px;
+    line-height: 40px;
+  }
+}
+
+/* Article prose - cedvel stilleri */
+.article-prose table,
+.article-table-wrapper table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: var(--spacing-space-md) 0;
+  border: 2px solid var(--color-outline-variant);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.article-prose th,
+.article-prose td,
+.article-table-wrapper th,
+.article-table-wrapper td {
+  border: 1px solid var(--color-outline-variant);
+  padding: var(--spacing-space-sm) var(--spacing-space-md);
+  text-align: left;
+  vertical-align: top;
+}
+
+.article-prose th,
+.article-table-wrapper th {
+  background: var(--color-surface-container);
+  font-family: var(--font-label);
+  font-weight: 600;
+  color: var(--color-on-surface);
+}
+
+.article-prose td,
+.article-table-wrapper td {
+  background: var(--color-surface-container-lowest);
+}
+
+/* ---------------------------------------------------------------
+ * Admin — məqalə kətanı (redaktə sahəsi saytdakı görünüşü təkrarlayır)
+ * ------------------------------------------------------------- */
+
+.article-canvas {
+  font-family: var(--font-body);
+  font-size: 17px;
+  line-height: 30px;
+  color: var(--color-on-surface-variant);
+  /* Mətnin içinə salınmış şəkillərin yanından axması üçün */
+  display: flow-root;
+}
+
+.article-canvas > * + * {
+  margin-top: 1.25rem;
+}
+
+/* Birinci abzas saytda «giriş» kimi göstərilir — burada da eyni */
+.article-canvas > p:first-child {
+  color: var(--color-on-surface);
+}
+
+.article-canvas > p:first-child::first-letter {
+  font-family: var(--font-display);
+  font-size: 42px;
+  line-height: 38px;
+  float: inline-start;
+  margin-inline-end: 0.5rem;
+  margin-top: 0.25rem;
+  color: var(--color-primary-container);
+}
+
+.article-canvas h2 {
+  font-family: var(--font-headline);
+  font-size: 26px;
+  line-height: 1.3;
+  font-weight: 600;
+  color: var(--color-on-surface);
+  clear: both;
+  padding-top: 0.25rem;
+}
+
+.article-canvas blockquote {
+  position: relative;
+  border-inline-start: 4px solid var(--color-secondary);
+  border-radius: 0.75rem;
+  background: color-mix(in srgb, var(--color-secondary) 7%, transparent);
+  padding: 1rem 1rem 1rem 1.25rem;
+  font-family: var(--font-display);
+  font-style: italic;
+  color: var(--color-on-surface);
+}
+
+/* Sitatın üst etiketi atributdan oxunur — ayrıca sahə doldurulmur */
+.article-canvas blockquote::before {
+  content: attr(data-label);
+  display: block;
+  font-family: var(--font-label);
+  font-style: normal;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-secondary);
+  margin-bottom: 0.35rem;
+}
+
+.article-canvas blockquote[data-by]::after {
+  content: "— " attr(data-by);
+  display: block;
+  font-family: var(--font-label);
+  font-style: normal;
+  font-size: 13px;
+  color: var(--color-on-surface-variant);
+  margin-top: 0.35rem;
+}
+
+.article-canvas ul {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.article-canvas ul li {
+  position: relative;
+  border: 1px solid var(--color-surface-container);
+  border-radius: 0.5rem;
+  background: var(--color-surface-container-lowest);
+  padding: 0.75rem 0.75rem 0.75rem 2.5rem;
+}
+
+.article-canvas ul li::before {
+  content: "check_circle";
+  position: absolute;
+  inset-inline-start: 0.75rem;
+  top: 0.8rem;
+  font-family: "Material Symbols Outlined";
+  font-size: 20px;
+  line-height: 1;
+  color: var(--color-secondary);
+}
+
+/* Bəndin birinci sətri başlıqdır */
+.article-canvas ul li p {
+  font-family: var(--font-label);
+  font-weight: 600;
+  color: var(--color-on-surface);
+  margin: 0;
+}
+
+.article-canvas mark {
+  background: color-mix(in srgb, var(--color-tertiary-fixed) 70%, transparent);
+  border-radius: 0.25rem;
+  padding: 0 0.15rem;
+}
+
+.article-canvas a {
+  color: var(--color-secondary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.article-canvas abbr {
+  text-decoration: none;
+  border-bottom: 1px dotted var(--color-secondary);
+  cursor: help;
+}
+
+.article-canvas sup[data-ref] {
+  color: var(--color-secondary);
+  font-weight: 600;
+}
+
+/* Placeholder — boş sətirdə solğun izah mətni */
+.article-canvas p.is-empty:first-child::before,
+.article-canvas h2.is-empty::before {
+  content: attr(data-placeholder);
+  float: inline-start;
+  height: 0;
+  pointer-events: none;
+  color: var(--color-outline);
+}
+
+/* Secilmis media bloku */
+.article-canvas .ProseMirror-selectednode {
+  outline: none;
+}
+
+/* Cedvel stilleri */
+.article-canvas table,
+.article-canvas .editor-table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: var(--spacing-space-md) 0;
+  table-layout: fixed;
+  border: 2px solid var(--color-outline-variant);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.article-canvas table th,
+.article-canvas table td,
+.article-canvas .editor-table th,
+.article-canvas .editor-table td {
+  border: 1px solid var(--color-outline-variant);
+  padding: var(--spacing-space-sm) var(--spacing-space-md);
+  text-align: left;
+  vertical-align: top;
+  min-width: 100px;
+  position: relative;
+}
+
+.article-canvas table th,
+.article-canvas .editor-table th {
+  background: var(--color-surface-container);
+  font-family: var(--font-label);
+  font-weight: 600;
+  color: var(--color-on-surface);
+}
+
+.article-canvas table td,
+.article-canvas .editor-table td {
+  background: var(--color-surface-container-lowest);
+}
+
+.article-canvas table .selectedCell,
+.article-canvas .editor-table .selectedCell,
+.article-canvas td.selectedCell,
+.article-canvas th.selectedCell {
+  background: var(--color-secondary-container) !important;
+  border-color: var(--color-secondary) !important;
+}
+
+/* TipTap table wrapper */
+.article-canvas .tableWrapper {
+  margin: var(--spacing-space-md) 0;
+  overflow-x: auto;
+}
+
+/* Resize handle */
+.article-canvas .column-resize-handle {
+  position: absolute;
+  right: -2px;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: var(--color-secondary);
+  cursor: col-resize;
+  z-index: 10;
+}
+
+.article-canvas .resize-cursor {
+  cursor: col-resize;
+}
+
+/* Kod bloku */
+.article-canvas pre {
+  background: var(--color-surface-container);
+  border-radius: 8px;
+  padding: var(--spacing-space-md);
+  margin: var(--spacing-space-md) 0;
+  overflow-x: auto;
+  font-family: ui-monospace, Menlo, monospace;
+  font-size: 0.875em;
+}
+
+.article-canvas code {
+  background: var(--color-surface-container);
+  padding: 0.125em 0.375em;
+  border-radius: 4px;
+  font-family: ui-monospace, Menlo, monospace;
+  font-size: 0.9em;
+}
+
+.article-canvas pre code {
+  background: none;
+  padding: 0;
+}
+
+/* Ufuqi xett */
+.article-canvas hr {
+  border: none;
+  border-top: 2px solid var(--color-outline-variant);
+  margin: var(--spacing-space-lg) 0;
+}
+
+/* Nomreli siyahi */
+.article-canvas ol {
+  counter-reset: list-counter;
+  padding-left: var(--spacing-space-lg);
+  margin: var(--spacing-space-md) 0;
+}
+
+.article-canvas ol li {
+  counter-increment: list-counter;
+  position: relative;
+  padding-left: var(--spacing-space-sm);
+  margin-bottom: var(--spacing-space-xs);
+}
+
+.article-canvas ol li::before {
+  content: counter(list-counter) ".";
+  position: absolute;
+  left: calc(-1 * var(--spacing-space-lg));
+  color: var(--color-secondary);
+  font-weight: 600;
+  font-family: var(--font-label);
+}
+
+/* Subscript / Superscript */
+.article-canvas sub,
+.article-canvas sup {
+  font-size: 0.75em;
+  line-height: 0;
+  position: relative;
+  vertical-align: baseline;
+}
+
+.article-canvas sub {
+  bottom: -0.25em;
+}
+
+.article-canvas sup {
+  top: -0.5em;
+}

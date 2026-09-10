@@ -1,0 +1,53 @@
+# ---------------------------------------------------------------
+# DR Blog — yerli ve yayim ucun konteyner qurulusu
+#
+# Gizli acarlar bu faylda DEYIL: `.env` faylindan oxunur, o fayl ise
+# git-e dusmur. Numune ucun `.env.example`-e baxin.
+#
+#   docker compose up -d --build      qurub isletmek
+#   docker compose logs -f web        gundelikleri izlemek
+#   docker compose down               dayandirmaq
+# ---------------------------------------------------------------
+
+services:
+  web:
+    build:
+      context: .
+      args:
+        # NEXT_PUBLIC_* deyerleri qurulus zamani koda yazilir
+        NEXT_PUBLIC_USE_MOCK: "false"
+        NEXT_PUBLIC_SITE_URL: "${NEXT_PUBLIC_SITE_URL:-http://localhost:3000}"
+    image: dr-blog:latest
+    restart: unless-stopped
+    ports:
+      - "${PORT:-3000}:3000"
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: production
+    depends_on:
+      db:
+        condition: service_healthy
+
+  # Yerli inkisaf ucun baza. Yayimda kenar PostgreSQL islenirse bu
+  # xidmeti silin ve `depends_on` setrini de cixarin.
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: "${POSTGRES_USER:-drblog}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:-drblog}"
+      POSTGRES_DB: "${POSTGRES_DB:-drblog}"
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      # Tetbiq baza hazir olmamis basladilmasin deye
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-drblog}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  db-data:

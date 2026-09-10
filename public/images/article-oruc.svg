@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 480" width="800" height="480" role="img" aria-label="Oruc">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#16301f"/><stop offset="100%" stop-color="#1b6b51"/>
+    </linearGradient>
+    <pattern id="p" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M0 40 L40 0" stroke="#ffffff" stroke-opacity="0.05" stroke-width="1"/>
+    </pattern>
+  </defs>
+  <rect width="800" height="480" fill="url(#g)"/>
+  <rect width="800" height="480" fill="url(#p)"/>
+  <circle cx="660" cy="90" r="150" fill="#8bd6b6" fill-opacity="0.16"/>
+  <circle cx="120" cy="420" r="110" fill="#8bd6b6" fill-opacity="0.10"/>
+  <path d="M300 330 C300 220 380 160 500 160 C500 270 420 330 300 330 z" fill="#a6f2d1" fill-opacity="0.30"/><path d="M300 330 C360 290 430 230 500 165" stroke="#a6f2d1" stroke-opacity="0.5" stroke-width="5" fill="none"/>
+</svg>

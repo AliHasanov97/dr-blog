@@ -1,0 +1,10 @@
+export { DoctorProfileHero } from "./DoctorProfileHero";
+export type { DoctorProfileHeroProps } from "./DoctorProfileHero";
+export { StatsGrid } from "./StatsGrid";
+export type { StatsGridProps } from "./StatsGrid";
+export { Timeline } from "./Timeline";
+export type { TimelineProps } from "./Timeline";
+export { ResearchAreaList } from "./ResearchAreaList";
+export type { ResearchAreaListProps } from "./ResearchAreaList";
+export { SocialLinkList } from "./SocialLinkList";
+export type { SocialLinkListProps } from "./SocialLinkList";

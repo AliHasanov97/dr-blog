@@ -1,0 +1,374 @@
+// Prisma Schema for DR Blog
+// PostgreSQL database
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------
+// Taksonomiya
+// ---------------------------------------------------------------
+
+model Category {
+  id       String    @id @default(cuid())
+  slug     String    @unique
+  name     String
+  icon     String?
+  articles Article[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("categories")
+}
+
+model Tag {
+  id       String    @id @default(cuid())
+  slug     String    @unique
+  name     String
+  articles Article[] @relation("ArticleTags")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("tags")
+}
+
+// ---------------------------------------------------------------
+// Muellif
+// ---------------------------------------------------------------
+
+model Author {
+  id         String    @id @default(cuid())
+  fullName   String
+  title      String
+  avatarUrl  String?
+  isVerified Boolean   @default(false)
+  articles   Article[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("authors")
+}
+
+// ---------------------------------------------------------------
+// Meqale
+// ---------------------------------------------------------------
+
+enum ArticleStatus {
+  DRAFT
+  REVIEW
+  PUBLISHED
+}
+
+model Article {
+  id      String        @id @default(cuid())
+  slug    String        @unique
+  title   String
+  excerpt String
+  status  ArticleStatus @default(DRAFT)
+
+  // Cover ve Hero
+  coverImageUrl String?
+  heroImageUrl  String?
+  heroCaption   String?
+
+  // Metadata
+  publishedAt DateTime?
+  readMinutes Int       @default(5)
+  viewCount   Int       @default(0)
+  likeCount   Int       @default(0)
+
+  // «Bu meqale faydali oldu?» reaksiyalari
+  reactionClear    Int     @default(0) // Cox aydin ve faydali
+  reactionLearned  Int     @default(0) // Yeni melumat oyrendim
+  reactionQuestion Int     @default(0) // Hekime sualim var
+  isFeatured       Boolean @default(false)
+  isPeerReviewed   Boolean @default(false)
+
+  // Oxu sehifesinde mezmun siyahisi gosterilsin
+  showTableOfContents Boolean @default(true)
+
+  // Bu meqaleye serh yazilmasina icaze
+  allowComments       Boolean @default(true)
+
+  // Journal ve verifikasiya
+  journalLabel     String?
+  verificationNote String?
+  doctorNote       String?
+
+  // JSON saheler (complex structures)
+  badges          Json? // ArticleBadge[]
+  tableOfContents Json? // TableOfContentsItem[]
+  blocks          Json // ArticleBlock[]
+  references      Json? // ArticleReference[]
+
+  // Relations
+  categoryId String
+  category   Category @relation(fields: [categoryId], references: [id])
+
+  authorId String
+  author   Author @relation(fields: [authorId], references: [id])
+
+  tags     Tag[]     @relation("ArticleTags")
+  comments Comment[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+  @@index([publishedAt])
+  @@index([categoryId])
+  @@map("articles")
+}
+
+// ---------------------------------------------------------------
+// Serhler
+// ---------------------------------------------------------------
+
+enum CommentStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model Comment {
+  id     String        @id @default(cuid())
+  body   String
+  status CommentStatus @default(PENDING)
+
+  // Author info (guest comments - no user account required)
+  authorName       String
+  authorEmail      String?
+  authorRole       String  @default("Oxucu")
+  authorAvatarUrl  String?
+  isAuthorVerified Boolean @default(false)
+  isDoctorReply    Boolean @default(false)
+
+  likeCount Int @default(0)
+
+  // Relations
+  articleId String
+  article   Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  // Self-referencing for replies
+  parentId String?
+  parent   Comment?  @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies  Comment[] @relation("CommentReplies")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([articleId])
+  @@index([status])
+  @@map("comments")
+}
+
+// ---------------------------------------------------------------
+// Hekim profili
+// ---------------------------------------------------------------
+
+model DoctorProfile {
+  id          String  @id @default(cuid())
+  fullName    String
+  shortTitle  String
+  fullTitle   String
+  avatarUrl   String?
+  portraitUrl String?
+  isVerified  Boolean @default(true)
+  tagline     String?
+  biography   String?
+  quote       String?
+
+  // JSON fields for complex nested data
+  credentials   Json? // Credential[]
+  stats         Json? // DoctorStat[]
+  education     Json? // TimelineEntry[]
+  researchAreas Json? // ResearchArea[]
+  socialLinks   Json? // SocialLink[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("doctor_profiles")
+}
+
+// ---------------------------------------------------------------
+// Elaqe
+// ---------------------------------------------------------------
+
+model ContactChannel {
+  id          String  @id @default(cuid())
+  kind        String // 'whatsapp' | 'email' | 'phone'
+  icon        String
+  title       String
+  subtitle    String?
+  values      Json // string[]
+  actionLabel String
+  actionIcon  String
+  href        String
+  sortOrder   Int     @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("contact_channels")
+}
+
+model OfficeLocation {
+  id           String  @id @default(cuid())
+  name         String
+  department   String?
+  addressLine  String
+  room         String?
+  city         String
+  shortAddress String?
+  mapUrl       String?
+  mapImageUrl  String?
+  schedule     Json // { day: string; hours: string; isClosed?: boolean }[]
+  sortOrder    Int     @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("office_locations")
+}
+
+model FaqItem {
+  id        String @id @default(cuid())
+  question  String
+  answer    String
+  sortOrder Int    @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("faq_items")
+}
+
+enum MessageStatus {
+  NEW
+  READ
+  ANSWERED
+  ARCHIVED
+}
+
+model ContactMessage {
+  id          String        @id @default(cuid())
+  inquiryType String // 'scientific' | 'collaboration' | 'press' | 'general'
+  fullName    String
+  contact     String // email or phone
+  subject     String
+  message     String
+  consent     Boolean       @default(true)
+  status      MessageStatus @default(NEW)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+  @@map("contact_messages")
+}
+
+// ---------------------------------------------------------------
+// Bulleten
+// ---------------------------------------------------------------
+
+model NewsletterSubscriber {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  isActive     Boolean  @default(true)
+  subscribedAt DateTime @default(now())
+
+  // Mektublardaki «abunelikden cix» linki ucun. Sirri bilmeden basqasini
+  // abunelikden cixarmaq mumkun olmasin deye tesadufi ve unikaldir.
+  unsubscribeToken String @unique
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("newsletter_subscribers")
+}
+
+// ---------------------------------------------------------------
+// Video ve Protokol
+// ---------------------------------------------------------------
+
+model Video {
+  id           String  @id @default(cuid())
+  title        String
+  description  String?
+  thumbnailUrl String?
+  videoUrl     String
+  kindLabel    String? // "CardioTalk"
+  sortOrder    Int     @default(0)
+
+  // ARTIQ ISLENMIR — interfeysden cixarilib, sutunlar bazada qalib.
+  // Silmek ucun: schema-dan bu iki setri sil + `prisma db push`
+  duration     String?
+  viewCount    Int     @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("videos")
+}
+
+model ProtocolDocument {
+  id            String  @id @default(cuid())
+  title         String
+  description   String?
+  fileSizeLabel String?
+  fileUrl       String
+  sortOrder     Int     @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("protocol_documents")
+}
+
+// ---------------------------------------------------------------
+// Site parametrleri
+// ---------------------------------------------------------------
+
+model SiteSetting {
+  id    String @id @default(cuid())
+  key   String @unique
+  value Json
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("site_settings")
+}
+
+// ---------------------------------------------------------------
+// Admin istifadeciler
+// ---------------------------------------------------------------
+
+enum UserRole {
+  ADMIN
+  EDITOR
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  fullName     String
+  role         UserRole @default(EDITOR)
+  avatarUrl    String?
+  isActive     Boolean  @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("users")
+}
