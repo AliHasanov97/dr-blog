@@ -10,6 +10,7 @@ import type {
   SearchIndexItem,
 } from "@/lib/types";
 import { USE_MOCK } from "./config";
+import { safeDb } from "./safe";
 import { mockResponse } from "./http";
 import {
   dbGetArticles,
@@ -72,14 +73,19 @@ export async function getArticles(
   } = query;
 
   if (!USE_MOCK) {
-    return dbGetArticles({
-      categorySlug,
-      search,
-      featuredOnly,
-      excludeSlug,
-      page,
-      pageSize,
-    });
+    return safeDb(
+      "məqalə siyahısı",
+      () =>
+        dbGetArticles({
+          categorySlug,
+          search,
+          featuredOnly,
+          excludeSlug,
+          page,
+          pageSize,
+        }),
+      { items: [], page, pageSize, total: 0, totalPages: 1 },
+    );
   }
 
   let items = publishedArticles().map(toSummary);
@@ -114,7 +120,7 @@ export async function getLatestArticles(limit = 3): Promise<ArticleSummary[]> {
 /** Ayın əsas məqaləsi */
 export async function getFeaturedArticle(): Promise<ArticleSummary | null> {
   if (!USE_MOCK) {
-    return dbGetFeaturedArticle();
+    return safeDb("əsas məqalə", () => dbGetFeaturedArticle(), null);
   }
   const featured = publishedArticles().find((a) => a.isFeatured);
   return mockResponse(featured ? toSummary(featured) : null);
@@ -123,7 +129,7 @@ export async function getFeaturedArticle(): Promise<ArticleSummary | null> {
 /** Slug üzrə tam məqalə */
 export async function getArticleBySlug(slug: string): Promise<Article | null> {
   if (!USE_MOCK) {
-    return dbGetArticleBySlug(slug);
+    return safeDb("məqalə", () => dbGetArticleBySlug(slug), null);
   }
   return mockResponse(publishedArticles().find((a) => a.slug === slug) ?? null);
 }
@@ -131,7 +137,7 @@ export async function getArticleBySlug(slug: string): Promise<Article | null> {
 /** Bütün slug-lar — generateStaticParams üçün */
 export async function getArticleSlugs(): Promise<string[]> {
   if (!USE_MOCK) {
-    return dbGetArticleSlugs();
+    return safeDb("məqalə ünvanları", () => dbGetArticleSlugs(), []);
   }
   return mockResponse(publishedArticles().map((a) => a.slug));
 }
@@ -142,7 +148,7 @@ export async function getRelatedArticles(
   limit = 2,
 ): Promise<ArticleSummary[]> {
   if (!USE_MOCK) {
-    return dbGetRelatedArticles(slug, limit);
+    return safeDb("oxşar məqalələr", () => dbGetRelatedArticles(slug, limit), []);
   }
   const list = publishedArticles();
   const current = list.find((a) => a.slug === slug);
@@ -158,7 +164,7 @@ export async function getRelatedArticles(
 /** Məqalənin şərhləri */
 export async function getComments(slug: string): Promise<Comment[]> {
   if (!USE_MOCK) {
-    return dbGetComments(slug);
+    return safeDb("şərhlər", () => dbGetComments(slug), []);
   }
   // Yalnız təsdiqlənmiş şərhlər göstərilir; cavablar ana şərhin altına yığılır
   const approved = store.comments.filter(
@@ -207,7 +213,7 @@ export async function postComment(
 
 export async function getCategories(): Promise<Category[]> {
   if (!USE_MOCK) {
-    return dbGetCategories();
+    return safeDb("kateqoriyalar", () => dbGetCategories(), []);
   }
   return mockResponse(store.categories);
 }
@@ -220,14 +226,14 @@ export const getTopReadArticles = () => mockResponse(mockTopRead);
 
 export async function getVideos() {
   if (!USE_MOCK) {
-    return dbGetVideos();
+    return safeDb("videolar", () => dbGetVideos(), []);
   }
   return mockResponse(store.videos);
 }
 
 export async function getProtocols() {
   if (!USE_MOCK) {
-    return dbGetProtocols();
+    return safeDb("protokollar", () => dbGetProtocols(), []);
   }
   return mockResponse(store.protocols);
 }
@@ -242,7 +248,7 @@ export async function getSearchIndex(
   limit = 8,
 ): Promise<SearchIndexItem[]> {
   if (!USE_MOCK) {
-    return dbGetSearchIndex(query, limit);
+    return safeDb("axtarış indeksi", () => dbGetSearchIndex(query, limit), []);
   }
   const q = query?.trim().toLocaleLowerCase("az");
   const all = publishedArticles().map((a) => ({

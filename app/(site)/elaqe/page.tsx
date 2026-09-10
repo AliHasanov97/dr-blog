@@ -16,6 +16,13 @@ import {
 } from "@/lib/api";
 import { siteConfig } from "@/lib/site";
 
+/*
+ * Əlaqə səhifəsi məzmunu bazadan gəlir. Konteynerdə qurulanda baza
+ * əlçatan olmaya bilər — bu halda səhifə boş qurulur, sonra bir
+ * dəqiqə ərzində özü yenilənir.
+ */
+export const revalidate = 60;
+
 export const metadata: Metadata = {
   title: "Əlaqə",
   description:

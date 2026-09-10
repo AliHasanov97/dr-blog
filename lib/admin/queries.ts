@@ -1,7 +1,8 @@
 import "server-only";
 import { store, type AdminArticle, type AdminComment } from "@/lib/mock/store";
 import { USE_MOCK } from "@/lib/api/config";
-import type { SiteSettings } from "@/lib/settings";
+import { DEFAULT_SETTINGS, type SiteSettings } from "@/lib/settings";
+import { safeDb } from "@/lib/api/safe";
 import {
   dbGetDashboardStats,
   dbGetViewsByArticle,
@@ -196,7 +197,10 @@ export async function getContactInfo() {
 export async function getSiteSettings(): Promise<SiteSettings> {
   if (!USE_MOCK) {
     const { dbGetSiteSettings } = await import("@/lib/db/admin");
-    return dbGetSiteSettings();
+    /* Parametrlər hər səhifədə oxunur — baza qopanda sayt dayanmamalıdır */
+    return safeDb("sayt parametrləri", dbGetSiteSettings, {
+      ...DEFAULT_SETTINGS,
+    });
   }
   return store.settings;
 }

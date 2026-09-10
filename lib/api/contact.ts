@@ -7,6 +7,7 @@ import type {
   OfficeLocation,
 } from "@/lib/types";
 import { USE_MOCK } from "./config";
+import { safeDb } from "./safe";
 import { mockResponse } from "./http";
 import {
   dbGetContactChannels,
@@ -17,21 +18,21 @@ import {
 } from "@/lib/db/contact";
 
 export const getContactChannels = async (): Promise<ContactChannel[]> => {
-  if (!USE_MOCK) return dbGetContactChannels();
+  if (!USE_MOCK)
+    return safeDb("əlaqə kanalları", dbGetContactChannels, []);
   return mockResponse(store.channels);
 };
 
 export const getOfficeLocation = async (): Promise<OfficeLocation> => {
   if (!USE_MOCK) {
-    const office = await dbGetOfficeLocation();
-    if (!office) throw new Error("Office location not found");
-    return office;
+    const office = await safeDb("ünvan", dbGetOfficeLocation, null);
+    return office ?? store.office;
   }
   return mockResponse(store.office);
 };
 
 export const getFaq = async (): Promise<FaqItem[]> => {
-  if (!USE_MOCK) return dbGetFaqItems();
+  if (!USE_MOCK) return safeDb("tez-tez verilən suallar", dbGetFaqItems, []);
   return mockResponse(store.faq);
 };
 

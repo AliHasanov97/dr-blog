@@ -12,6 +12,13 @@ import { Alert, Card, Icon, SectionHeader } from "@/components/ui";
 import { getContactChannels, getDoctorProfile } from "@/lib/api";
 import { siteConfig } from "@/lib/site";
 
+/*
+ * Haqqında səhifəsi məzmunu bazadan gəlir. Konteynerdə qurulanda baza
+ * əlçatan olmaya bilər — bu halda səhifə boş qurulur, sonra bir
+ * dəqiqə ərzində özü yenilənir.
+ */
+export const revalidate = 60;
+
 export const metadata: Metadata = {
   title: "Haqqında",
   description:

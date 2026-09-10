@@ -35,8 +35,18 @@ interface PageProps {
 export const revalidate = 60;
 
 export async function generateStaticParams() {
-  const slugs = await getArticleSlugs();
-  return slugs.map((slug) => ({ slug }));
+  /*
+   * Konteynerdə qurulanda baza əlçatan olmaya bilər — build bundan
+   * asılı olmamalıdır. Siyahı boş qalsa səhifələr ilk açılışda qurulur
+   * və ISR ilə keşlənir, yəni oxucu üçün fərq görünmür.
+   */
+  try {
+    const slugs = await getArticleSlugs();
+    return slugs.map((slug) => ({ slug }));
+  } catch {
+    console.warn("[build] Məqalə siyahısı alınmadı — səhifələr sorğu ilə qurulacaq.");
+    return [];
+  }
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {

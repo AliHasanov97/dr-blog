@@ -9,6 +9,13 @@ import {
   getHomeFilters,
 } from "@/lib/api";
 
+/*
+ * Ana səhifə məzmunu bazadan gəlir. Konteynerdə qurulanda baza
+ * əlçatan olmaya bilər — bu halda səhifə boş qurulur, sonra bir
+ * dəqiqə ərzində özü yenilənir.
+ */
+export const revalidate = 60;
+
 export default async function HomePage() {
   const [doctor, articlesPage, filters, settings] = await Promise.all([
     getDoctorProfile(),
