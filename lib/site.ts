@@ -13,7 +13,7 @@ export const navItems: NavItem[] = [
 ];
 
 export const siteConfig = {
-  name: "Dr. Nərmin Əliyeva",
+  name: "Dr. Ələkbər Zeynili",
   title: "T.e.n., Kardioloq & Terapevt",
   description:
     "Kardiologiya üzrə elmi məqalələr, klinik icmallar və pasiyentlər üçün sübuta əsaslanan sağlamlıq bələdçiləri.",

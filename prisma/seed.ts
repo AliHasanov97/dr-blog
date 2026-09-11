@@ -14,7 +14,7 @@ const mockCategories = [
 ];
 
 const mockDoctor = {
-  fullName: "Dr. Nərmin Əliyeva",
+  fullName: "Dr. Ələkbər Zeynili",
   shortTitle: "T.e.n., Kardioloq & Terapevt",
   fullTitle: "Tibb Elmləri Namizədi (Ph.D.) • Kardioloq-Aritmoloq & Elmi Tədqiqatçı",
   avatarUrl: "/images/doctor-avatar.svg",
@@ -129,7 +129,7 @@ const mockProtocols = [
 ];
 
 const mockUsers = [
-  { email: "admin@drnarmin.az", password: "Admin123!", fullName: "Dr. Nərmin Əliyeva", role: UserRole.ADMIN, avatarUrl: "/images/doctor-avatar.svg" },
+  { email: "admin@drnarmin.az", password: "Admin123!", fullName: "Dr. Ələkbər Zeynili", role: UserRole.ADMIN, avatarUrl: "/images/doctor-avatar.svg" },
   { email: "redaktor@drnarmin.az", password: "Redaktor123!", fullName: "Aygün Məmmədova", role: UserRole.EDITOR },
 ];
 

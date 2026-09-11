@@ -16,7 +16,7 @@ export interface NewsletterCardProps {
 export function NewsletterCard({
   title = "Həftəlik Tibbi Bülleten",
   subtitle = "Elmi yeniliklər və kardiologiya təhlilləri poçtunuzda",
-  description = "Dr. Nərmin Əliyevanın rəhbərliyi ilə hazırlanan sübutlu tibb xülasələri və sağlam həyat bələdçisi.",
+  description = "Həkimin rəhbərliyi ilə hazırlanan sübutlu tibb xülasələri və sağlam həyat bələdçisi.",
   className,
 }: NewsletterCardProps) {
   const [email, setEmail] = useState("");

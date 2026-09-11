@@ -4,6 +4,7 @@ import { AdminShell } from "@/components/admin";
 import type { AdminNavGroup } from "@/components/admin";
 import { logoutAction } from "@/app/admin/login/actions";
 import { getSession } from "@/lib/auth";
+import { getDoctorProfile } from "@/lib/admin/queries";
 import { store } from "@/lib/mock/store";
 
 export const metadata: Metadata = {
@@ -16,6 +17,8 @@ export default async function AdminPanelLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   const session = await getSession();
   if (!session) redirect("/admin/login");
+
+  const doctor = await getDoctorProfile();
 
   const pendingComments = store.comments.filter(
     (c) => c.status === "pending",
@@ -65,7 +68,12 @@ export default async function AdminPanelLayout({
   ];
 
   return (
-    <AdminShell user={session.user} groups={groups} logoutAction={logoutAction}>
+    <AdminShell
+      user={session.user}
+      doctorName={doctor?.fullName || "Həkim"}
+      groups={groups}
+      logoutAction={logoutAction}
+    >
       {children}
     </AdminShell>
   );

@@ -208,8 +208,8 @@ export function ContactForm({
 
         <p className="flex items-start gap-1 font-label text-label-sm text-outline leading-relaxed">
           <Icon name="schedule" size={14} className="mt-0.5" />
-          Müraciətiniz həkimin assistenti və ya Dr. Nərmin Əliyeva tərəfindən
-          24-48 saat ərzində cavablandırılacaqdır.
+          Müraciətiniz həkim və ya assistenti tərəfindən 24-48 saat ərzində
+          cavablandırılacaqdır.
         </p>
       </form>
     </Card>

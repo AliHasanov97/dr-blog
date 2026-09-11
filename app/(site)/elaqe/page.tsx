@@ -23,11 +23,13 @@ import { siteConfig } from "@/lib/site";
  */
 export const revalidate = 60;
 
-export const metadata: Metadata = {
-  title: "Əlaqə",
-  description:
-    "Elmi əməkdaşlıq, mühazirə dəvətləri və məqalələr üzrə suallar üçün Dr. Nərmin Əliyeva ilə birbaşa əlaqə kanalları.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const doctor = await getDoctorProfile();
+  return {
+    title: "Əlaqə",
+    description: `Elmi əməkdaşlıq, mühazirə dəvətləri və məqalələr üzrə suallar üçün ${doctor.fullName} ilə birbaşa əlaqə kanalları.`,
+  };
+}
 
 export default async function ContactPage() {
   const [channels, office, faq, doctor] = await Promise.all([

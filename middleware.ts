@@ -18,12 +18,20 @@ function isSessionValid(value: string | undefined): boolean {
   }
 }
 
+/** Sessiya olmadan da açıla bilən səhifələr */
+const PUBLIC_ADMIN_PATHS = [
+  "/admin/login",
+  "/admin/sifre-berpa",
+  "/admin/sifre-sifirla",
+];
+
 export function middleware(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
   const valid = isSessionValid(request.cookies.get(SESSION_COOKIE)?.value);
+  const isPublicPage = PUBLIC_ADMIN_PATHS.includes(pathname);
   const isLoginPage = pathname === "/admin/login";
 
-  if (!valid && !isLoginPage) {
+  if (!valid && !isPublicPage) {
     const url = request.nextUrl.clone();
     url.pathname = "/admin/login";
     url.search = `?next=${encodeURIComponent(pathname + search)}`;

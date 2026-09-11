@@ -30,7 +30,7 @@ export interface SiteSettings {
 
 /** Bazada sətir olmadıqda və ya sahə əskik olduqda işlədilir */
 export const DEFAULT_SETTINGS: SiteSettings = {
-  siteName: "Dr. Nərmin Əliyeva",
+  siteName: "Dr. Ələkbər Zeynili",
   tagline: "T.e.n., Kardioloq & Terapevt",
   description:
     "Kardiologiya üzrə elmi məqalələr, klinik icmallar və pasiyentlər üçün sübuta əsaslanan sağlamlıq bələdçiləri.",

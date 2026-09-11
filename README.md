@@ -1,4 +1,4 @@
-# Dr. Nərmin Əliyeva — Front-end
+# Dr. Ələkbər Zeynili — Front-end
 
 Stitch dizaynı (`stitch_modern_doctor_blog_redesign`) əsasında qurulmuş
 **Next.js 16 (App Router) + React 19 + TypeScript + Tailwind CSS v4** layihəsi.

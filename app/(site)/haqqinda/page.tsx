@@ -19,11 +19,13 @@ import { siteConfig } from "@/lib/site";
  */
 export const revalidate = 60;
 
-export const metadata: Metadata = {
-  title: "Haqqında",
-  description:
-    "Dr. Nərmin Əliyeva — bioqrafiya, elmi dərəcələr, təhsil, tədqiqat sahələri və rəsmi kanallar.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const doctor = await getDoctorProfile();
+  return {
+    title: "Haqqında",
+    description: `${doctor.fullName} — bioqrafiya, elmi dərəcələr, təhsil, tədqiqat sahələri və rəsmi kanallar.`,
+  };
+}
 
 export default async function AboutPage() {
   const [doctor, channels] = await Promise.all([
@@ -113,7 +115,6 @@ export default async function AboutPage() {
 
         <ContactForm
           title="Müraciət Forması"
-          description="Mesajınız Dr. Nərmin Əliyevanın assistenti tərəfindən nəzərdən keçirilir və 24-48 saat ərzində cavablandırılır."
           withConsent={false}
           withSubject={false}
         />

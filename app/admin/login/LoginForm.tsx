@@ -1,8 +1,10 @@
 "use client";
 
+import Link from "next/link";
 import { useActionState, useState } from "react";
 import { Button, Icon, TextField } from "@/components/ui";
 import { loginAction, type LoginState } from "./actions";
+import { USE_MOCK } from "@/lib/api/config";
 import { cn } from "@/lib/utils";
 
 export interface DemoAccount {
@@ -64,6 +66,13 @@ export function LoginForm({ next, demoAccounts }: LoginFormProps) {
           </button>
         </div>
 
+        <Link
+          href="/admin/sifre-berpa"
+          className="self-end -mt-space-xs font-label text-label-md text-secondary hover:underline"
+        >
+          Şifrəni unutmusunuz?
+        </Link>
+
         {state.error && (
           <p
             role="alert"
@@ -79,43 +88,46 @@ export function LoginForm({ next, demoAccounts }: LoginFormProps) {
         </Button>
       </form>
 
-      {/* Demo hesabları — yalnız mock mərhələsində */}
-      <div className="rounded-lg border border-dashed border-outline-variant bg-surface-container-low/60 p-space-md">
-        <p className="flex items-center gap-1 font-label text-label-sm uppercase tracking-wider text-outline mb-space-xs">
-          <Icon name="science" size={14} />
-          Demo hesabları (mock mərhələ)
-        </p>
-        <div className="flex flex-col gap-space-xs">
-          {demoAccounts.map((acc) => (
-            <button
-              key={acc.email}
-              type="button"
-              onClick={() => {
-                setEmail(acc.email);
-                setPassword(acc.password);
-              }}
-              className={cn(
-                "flex items-center justify-between gap-space-sm rounded-md border border-surface-container",
-                "bg-surface-container-lowest px-space-sm py-space-xs text-start",
-                "hover:border-secondary/40 transition-colors",
-              )}
-            >
-              <span className="flex flex-col min-w-0">
-                <span className="font-label text-label-md text-on-surface truncate">
-                  {acc.email}
+      {/* Demo hesabları — yalnız mock rejimdə göstərilir, baza rejimində bu
+       * hesablar həqiqətən mövcud olmaya bilər */}
+      {USE_MOCK && (
+        <div className="rounded-lg border border-dashed border-outline-variant bg-surface-container-low/60 p-space-md">
+          <p className="flex items-center gap-1 font-label text-label-sm uppercase tracking-wider text-outline mb-space-xs">
+            <Icon name="science" size={14} />
+            Demo hesabları (mock mərhələ)
+          </p>
+          <div className="flex flex-col gap-space-xs">
+            {demoAccounts.map((acc) => (
+              <button
+                key={acc.email}
+                type="button"
+                onClick={() => {
+                  setEmail(acc.email);
+                  setPassword(acc.password);
+                }}
+                className={cn(
+                  "flex items-center justify-between gap-space-sm rounded-md border border-surface-container",
+                  "bg-surface-container-lowest px-space-sm py-space-xs text-start",
+                  "hover:border-secondary/40 transition-colors",
+                )}
+              >
+                <span className="flex flex-col min-w-0">
+                  <span className="font-label text-label-md text-on-surface truncate">
+                    {acc.email}
+                  </span>
+                  <span className="font-label text-label-sm text-outline">
+                    {acc.fullName} • {acc.password}
+                  </span>
                 </span>
-                <span className="font-label text-label-sm text-outline">
-                  {acc.fullName} • {acc.password}
+                <span className="shrink-0 inline-flex items-center gap-1 font-label text-label-sm text-secondary">
+                  Doldur
+                  <Icon name="content_paste_go" size={14} />
                 </span>
-              </span>
-              <span className="shrink-0 inline-flex items-center gap-1 font-label text-label-sm text-secondary">
-                Doldur
-                <Icon name="content_paste_go" size={14} />
-              </span>
-            </button>
-          ))}
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

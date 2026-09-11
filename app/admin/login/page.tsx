@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Icon } from "@/components/ui";
 import { LoginForm } from "./LoginForm";
 import { demoAccounts } from "@/lib/auth";
-import { siteConfig } from "@/lib/site";
+import { getDoctorProfile } from "@/lib/api";
 
 export const metadata: Metadata = {
   title: "İdarə panelinə giriş",
@@ -15,7 +15,7 @@ interface PageProps {
 }
 
 export default async function AdminLoginPage({ searchParams }: PageProps) {
-  const { next } = await searchParams;
+  const [{ next }, doctor] = await Promise.all([searchParams, getDoctorProfile()]);
 
   return (
     <div className="min-h-screen grid lg:grid-cols-2">
@@ -40,7 +40,7 @@ export default async function AdminLoginPage({ searchParams }: PageProps) {
             <Icon name="monitor_heart" size={20} />
           </span>
           <span className="font-headline text-headline-sm text-on-primary">
-            {siteConfig.name}
+            {doctor.fullName}
           </span>
         </div>
 
@@ -70,7 +70,7 @@ export default async function AdminLoginPage({ searchParams }: PageProps) {
         </div>
 
         <p className="relative font-label text-label-sm text-on-primary-container/70">
-          © {new Date().getFullYear()} {siteConfig.name}
+          © {new Date().getFullYear()} {doctor.fullName}
         </p>
       </div>
 
@@ -83,7 +83,7 @@ export default async function AdminLoginPage({ searchParams }: PageProps) {
                 <Icon name="monitor_heart" size={20} />
               </span>
               <span className="font-headline text-headline-sm text-on-surface">
-                {siteConfig.name}
+                {doctor.fullName}
               </span>
             </span>
             <h2 className="font-headline text-headline-lg text-on-surface">

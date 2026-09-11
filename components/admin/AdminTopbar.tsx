@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { Icon } from "@/components/ui";
 import type { AdminUser } from "@/lib/auth/types";
 import { roleLabels } from "@/lib/auth/types";
@@ -79,6 +80,14 @@ export function AdminTopbar({ user, onMenuClick, logoutAction }: AdminTopbarProp
                     {user.email}
                   </p>
                 </div>
+                <Link
+                  href="/admin/hesabim"
+                  onClick={() => setMenuOpen(false)}
+                  className="flex items-center gap-space-xs px-space-md py-space-sm font-label text-label-lg text-on-surface hover:bg-surface-container-low transition-colors"
+                >
+                  <Icon name="lock_reset" size={18} />
+                  Şifrəni dəyiş
+                </Link>
                 <form action={logoutAction}>
                   <button
                     type="submit"

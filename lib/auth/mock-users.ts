@@ -15,7 +15,7 @@ export const mockCredentials: MockCredential[] = [
     user: {
       id: "usr-1",
       email: "admin@drnarmin.az",
-      fullName: "Dr. Nərmin Əliyeva",
+      fullName: "Dr. Ələkbər Zeynili",
       role: "admin",
       avatarUrl: "/images/doctor-avatar.svg",
     },

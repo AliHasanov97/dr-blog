@@ -72,7 +72,7 @@ export const mockArticles: Article[] = [
         label: "Həkimin tövsiyəsi",
         icon: "cardiology",
         text: "Gündə 30 dəqiqə fasiləsiz orta templi gəzinti ürək-damar xəstəlikləri riskini 35% azaldır. Fizioterapevtik hərəkət qan damarlarında azot-oksid (NO) sintezini təbii yolla stimullaşdırır.",
-        attribution: "Dr. Nərmin Əliyeva, ESC Tədqiqat Qrupu",
+        attribution: "Dr. Ələkbər Zeynili, ESC Tədqiqat Qrupu",
       },
       {
         type: "heading",
@@ -186,7 +186,7 @@ export const mockArticles: Article[] = [
         label: "Kliniki xəbərdarlıq",
         icon: "e911_emergency",
         text: "20 dəqiqədən artıq davam edən, istirahətlə keçməyən hər hansı sinə diskomfortu — hətta zəif olsa belə — 103 xidmətinə zəng üçün kifayət edən əsasdır.",
-        attribution: "Dr. Nərmin Əliyeva",
+        attribution: "Dr. Ələkbər Zeynili",
       },
       {
         type: "heading",
@@ -344,7 +344,7 @@ export const mockArticles: Article[] = [
         label: "Nə vaxt təcili müraciət?",
         icon: "warning",
         text: "Ürəkdöyünmə huşitirmə, göz qaralması və ya sinə ağrısı ilə müşayiət olunursa, bu, mütləq təxirəsalınmaz kardioloji qiymətləndirmə tələb edir.",
-        attribution: "Dr. Nərmin Əliyeva",
+        attribution: "Dr. Ələkbər Zeynili",
       },
     ],
     references: [
@@ -398,7 +398,7 @@ export const mockArticles: Article[] = [
         label: "Vacib qeyd",
         icon: "info",
         text: "Dərman qəbulu saatının dəyişdirilməsi yalnız müalicə həkiminin nəzarəti altında və sutkalıq monitorinq nəticəsinə əsasən aparılmalıdır.",
-        attribution: "Dr. Nərmin Əliyeva",
+        attribution: "Dr. Ələkbər Zeynili",
       },
     ],
     references: [
@@ -517,7 +517,7 @@ export const mockArticles: Article[] = [
         label: "Kliniki məhdudiyyət",
         icon: "info",
         text: "Şəkərli diabetin dərman terapiyası fonunda, hamiləlikdə və yeyinti pozğunluğu anamnezi olan şəxslərdə bu rejim həkim nəzarəti olmadan tətbiq edilməməlidir.",
-        attribution: "Dr. Nərmin Əliyeva",
+        attribution: "Dr. Ələkbər Zeynili",
       },
     ],
     references: [
@@ -605,7 +605,7 @@ export const mockComments: Record<string, Comment[]> = {
       replies: [
         {
           id: "cm-1-r1",
-          authorName: "Dr. Nərmin Əliyeva",
+          authorName: "Dr. Ələkbər Zeynili",
           authorInitials: "NƏ",
           authorRole: "Müəllif",
           authorAvatarUrl: "/images/doctor-avatar.svg",

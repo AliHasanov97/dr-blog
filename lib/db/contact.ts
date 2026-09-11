@@ -2,6 +2,7 @@ import { randomBytes } from "node:crypto";
 import { prisma } from "@/lib/prisma";
 import { sendMail } from "@/lib/mail";
 import { inboxNotificationEmail, welcomeEmail } from "@/lib/mail/templates";
+import { dbGetArticleAuthor } from "@/lib/db/doctor";
 import type {
   ContactChannel,
   ContactFormValues,
@@ -85,17 +86,20 @@ export async function dbSubmitContactMessage(
     /* Həkimə bildiriş — admin panelini daim yoxlamaq lazım gəlməsin deyə.
      * Məktub getməsə də müraciət qeydə alınıb, ona görə nəticəsi
      * cavabı dəyişmir. */
+    const author = await dbGetArticleAuthor();
     const notice = inboxNotificationEmail({
       fullName: values.fullName,
       contact: values.contact,
       subject: values.subject,
       message: values.message,
+      brandName: author?.fullName ?? "Həkim",
     });
     await sendMail({
       to: process.env.GMAIL_USER ?? "",
       subject: notice.subject,
       html: notice.html,
       text: notice.text,
+      fromName: author?.fullName,
       /* Həkim məktuba birbaşa cavab verə bilsin (e-poçt yazılıbsa) */
       replyTo: /^\S+@\S+\.\S+$/.test(values.contact.trim())
         ? values.contact.trim()
@@ -157,12 +161,14 @@ export async function dbSubscribeNewsletter(
 
     /* Təsdiq məktubu — göndərilməsə də abunə qüvvədədir, ona görə
      * nəticəsi abunənin uğurunu dəyişmir. */
-    const welcome = welcomeEmail(token);
+    const welcomeAuthor = await dbGetArticleAuthor();
+    const welcome = welcomeEmail(token, welcomeAuthor?.fullName ?? "Həkim");
     const mail = await sendMail({
       to: email,
       subject: welcome.subject,
       html: welcome.html,
       text: welcome.text,
+      fromName: welcomeAuthor?.fullName,
     });
 
     return {

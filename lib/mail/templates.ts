@@ -29,6 +29,7 @@ export function unsubscribeUrl(token: string): string {
 function layout(options: {
   title: string;
   body: string;
+  brandName: string;
   unsubscribeToken?: string;
 }): string {
   const footer = options.unsubscribeToken
@@ -44,7 +45,7 @@ function layout(options: {
 <body style="margin:0;padding:24px;background:#f4f6fa;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#1f2937">
   <div style="max-width:600px;margin:0 auto;background:#ffffff;border-radius:12px;padding:32px">
     <div style="border-bottom:2px solid ${ACCENT};padding-bottom:12px;margin-bottom:24px">
-      <span style="font-size:18px;font-weight:600;color:${BRAND}">Dr. Nərmin Əliyeva</span>
+      <span style="font-size:18px;font-weight:600;color:${BRAND}">${escapeHtml(options.brandName)}</span>
       <span style="display:block;font-size:13px;color:${MUTED};margin-top:2px">Kardiologiya · Sübutlu tibb</span>
     </div>
     ${options.body}
@@ -58,12 +59,13 @@ function layout(options: {
  * Abunə təsdiqi
  * ------------------------------------------------------------ */
 
-export function welcomeEmail(unsubscribeToken: string) {
+export function welcomeEmail(unsubscribeToken: string, brandName: string) {
   const url = siteUrl();
   return {
     subject: "Abunəliyiniz təsdiqləndi — Həftəlik Tibbi Bülleten",
     html: layout({
       title: "Xoş gəldiniz",
+      brandName,
       unsubscribeToken,
       body: `
         <h1 style="margin:0 0 16px;font-size:22px;line-height:30px;color:${BRAND}">Abunəliyiniz təsdiqləndi</h1>
@@ -94,6 +96,48 @@ export function welcomeEmail(unsubscribeToken: string) {
 }
 
 /* --------------------------------------------------------------
+ * Şifrə bərpası
+ * ------------------------------------------------------------ */
+
+/** Admin şifrəsini unudanda göndərilən bərpa linki — 1 saat etibarlıdır */
+export function resetPasswordEmail(options: {
+  resetUrl: string;
+  brandName: string;
+}) {
+  return {
+    subject: "Şifrənizi bərpa edin",
+    html: layout({
+      title: "Şifrə bərpası",
+      brandName: options.brandName,
+      body: `
+        <h1 style="margin:0 0 16px;font-size:22px;line-height:30px;color:${BRAND}">Şifrə bərpası</h1>
+        <p style="margin:0 0 12px;font-size:15px;line-height:24px">
+          İdarə paneli hesabınız üçün şifrə bərpası tələb olundu. Aşağıdakı
+          düyməyə klikləyib yeni şifrə təyin edə bilərsiniz.
+        </p>
+        <a href="${options.resetUrl}"
+           style="display:inline-block;background:${ACCENT};color:#ffffff;text-decoration:none;padding:12px 20px;border-radius:8px;font-size:15px;font-weight:600">
+          Şifrəni bərpa et
+        </a>
+        <p style="margin:20px 0 0;font-size:13px;line-height:20px;color:${MUTED}">
+          Bu link 1 saat ərzində etibarlıdır. Bu tələbi siz etməmisinizsə,
+          bu məktubu nəzərə almayın — şifrəniz dəyişmir.
+        </p>`,
+    }),
+    text: [
+      "Şifrə bərpası",
+      "",
+      "İdarə paneli hesabınız üçün şifrə bərpası tələb olundu.",
+      "Yeni şifrə təyin etmək üçün bu linkə keçin:",
+      "",
+      options.resetUrl,
+      "",
+      "Bu link 1 saat ərzində etibarlıdır. Bu tələbi siz etməmisinizsə, bu məktubu nəzərə almayın.",
+    ].join("\n"),
+  };
+}
+
+/* --------------------------------------------------------------
  * Bülleten buraxılışı
  * ------------------------------------------------------------ */
 
@@ -105,6 +149,7 @@ export function welcomeEmail(unsubscribeToken: string) {
 export function newsletterEmail(options: {
   subject: string;
   bodyText: string;
+  brandName: string;
   unsubscribeToken?: string;
 }) {
   const paragraphs = options.bodyText
@@ -123,6 +168,7 @@ export function newsletterEmail(options: {
     subject: options.subject,
     html: layout({
       title: options.subject,
+      brandName: options.brandName,
       unsubscribeToken: options.unsubscribeToken,
       body: `
         <h1 style="margin:0 0 16px;font-size:22px;line-height:30px;color:${BRAND}">${escapeHtml(
@@ -144,12 +190,14 @@ export function inboxNotificationEmail(options: {
   contact: string;
   subject: string;
   message: string;
+  brandName: string;
 }) {
   const url = siteUrl();
   return {
     subject: `Yeni müraciət: ${options.subject}`,
     html: layout({
       title: "Yeni müraciət",
+      brandName: options.brandName,
       body: `
         <h1 style="margin:0 0 16px;font-size:20px;line-height:28px;color:${BRAND}">Yeni müraciət</h1>
         <p style="margin:0 0 6px;font-size:14px;line-height:22px"><strong>Kimdən:</strong> ${escapeHtml(

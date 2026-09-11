@@ -19,13 +19,14 @@ export interface AdminNavGroup {
 }
 
 export interface AdminSidebarProps {
+  doctorName: string;
   groups: AdminNavGroup[];
   /** Mobil çekmecə açıqdır */
   open: boolean;
   onClose: () => void;
 }
 
-export function AdminSidebar({ groups, open, onClose }: AdminSidebarProps) {
+export function AdminSidebar({ doctorName, groups, open, onClose }: AdminSidebarProps) {
   const pathname = usePathname();
 
   return (
@@ -60,7 +61,7 @@ export function AdminSidebar({ groups, open, onClose }: AdminSidebarProps) {
               İdarə paneli
             </span>
             <span className="font-label text-label-sm text-on-primary-container truncate">
-              Dr. Nərmin Əliyeva
+              {doctorName}
             </span>
           </span>
           <button

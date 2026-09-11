@@ -7,17 +7,19 @@ import type { AdminUser } from "@/lib/auth/types";
 
 export interface AdminShellProps {
   user: AdminUser;
+  doctorName: string;
   groups: AdminNavGroup[];
   logoutAction: () => Promise<void>;
   children: ReactNode;
 }
 
-export function AdminShell({ user, groups, logoutAction, children }: AdminShellProps) {
+export function AdminShell({ user, doctorName, groups, logoutAction, children }: AdminShellProps) {
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
     <div className="min-h-screen bg-surface">
       <AdminSidebar
+        doctorName={doctorName}
         groups={groups}
         open={menuOpen}
         onClose={() => setMenuOpen(false)}

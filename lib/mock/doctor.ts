@@ -1,7 +1,7 @@
 import type { Author, DoctorProfile } from "@/lib/types";
 
 export const mockDoctor: DoctorProfile = {
-  fullName: "Dr. Nərmin Əliyeva",
+  fullName: "Dr. Ələkbər Zeynili",
   shortTitle: "T.e.n., Kardioloq & Terapevt",
   fullTitle:
     "Tibb Elmləri Namizədi (Ph.D.) • Kardioloq-Aritmoloq & Elmi Tədqiqatçı",

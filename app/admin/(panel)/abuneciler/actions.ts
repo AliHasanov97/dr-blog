@@ -5,6 +5,7 @@ import type { ActionResult } from "@/lib/admin/types";
 import { store } from "@/lib/mock/store";
 import { USE_MOCK } from "@/lib/api/config";
 import { dbToggleSubscriber, dbDeleteSubscriber } from "@/lib/db/admin";
+import { dbGetArticleAuthor } from "@/lib/db/doctor";
 import { prisma } from "@/lib/prisma";
 import { isMailConfigured, sendMail, verifyMailConnection } from "@/lib/mail";
 import { newsletterEmail } from "@/lib/mail/templates";
@@ -103,6 +104,9 @@ export async function sendNewsletter(
     return { success: false, message: "Aktiv abunəçi yoxdur." };
   }
 
+  const author = await dbGetArticleAuthor();
+  const brandName = author?.fullName ?? "Həkim";
+
   let sent = 0;
   let failed = 0;
 
@@ -113,6 +117,7 @@ export async function sendNewsletter(
         const mail = newsletterEmail({
           subject: cleanSubject,
           bodyText: cleanBody,
+          brandName,
           unsubscribeToken: subscriber.unsubscribeToken,
         });
         return sendMail({
@@ -120,6 +125,7 @@ export async function sendNewsletter(
           subject: mail.subject,
           html: mail.html,
           text: mail.text,
+          fromName: brandName,
         });
       }),
     );

@@ -67,6 +67,8 @@ export interface MailInput {
   html: string;
   text: string;
   replyTo?: string;
+  /** Məktubda görünən göndərən adı — verilməsə `.env`-dəki MAIL_FROM_NAME işlədilir */
+  fromName?: string;
 }
 
 export interface MailResult {
@@ -85,7 +87,8 @@ export async function sendMail(input: MailInput): Promise<MailResult> {
     return { success: false, skipped: true };
   }
 
-  const fromName = process.env.MAIL_FROM_NAME?.trim() || "Dr. Nərmin Əliyeva";
+  const fromName =
+    input.fromName?.trim() || process.env.MAIL_FROM_NAME?.trim() || "Həkim";
 
   try {
     await tx.sendMail({
