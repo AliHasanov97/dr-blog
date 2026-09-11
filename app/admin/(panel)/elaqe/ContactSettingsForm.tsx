@@ -90,15 +90,15 @@ export function ContactSettingsForm({
     <div className="rounded-xl border border-surface-container bg-surface-container-lowest overflow-hidden">
       {/* Header with tabs */}
       <div className="border-b border-surface-container">
-        <div className="flex items-center justify-between px-space-md py-space-sm">
-          <div className="flex gap-1">
+        <div className="flex flex-col gap-space-sm sm:flex-row sm:items-center sm:justify-between px-space-md py-space-sm">
+          <div className="flex gap-1 overflow-x-auto scrollbar-none -mx-1 px-1">
             {TABS.map((tab) => (
               <button
                 key={tab.id}
                 type="button"
                 onClick={() => setActiveTab(tab.id)}
                 className={cn(
-                  "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors",
+                  "flex shrink-0 items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors",
                   activeTab === tab.id
                     ? "bg-secondary text-on-secondary"
                     : "text-outline hover:bg-surface-container hover:text-on-surface"
@@ -109,7 +109,7 @@ export function ContactSettingsForm({
               </button>
             ))}
           </div>
-          <div className="flex items-center gap-space-sm">
+          <div className="flex items-center gap-space-sm shrink-0">
             {feedback && (
               <span className={cn(
                 "flex items-center gap-1 text-sm",
@@ -179,7 +179,7 @@ export function ContactSettingsForm({
                   <div className="w-10 h-10 rounded-lg bg-secondary/10 flex items-center justify-center shrink-0">
                     <Icon name={s.icon || "link"} size={20} className="text-secondary" />
                   </div>
-                  <div className="flex-1 grid grid-cols-2 gap-2">
+                  <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-2 min-w-0">
                     <div>
                       <p className="text-xs text-outline mb-1">{s.platform}</p>
                       <input
@@ -304,7 +304,7 @@ export function ContactSettingsForm({
 
             <div className="space-y-3 mb-4">
               {office.schedule.map((item, i) => (
-                <div key={i} className="flex items-center gap-3">
+                <div key={i} className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
                   <input
                     type="text"
                     value={item.day}
@@ -316,27 +316,29 @@ export function ContactSettingsForm({
                     placeholder="Bazar ertəsi – Cümə"
                     className="flex-1 h-10 px-3 rounded-md border border-outline-variant bg-transparent text-sm focus:border-secondary focus:outline-none"
                   />
-                  <input
-                    type="text"
-                    value={item.hours}
-                    onChange={(e) => {
-                      const updated = [...office.schedule];
-                      updated[i] = { ...updated[i], hours: e.target.value };
-                      setOfficeField("schedule", updated);
-                    }}
-                    placeholder="09:00 – 17:30"
-                    className="w-40 h-10 px-3 rounded-md border border-outline-variant bg-transparent text-sm text-center focus:border-secondary focus:outline-none"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const updated = office.schedule.filter((_, idx) => idx !== i);
-                      setOfficeField("schedule", updated);
-                    }}
-                    className="w-9 h-9 rounded-full hover:bg-error/20 flex items-center justify-center text-outline hover:text-error transition-colors"
-                  >
-                    <Icon name="close" size={18} />
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      value={item.hours}
+                      onChange={(e) => {
+                        const updated = [...office.schedule];
+                        updated[i] = { ...updated[i], hours: e.target.value };
+                        setOfficeField("schedule", updated);
+                      }}
+                      placeholder="09:00 – 17:30"
+                      className="flex-1 sm:w-40 sm:flex-none h-10 px-3 rounded-md border border-outline-variant bg-transparent text-sm text-center focus:border-secondary focus:outline-none"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const updated = office.schedule.filter((_, idx) => idx !== i);
+                        setOfficeField("schedule", updated);
+                      }}
+                      className="w-9 h-9 shrink-0 rounded-full hover:bg-error/20 flex items-center justify-center text-outline hover:text-error transition-colors"
+                    >
+                      <Icon name="close" size={18} />
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>

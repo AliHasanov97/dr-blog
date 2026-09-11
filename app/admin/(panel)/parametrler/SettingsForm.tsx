@@ -45,15 +45,15 @@ export function SettingsForm({ settings }: SettingsFormProps) {
     <div className="rounded-xl border border-surface-container bg-surface-container-lowest overflow-hidden">
       {/* Header with tabs */}
       <div className="border-b border-surface-container">
-        <div className="flex items-center justify-between px-space-md py-space-sm">
-          <div className="flex gap-1">
+        <div className="flex flex-col gap-space-sm sm:flex-row sm:items-center sm:justify-between px-space-md py-space-sm">
+          <div className="flex gap-1 overflow-x-auto scrollbar-none -mx-1 px-1">
             {TABS.map((tab) => (
               <button
                 key={tab.id}
                 type="button"
                 onClick={() => setActiveTab(tab.id)}
                 className={cn(
-                  "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors",
+                  "flex shrink-0 items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors",
                   activeTab === tab.id
                     ? "bg-secondary text-on-secondary"
                     : "text-outline hover:bg-surface-container hover:text-on-surface"
@@ -64,7 +64,7 @@ export function SettingsForm({ settings }: SettingsFormProps) {
               </button>
             ))}
           </div>
-          <div className="flex items-center gap-space-sm">
+          <div className="flex items-center gap-space-sm shrink-0">
             {feedback && (
               <span className={cn(
                 "flex items-center gap-1 text-sm",
