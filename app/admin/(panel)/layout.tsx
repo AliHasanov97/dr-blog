@@ -4,8 +4,7 @@ import { AdminShell } from "@/components/admin";
 import type { AdminNavGroup } from "@/components/admin";
 import { logoutAction } from "@/app/admin/login/actions";
 import { getSession } from "@/lib/auth";
-import { getDoctorProfile } from "@/lib/admin/queries";
-import { store } from "@/lib/mock/store";
+import { getDashboardStats, getDoctorProfile } from "@/lib/admin/queries";
 
 export const metadata: Metadata = {
   title: { default: "İdarə paneli", template: "%s | İdarə paneli" },
@@ -18,12 +17,11 @@ export default async function AdminPanelLayout({
   const session = await getSession();
   if (!session) redirect("/admin/login");
 
-  const doctor = await getDoctorProfile();
-
-  const pendingComments = store.comments.filter(
-    (c) => c.status === "pending",
-  ).length;
-  const newMessages = store.messages.filter((m) => m.status === "new").length;
+  const [doctor, stats] = await Promise.all([
+    getDoctorProfile(),
+    getDashboardStats(),
+  ]);
+  const { pendingComments, newMessages } = stats;
 
   const groups: AdminNavGroup[] = [
     {
