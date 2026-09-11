@@ -19,6 +19,7 @@ const SOCIAL_PLATFORMS = [
 ];
 
 const TABS = [
+  { id: "channels", label: "Kanallar", icon: "call" },
   { id: "social", label: "Sosial", icon: "share" },
   { id: "clinic", label: "Klinika", icon: "local_hospital" },
   { id: "schedule", label: "Qrafik", icon: "schedule" },
@@ -37,12 +38,23 @@ export function ContactSettingsForm({
   office: initialOffice,
   socialLinks: initialSocialLinks,
 }: ContactSettingsFormProps) {
-  const [activeTab, setActiveTab] = useState<TabId>("social");
+  const [activeTab, setActiveTab] = useState<TabId>("channels");
   const [pending, startTransition] = useTransition();
   const [feedback, setFeedback] = useState<{ tone: "ok" | "error"; text: string } | null>(null);
-  const [channels] = useState(initialChannels);
+  const [channels, setChannels] = useState(initialChannels);
   const [office, setOffice] = useState(initialOffice);
   const [socialLinks, setSocialLinks] = useState(initialSocialLinks);
+
+  function setChannelField<K extends keyof ContactChannel>(
+    index: number,
+    key: K,
+    value: ContactChannel[K],
+  ) {
+    setChannels((prev) =>
+      prev.map((c, i) => (i === index ? { ...c, [key]: value } : c)),
+    );
+    setFeedback(null);
+  }
 
   function setOfficeField<K extends keyof OfficeLocation>(key: K, value: OfficeLocation[K]) {
     setOffice((prev) => ({ ...prev, [key]: value }));
@@ -116,6 +128,44 @@ export function ContactSettingsForm({
 
       {/* Tab content */}
       <div className="p-space-lg">
+        {/* Kanallar tab */}
+        {activeTab === "channels" && (
+          <div>
+            <p className="text-sm text-outline mb-4">
+              Əlaqə səhifəsindəki nömrə və e-poçtlar
+            </p>
+
+            <div className="space-y-3">
+              {channels.map((c, i) => (
+                <div
+                  key={c.id}
+                  className="flex items-center gap-3 p-3 rounded-lg bg-surface-container/50"
+                >
+                  <span className="w-10 h-10 rounded-lg bg-secondary/10 flex items-center justify-center text-secondary shrink-0">
+                    <Icon name={c.icon} size={18} />
+                  </span>
+                  <div className="flex-1">
+                    <p className="text-xs text-outline mb-1">{c.title}</p>
+                    <input
+                      type="text"
+                      value={c.values.join(", ")}
+                      onChange={(e) =>
+                        setChannelField(
+                          i,
+                          "values",
+                          e.target.value.split(",").map((v) => v.trim()).filter(Boolean),
+                        )
+                      }
+                      placeholder="Nömrə və ya e-poçt"
+                      className="w-full h-9 px-3 rounded-md border border-outline-variant bg-transparent text-sm focus:border-secondary focus:outline-none"
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Sosial tab */}
         {activeTab === "social" && (
           <div>

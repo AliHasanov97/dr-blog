@@ -6,6 +6,12 @@ import { ArticleVideo } from "./ArticleVideo";
 import { ArticleFile } from "./ArticleFile";
 import { renderInline, type InlineOptions } from "@/lib/bbcode";
 import type { ArticleBlock } from "@/lib/types";
+import {
+  GROUP_COLUMN_CLASS,
+  resolveGroupColumns,
+  resolveGroupItemFrame,
+  resolveImageFrame,
+} from "@/lib/article-image";
 import { cn } from "@/lib/utils";
 
 export interface ArticleBodyProps {
@@ -219,6 +225,42 @@ function ArticleBlockRenderer({
       );
     }
 
+    case "imageGroup": {
+      const align = block.align ?? "full";
+      const frame = mediaFrame(align, block.width);
+      const columns = resolveGroupColumns(block.columns, block.items.length);
+      const cell = resolveGroupItemFrame(block);
+      return (
+        <div
+          className={cn("grid gap-space-xs", GROUP_COLUMN_CLASS[columns], frame.className)}
+          style={frame.style}
+        >
+          {block.items.map((item, index) => (
+            <figure key={`${item.src}-${index}`} className="flex flex-col gap-space-2xs">
+              <div
+                className="relative w-full rounded-xl overflow-hidden border border-surface-container bg-surface-container-low"
+                style={cell.frameStyle}
+              >
+                <Image
+                  src={item.src}
+                  alt={item.alt}
+                  fill
+                  sizes="(min-width: 1024px) 320px, 45vw"
+                  className={cell.imageClassName}
+                  style={cell.imageStyle}
+                />
+              </div>
+              {item.caption && (
+                <figcaption className="font-label text-label-sm text-outline text-center">
+                  {renderInline(item.caption, inline)}
+                </figcaption>
+              )}
+            </figure>
+          ))}
+        </div>
+      );
+    }
+
     case "video": {
       const frame = mediaFrame(block.align ?? "full", block.width);
       return (
@@ -248,18 +290,16 @@ function ArticleBlockRenderer({
 
     case "image": {
       const align = block.align ?? "full";
-      const floated = align === "left" || align === "right";
       const frame = mediaFrame(align, block.width);
+      const image = resolveImageFrame(block);
       return (
         <figure
           className={cn("flex flex-col gap-space-xs", frame.className)}
           style={frame.style}
         >
           <div
-            className={cn(
-              "relative w-full rounded-xl overflow-hidden border border-surface-container",
-              floated ? "aspect-[4/3]" : "aspect-[16/9]",
-            )}
+            className="relative w-full rounded-xl overflow-hidden border border-surface-container bg-surface-container-low"
+            style={image.frameStyle}
           >
             <Image
               src={block.src}
@@ -270,7 +310,8 @@ function ArticleBlockRenderer({
                   ? "(min-width: 1440px) 1020px, (min-width: 1024px) 640px, 100vw"
                   : "(min-width: 1440px) 510px, (min-width: 1024px) 320px, 100vw"
               }
-              className="object-cover"
+              className={image.imageClassName}
+              style={image.imageStyle}
             />
           </div>
           {block.caption && (

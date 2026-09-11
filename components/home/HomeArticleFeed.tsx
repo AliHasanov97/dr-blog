@@ -76,7 +76,7 @@ export function HomeArticleFeed({ articles, filters }: HomeArticleFeedProps) {
         />
       ) : (
         <div className="flex flex-col gap-space-lg">
-          {lead && <ArticleCard article={lead} variant="featured" showDoctorNote priority />}
+          {lead && <ArticleCard article={lead} variant="featured" priority />}
           {rest.length > 0 && (
             <div className="grid gap-space-md sm:grid-cols-2 lg:grid-cols-3">
               {rest.slice(0, 3).map((article) => (

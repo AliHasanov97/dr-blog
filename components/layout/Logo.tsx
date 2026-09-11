@@ -1,14 +1,15 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Icon } from "@/components/ui";
-import { siteConfig } from "@/lib/site";
+import type { DoctorProfile } from "@/lib/types";
 
 export interface LogoProps {
+  doctor: DoctorProfile;
   /** Başlığın altındakı kontekst mətni (cari səhifə adı) */
   contextLabel?: string;
 }
 
-export function Logo({ contextLabel }: LogoProps) {
+export function Logo({ doctor, contextLabel }: LogoProps) {
   return (
     <Link href="/" className="flex items-center gap-space-sm min-w-0">
       <Image
@@ -22,13 +23,15 @@ export function Logo({ contextLabel }: LogoProps) {
       <span className="flex flex-col min-w-0">
         <span className="flex items-center gap-space-2xs">
           <span className="font-headline text-headline-sm text-on-surface tracking-tight leading-tight truncate">
-            {siteConfig.name}
+            {doctor.fullName}
           </span>
-          <Icon name="verified" size={16} className="text-secondary" filled />
+          {doctor.isVerified && (
+            <Icon name="verified" size={16} className="text-secondary" filled />
+          )}
         </span>
         <span className="flex items-center gap-space-2xs min-w-0">
           <span className="font-label text-label-sm uppercase tracking-wider text-secondary font-semibold truncate">
-            {siteConfig.title}
+            {doctor.shortTitle}
           </span>
           {contextLabel && (
             <>

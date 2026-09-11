@@ -14,7 +14,9 @@ export type FieldType =
   /** Vizual ikon seçici (ad yazmaq əvəzinə şəkilə klik) */
   | "icon"
   /** Vizual şəkil seçici */
-  | "image";
+  | "image"
+  /** Endirilə bilən fayl seçici (PDF, DOC, XLS və s.) */
+  | "file";
 
 export interface ResourceField {
   name: string;
@@ -27,6 +29,11 @@ export interface ResourceField {
   /** Formda tutduğu sütun sayı (2 sütunlu grid) */
   colSpan?: 1 | 2;
   rows?: number;
+  /**
+   * `type: "file"` üçün: fayl seçiləndə ölçüsü (məs. "2.4 MB") avtomatik
+   * bu adlı sahəyə yazılır — istifadəçi əl ilə yazmır.
+   */
+  sizeField?: string;
 }
 
 /**

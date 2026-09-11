@@ -36,11 +36,9 @@ function scoreItem(item: SearchIndexItem, q: string): number {
   const title = normalize(item.title);
   const excerpt = normalize(item.excerpt);
   const category = normalize(item.categoryName);
-  const tags = (item.tags ?? []).map(normalize).join(" ");
 
   if (title.startsWith(q)) return 100;
   if (title.includes(q)) return 80;
-  if (tags.includes(q)) return 60;
   if (category.includes(q)) return 40;
   if (excerpt.includes(q)) return 20;
   return 0;
@@ -284,8 +282,6 @@ export function SearchDialog({
                           <span className="text-secondary font-semibold">
                             {item.categoryName}
                           </span>
-                          <span aria-hidden="true">•</span>
-                          <span>{item.readMinutes} dəq oxu</span>
                         </span>
                       </span>
                       {i === active && (

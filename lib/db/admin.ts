@@ -1,6 +1,17 @@
 import { Prisma } from "@prisma/client";
 import type { AdminArticle } from "@/lib/mock/store";
+import type { Author } from "@/lib/types";
 import { prisma } from "@/lib/prisma";
+import { dbGetArticleAuthor } from "@/lib/db/doctor";
+
+/** DoctorProfile hələ yaradılmayıbsa istifadə olunan ehtiyat müəllif */
+const FALLBACK_AUTHOR: Author = {
+  id: "doctor",
+  fullName: "Həkim",
+  title: "",
+  avatarUrl: "",
+  isVerified: false,
+};
 import {
   SETTINGS_KEY,
   normalizeSettings,
@@ -24,10 +35,6 @@ export async function dbGetUserByEmail(email: string) {
 
 export async function dbGetCategoryBySlug(slug: string) {
   return prisma.category.findUnique({ where: { slug } });
-}
-
-export async function dbGetDefaultAuthor() {
-  return prisma.author.findFirst({ where: { isVerified: true } });
 }
 
 // ============== Dashboard Stats ==============
@@ -301,13 +308,15 @@ export async function dbListArticles(
    * səhifəyə görə deyil. Əks halda «Qaralama (2)» yazısı yalnız cari
    * səhifədəki qaralamaları sayardı.
    */
-  const [total, published, draft, review, allCount] = await Promise.all([
+  const [total, published, draft, review, allCount, author] = await Promise.all([
     prisma.article.count({ where }),
     prisma.article.count({ where: { status: ArticleStatus.PUBLISHED } }),
     prisma.article.count({ where: { status: ArticleStatus.DRAFT } }),
     prisma.article.count({ where: { status: ArticleStatus.REVIEW } }),
     prisma.article.count(),
+    dbGetArticleAuthor(),
   ]);
+  const resolvedAuthor = author ?? FALLBACK_AUTHOR;
 
   const articles = await prisma.article.findMany({
     where,
@@ -321,25 +330,18 @@ export async function dbListArticles(
       status: true,
       publishedAt: true,
       updatedAt: true,
-      readMinutes: true,
       viewCount: true,
       likeCount: true,
       isFeatured: true,
       isPeerReviewed: true,
       coverImageUrl: true,
       heroImageUrl: true,
-      heroCaption: true,
-      journalLabel: true,
-      verificationNote: true,
-      doctorNote: true,
-      badges: true,
       showTableOfContents: true,
       allowComments: true,
       reactionClear: true,
       reactionLearned: true,
       reactionQuestion: true,
       category: true,
-      author: true,
       _count: { select: { comments: true } },
     },
     orderBy: { updatedAt: "desc" },
@@ -357,23 +359,16 @@ export async function dbListArticles(
       name: a.category.name,
       icon: a.category.icon,
     },
-    author: {
-      id: a.author.id,
-      fullName: a.author.fullName,
-      title: a.author.title,
-      avatarUrl: a.author.avatarUrl,
-      isVerified: a.author.isVerified,
-    },
+    /* Ayrıca Author cədvəli yoxdur — bütün məqalələr sayt həkimini göstərir */
+    author: resolvedAuthor,
     coverImageUrl: a.coverImageUrl,
     heroImageUrl: a.heroImageUrl,
     showTableOfContents: a.showTableOfContents,
     allowComments: a.allowComments,
-    heroCaption: a.heroCaption,
     publishedAt: a.publishedAt?.toISOString().split("T")[0] ?? "",
     publishedAtLabel: a.publishedAt
       ? new Intl.DateTimeFormat("az", { day: "numeric", month: "long", year: "numeric" }).format(a.publishedAt)
       : "",
-    readMinutes: a.readMinutes,
     viewCount: a.viewCount,
     likeCount: a.likeCount,
     commentCount: a._count.comments,
@@ -384,17 +379,11 @@ export async function dbListArticles(
     },
     isFeatured: a.isFeatured,
     isPeerReviewed: a.isPeerReviewed,
-    /* Prisma `Json` sahəsi — tipi yalnız burada bərpa olunur */
-    badges: (a.badges as unknown as AdminArticle["badges"]) ?? undefined,
-    tags: [],
     /* Siyahı məqalənin mətnini göstərmir — boş saxlanılır ki, brauzerə
      * göndərilməsin. Redaktə səhifəsi `dbGetArticle` ilə tam qeydi alır. */
     tableOfContents: [],
     blocks: [],
     references: [],
-    journalLabel: a.journalLabel,
-    verificationNote: a.verificationNote,
-    doctorNote: a.doctorNote,
     updatedAt: a.updatedAt.toISOString(),
   }));
 
@@ -408,15 +397,16 @@ export async function dbListArticles(
 }
 
 export async function dbGetArticle(id: string) {
-  const article = await prisma.article.findUnique({
-    where: { id },
-    include: {
-      category: true,
-      author: true,
-      tags: true,
-      _count: { select: { comments: true } },
-    },
-  });
+  const [article, author] = await Promise.all([
+    prisma.article.findUnique({
+      where: { id },
+      include: {
+        category: true,
+        _count: { select: { comments: true } },
+      },
+    }),
+    dbGetArticleAuthor(),
+  ]);
 
   if (!article) return null;
 
@@ -432,23 +422,16 @@ export async function dbGetArticle(id: string) {
       name: article.category.name,
       icon: article.category.icon,
     },
-    author: {
-      id: article.author.id,
-      fullName: article.author.fullName,
-      title: article.author.title,
-      avatarUrl: article.author.avatarUrl,
-      isVerified: article.author.isVerified,
-    },
+    /* Ayrıca Author cədvəli yoxdur — sayt həkimindən hesablanır */
+    author: author ?? FALLBACK_AUTHOR,
     coverImageUrl: article.coverImageUrl,
     heroImageUrl: article.heroImageUrl,
     showTableOfContents: article.showTableOfContents,
     allowComments: article.allowComments,
-    heroCaption: article.heroCaption,
     publishedAt: article.publishedAt?.toISOString().split("T")[0] ?? "",
     publishedAtLabel: article.publishedAt
       ? new Intl.DateTimeFormat("az", { day: "numeric", month: "long", year: "numeric" }).format(article.publishedAt)
       : "",
-    readMinutes: article.readMinutes,
     viewCount: article.viewCount,
     likeCount: article.likeCount,
     reactions: {
@@ -459,14 +442,9 @@ export async function dbGetArticle(id: string) {
     commentCount: article._count.comments,
     isFeatured: article.isFeatured,
     isPeerReviewed: article.isPeerReviewed,
-    badges: article.badges,
-    tags: article.tags.map((t) => t.name),
     tableOfContents: article.tableOfContents,
     blocks: article.blocks,
     references: article.references,
-    journalLabel: article.journalLabel,
-    verificationNote: article.verificationNote,
-    doctorNote: article.doctorNote,
     updatedAt: article.updatedAt.toISOString(),
   };
 }
@@ -476,22 +454,17 @@ export async function dbCreateArticle(data: {
   title: string;
   excerpt: string;
   categoryId: string;
-  authorId: string;
   status?: string;
   publishedAt?: string;
-  readMinutes?: number;
   coverImageUrl?: string;
   heroImageUrl?: string;
   showTableOfContents?: boolean;
   allowComments?: boolean;
   isFeatured?: boolean;
   isPeerReviewed?: boolean;
-  doctorNote?: string;
-  journalLabel?: string;
   blocks?: any;
   tableOfContents?: any;
   references?: any;
-  badges?: any;
 }) {
   return prisma.article.create({
     data: {
@@ -499,22 +472,17 @@ export async function dbCreateArticle(data: {
       title: data.title,
       excerpt: data.excerpt,
       categoryId: data.categoryId,
-      authorId: data.authorId,
       status: (data.status?.toUpperCase() as ArticleStatus) || ArticleStatus.DRAFT,
       publishedAt: data.publishedAt ? new Date(data.publishedAt) : undefined,
-      readMinutes: data.readMinutes || 5,
       coverImageUrl: data.coverImageUrl,
       heroImageUrl: data.heroImageUrl,
       showTableOfContents: data.showTableOfContents ?? true,
       allowComments: data.allowComments ?? true,
       isFeatured: data.isFeatured ?? false,
       isPeerReviewed: data.isPeerReviewed ?? false,
-      doctorNote: data.doctorNote,
-      journalLabel: data.journalLabel,
       blocks: data.blocks || [],
       tableOfContents: data.tableOfContents || [],
       references: data.references || [],
-      badges: data.badges || [],
     },
   });
 }
@@ -533,17 +501,11 @@ export async function dbUpdateArticle(id: string, data: Record<string, any>) {
     updateData.showTableOfContents = data.showTableOfContents;
   if (data.allowComments !== undefined)
     updateData.allowComments = data.allowComments;
-  if (data.heroCaption !== undefined) updateData.heroCaption = data.heroCaption;
-  if (data.readMinutes) updateData.readMinutes = parseInt(data.readMinutes, 10);
   if (data.isFeatured !== undefined) updateData.isFeatured = data.isFeatured;
   if (data.isPeerReviewed !== undefined) updateData.isPeerReviewed = data.isPeerReviewed;
   if (data.blocks) updateData.blocks = data.blocks;
   if (data.tableOfContents) updateData.tableOfContents = data.tableOfContents;
   if (data.references) updateData.references = data.references;
-  if (data.badges) updateData.badges = data.badges;
-  if (data.journalLabel !== undefined) updateData.journalLabel = data.journalLabel;
-  if (data.verificationNote !== undefined) updateData.verificationNote = data.verificationNote;
-  if (data.doctorNote !== undefined) updateData.doctorNote = data.doctorNote;
   if (data.publishedAt) updateData.publishedAt = new Date(data.publishedAt);
 
   return prisma.article.update({

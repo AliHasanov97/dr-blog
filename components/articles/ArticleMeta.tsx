@@ -1,10 +1,8 @@
-import { Icon } from "@/components/ui";
 import { cn } from "@/lib/utils";
 
 export interface ArticleMetaProps {
   categoryName?: string;
   dateLabel?: string;
-  readMinutes?: number;
   referenceLabel?: string;
   className?: string;
 }
@@ -13,7 +11,6 @@ export interface ArticleMetaProps {
 export function ArticleMeta({
   categoryName,
   dateLabel,
-  readMinutes,
   referenceLabel,
   className,
 }: ArticleMetaProps) {
@@ -26,13 +23,6 @@ export function ArticleMeta({
       </span>,
     );
   if (dateLabel) parts.push(<span key="date">{dateLabel}</span>);
-  if (readMinutes)
-    parts.push(
-      <span key="read" className="inline-flex items-center gap-0.5">
-        <Icon name="schedule" size={13} />
-        {readMinutes} dəq oxu
-      </span>,
-    );
   if (referenceLabel) parts.push(<span key="ref">{referenceLabel}</span>);
 
   return (

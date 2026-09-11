@@ -1,11 +1,13 @@
 "use client";
 
 import { useMemo, useState, useTransition, type ReactNode } from "react";
+import { useRouter } from "next/navigation";
 import { Button, Icon, SearchBar, SelectField, TextAreaField, TextField } from "@/components/ui";
 import { DataCell, DataRow, DataTable } from "./DataTable";
 import { ConfirmButton } from "./ConfirmButton";
 import Image from "next/image";
 import { ChoiceGroup } from "./ChoiceGroup";
+import { FilePicker } from "./FilePicker";
 import { IconPicker } from "./IconPicker";
 import { ImagePicker } from "./ImagePicker";
 import { StatusPill } from "./StatusPill";
@@ -66,6 +68,7 @@ export function ResourceManager({
   aside,
   nameField,
 }: ResourceManagerProps) {
+  const router = useRouter();
   const [query, setQuery] = useState("");
   const [mode, setMode] = useState<Mode>({ kind: "closed" });
   const [values, setValues] = useState<Record<string, string>>({});
@@ -118,9 +121,17 @@ export function ResourceManager({
       if (result.success) {
         setMode({ kind: "closed" });
         setError(null);
+        router.refresh();
       } else {
         setError(result.message ?? "Əməliyyat alınmadı.");
       }
+    });
+  }
+
+  function remove(id: string) {
+    return actions.remove(id).then((result) => {
+      router.refresh();
+      return result;
     });
   }
 
@@ -168,7 +179,7 @@ export function ResourceManager({
                     <Icon name="edit" size={16} />
                   </button>
                   <ConfirmButton
-                    onConfirm={() => actions.remove(row.id)}
+                    onConfirm={() => remove(row.id)}
                     itemName={nameField ? text(row, nameField) : undefined}
                   />
                 </span>
@@ -252,6 +263,31 @@ export function ResourceManager({
                       onChange={set}
                       className="sm:col-span-2"
                     />
+                  );
+                }
+                if (field.type === "file") {
+                  return (
+                    <div key={field.name} className={cn("flex flex-col gap-space-2xs", span)}>
+                      <span className="font-label text-label-md text-on-surface-variant">
+                        {field.label}
+                      </span>
+                      {field.hint && (
+                        <span className="font-label text-label-sm text-outline">
+                          {field.hint}
+                        </span>
+                      )}
+                      <FilePicker
+                        scope={scope}
+                        value={value}
+                        onSelect={(file) =>
+                          setValues((prev) => ({
+                            ...prev,
+                            [field.name]: file.url,
+                            ...(field.sizeField && { [field.sizeField]: file.sizeLabel }),
+                          }))
+                        }
+                      />
+                    </div>
                   );
                 }
                 if (field.type === "select") {

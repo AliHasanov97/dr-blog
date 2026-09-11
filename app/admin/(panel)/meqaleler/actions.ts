@@ -22,7 +22,6 @@ import {
   dbUpdateArticle,
   dbDeleteArticle,
   dbGetCategoryBySlug,
-  dbGetDefaultAuthor,
 } from "@/lib/db/admin";
 import { buildToc, normalizeHeadings as normalizeBlocks } from "@/lib/article-toc";
 import type { ArticleBlock, ArticleReference } from "@/lib/types";
@@ -34,18 +33,14 @@ export interface ArticlePayload {
   categorySlug: string;
   status: ArticleStatus;
   publishedAt: string;
-  readMinutes: number;
   coverImageUrl: string;
   /** Örtük şəkli məqalə səhifəsinin başında da göstərilsin (kart şəkli hər halda qalır) */
   showHeroImage: boolean;
-  tags: string[];
   isFeatured: boolean;
   isPeerReviewed: boolean;
   allowComments: boolean;
   showTableOfContents: boolean;
   metaDescription: string;
-  doctorNote: string;
-  journalLabel: string;
   blocks: ArticleBlock[];
   references: ArticleReference[];
 }
@@ -54,6 +49,9 @@ function refreshPublicPages(slug?: string) {
   revalidatePath("/", "layout");
   revalidatePath("/meqaleler");
   if (slug) revalidatePath(`/meqaleler/${slug}`);
+  // Admin siyahısı da yenilənməlidir — əks halda redaktədən sonra geri
+  // qayıdanda köhnə başlıq/kateqoriya görünə bilər
+  revalidatePath("/admin/meqaleler");
 }
 
 function applyPayload(
@@ -80,19 +78,15 @@ function applyPayload(
     status: payload.status,
     publishedAt,
     publishedAtLabel: toDateLabel(publishedAt),
-    readMinutes: payload.readMinutes,
     coverImageUrl: payload.coverImageUrl || undefined,
     heroImageUrl: payload.showHeroImage
       ? payload.coverImageUrl || undefined
       : undefined,
-    tags: payload.tags,
     isFeatured: payload.isFeatured,
     isPeerReviewed: payload.isPeerReviewed,
     allowComments: payload.allowComments,
     showTableOfContents: payload.showTableOfContents,
     metaDescription: payload.metaDescription || undefined,
-    doctorNote: payload.doctorNote || undefined,
-    journalLabel: payload.journalLabel || undefined,
     blocks,
     references: payload.references,
     referenceCount: payload.references.length,
@@ -133,16 +127,10 @@ export async function createArticle(
 
   if (!USE_MOCK) {
     // Database mode
-    const [category, author] = await Promise.all([
-      dbGetCategoryBySlug(payload.categorySlug),
-      dbGetDefaultAuthor(),
-    ]);
+    const category = await dbGetCategoryBySlug(payload.categorySlug);
 
     if (!category) {
       return { success: false, message: "Kateqoriya tapılmadı." };
-    }
-    if (!author) {
-      return { success: false, message: "Müəllif tapılmadı." };
     }
 
     const blocks = normalizeBlocks(payload.blocks);
@@ -153,10 +141,8 @@ export async function createArticle(
       title: payload.title,
       excerpt: payload.excerpt,
       categoryId: category.id,
-      authorId: author.id,
       status: payload.status,
       publishedAt: payload.publishedAt,
-      readMinutes: payload.readMinutes,
       coverImageUrl: payload.coverImageUrl,
       // Açar sönülüdürsə boş saxlanılır — kart şəkli (coverImageUrl) toxunulmur
       heroImageUrl: payload.showHeroImage ? payload.coverImageUrl : "",
@@ -164,8 +150,6 @@ export async function createArticle(
       allowComments: payload.allowComments,
       isFeatured: payload.isFeatured,
       isPeerReviewed: payload.isPeerReviewed,
-      doctorNote: payload.doctorNote,
-      journalLabel: payload.journalLabel,
       blocks,
       tableOfContents,
       references: payload.references,
@@ -184,7 +168,6 @@ export async function createArticle(
     category: store.categories[0],
     publishedAt: payload.publishedAt,
     publishedAtLabel: toDateLabel(payload.publishedAt),
-    readMinutes: payload.readMinutes,
     author: mockAuthor,
     likeCount: 0,
     commentCount: 0,
@@ -221,7 +204,6 @@ export async function updateArticle(
       categoryId: category.id,
       status: payload.status,
       publishedAt: payload.publishedAt,
-      readMinutes: payload.readMinutes,
       coverImageUrl: payload.coverImageUrl,
       // Açar sönülüdürsə boş saxlanılır — kart şəkli (coverImageUrl) toxunulmur
       heroImageUrl: payload.showHeroImage ? payload.coverImageUrl : "",
@@ -229,8 +211,6 @@ export async function updateArticle(
       allowComments: payload.allowComments,
       isFeatured: payload.isFeatured,
       isPeerReviewed: payload.isPeerReviewed,
-      doctorNote: payload.doctorNote,
-      journalLabel: payload.journalLabel,
       blocks,
       tableOfContents,
       references: payload.references,
@@ -281,7 +261,6 @@ export async function autosaveArticle(
       categoryId: category.id,
       status: payload.status,
       publishedAt: payload.publishedAt,
-      readMinutes: payload.readMinutes,
       coverImageUrl: payload.coverImageUrl,
       // Açar sönülüdürsə boş saxlanılır — kart şəkli (coverImageUrl) toxunulmur
       heroImageUrl: payload.showHeroImage ? payload.coverImageUrl : "",
@@ -289,8 +268,6 @@ export async function autosaveArticle(
       allowComments: payload.allowComments,
       isFeatured: payload.isFeatured,
       isPeerReviewed: payload.isPeerReviewed,
-      doctorNote: payload.doctorNote,
-      journalLabel: payload.journalLabel,
       blocks,
       tableOfContents,
       references: payload.references,

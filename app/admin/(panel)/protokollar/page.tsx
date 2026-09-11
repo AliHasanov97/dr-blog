@@ -34,9 +34,8 @@ export default async function AdminProtocolsPage() {
       />
       <HelpNote title="Fayl necə əlavə olunur?" className="mb-space-md">
         <p>
-          Hazırda faylın ünvanını əl ilə yazmaq lazımdır. Fayl yükləmə imkanı
-          backend hazır olandan sonra əlavə olunacaq — o vaxta qədər sənədi
-          ayrıca yerə yükləyib linkini bura yazın.
+          «Kompüterdən fayl yüklə» düyməsindən PDF, DOC və ya XLS sənədini
+          birbaşa yükləyin — ünvan və ölçü avtomatik təyin olunur.
         </p>
       </HelpNote>
       <ResourceManager
@@ -49,16 +48,10 @@ export default async function AdminProtocolsPage() {
           { name: "description", label: "Təsvir", type: "textarea", rows: 3, colSpan: 2 },
           {
             name: "fileUrl",
-            label: "Faylın ünvanı",
-            type: "text",
-            placeholder: "/files/esc-2024.pdf",
-          },
-          {
-            name: "fileSizeLabel",
-            label: "Fayl ölçüsü",
-            type: "text",
-            hint: "Oxucuya məlumat üçün göstərilir",
-            placeholder: "2.4 MB",
+            label: "Sənəd",
+            type: "file",
+            sizeField: "fileSizeLabel",
+            colSpan: 2,
           },
         ]}
         columns={[

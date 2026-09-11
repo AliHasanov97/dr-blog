@@ -10,8 +10,12 @@ export interface SiteSettings {
   siteName: string;
   tagline: string;
   description: string;
-  emergencyNumber: string;
-  contactEmail: string;
+  /** Ana səhifə hero bölməsinin üst yazısı */
+  heroEyebrow: string;
+  /** Ana səhifə hero bölməsinin əsas başlığı */
+  heroHeadline: string;
+  /** Ana səhifə hero bölməsində həkim titulundan sonra gələn cümlə */
+  heroDescription: string;
   articlesPerPage: number;
   commentsEnabled: boolean;
   commentsRequireApproval: boolean;
@@ -30,8 +34,10 @@ export const DEFAULT_SETTINGS: SiteSettings = {
   tagline: "T.e.n., Kardioloq & Terapevt",
   description:
     "Kardiologiya üzrə elmi məqalələr, klinik icmallar və pasiyentlər üçün sübuta əsaslanan sağlamlıq bələdçiləri.",
-  emergencyNumber: "103",
-  contactEmail: "elmi.elaqe@drnarmin.az",
+  heroEyebrow: "Kardiologiya · Elmi Bloq",
+  heroHeadline: "Ürək sağlamlığı haqqında sübuta əsaslanan yazılar",
+  heroDescription:
+    "Beynəlxalq protokolların sadə dildə izahı, klinik icmallar və pasiyentlər üçün praktik bələdçilər.",
   articlesPerPage: 10,
   commentsEnabled: true,
   commentsRequireApproval: true,

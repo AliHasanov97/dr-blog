@@ -1,11 +1,13 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { RepeaterField } from "@/components/admin";
+import { ImagePicker, RepeaterField } from "@/components/admin";
 import { Button, Icon, TextAreaField, TextField } from "@/components/ui";
 import type { DoctorProfile } from "@/lib/types";
 import { updateDoctorProfile, type DoctorPayload } from "./actions";
 import { cn } from "@/lib/utils";
+
+const DOCTOR_IMAGE_SCOPE = { kind: "doctor" as const };
 
 export interface DoctorProfileFormProps {
   doctor: DoctorProfile;
@@ -42,6 +44,8 @@ export function DoctorProfileForm({ doctor }: DoctorProfileFormProps) {
   const [fullName, setFullName] = useState(doctor.fullName);
   const [shortTitle, setShortTitle] = useState(doctor.shortTitle);
   const [fullTitle, setFullTitle] = useState(doctor.fullTitle);
+  const [avatarUrl, setAvatarUrl] = useState(doctor.avatarUrl);
+  const [portraitUrl, setPortraitUrl] = useState(doctor.portraitUrl);
   const [tagline, setTagline] = useState(doctor.tagline);
   const [biography, setBiography] = useState(doctor.biography);
   const [quote, setQuote] = useState(doctor.quote);
@@ -55,6 +59,8 @@ export function DoctorProfileForm({ doctor }: DoctorProfileFormProps) {
       fullName,
       shortTitle,
       fullTitle,
+      avatarUrl,
+      portraitUrl,
       tagline,
       biography,
       quote,
@@ -293,6 +299,26 @@ export function DoctorProfileForm({ doctor }: DoctorProfileFormProps) {
               {/* Step 0: Kimlik */}
               {step === 0 && (
                 <div className="grid gap-space-md">
+                  <div className="grid gap-space-md sm:grid-cols-2">
+                    <ImagePicker
+                      scope={DOCTOR_IMAGE_SCOPE}
+                      label="Profil şəkli"
+                      hint="Header, kartlar və müəllif rozeti"
+                      value={avatarUrl}
+                      options={[]}
+                      onChange={setAvatarUrl}
+                      compact
+                    />
+                    <ImagePicker
+                      scope={DOCTOR_IMAGE_SCOPE}
+                      label="Portret şəkli"
+                      hint="Ana səhifənin hero bölməsi"
+                      value={portraitUrl}
+                      options={[]}
+                      onChange={setPortraitUrl}
+                      compact
+                    />
+                  </div>
                   <TextField label="Tam ad" required value={fullName} onChange={(e) => setFullName(e.target.value)} hint="Saytın hər yerində görünür" />
                   <TextField label="Qısa titul" placeholder="Pediatrik kardioloq" value={shortTitle} onChange={(e) => setShortTitle(e.target.value)} hint="Header və altlıqda" />
                   <TextField label="Tam titul" placeholder="Tibb üzrə fəlsəfə doktoru" value={fullTitle} onChange={(e) => setFullTitle(e.target.value)} hint="Hero və Haqqında səhifəsində" />

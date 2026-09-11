@@ -40,6 +40,13 @@ const nextConfig: NextConfig = {
       // Fayl yükləmə action-u üçün — media.ts-də şəkil 5 MB, sənəd 20 MB
       bodySizeLimit: "24mb",
     },
+    /*
+     * `middleware.ts` /admin altını qorusa da, standart limit (10 MB) bütün
+     * gövdəyə tətbiq olunur — 10 MB-dan böyük sənəd yükləyəndə axın kəsilir
+     * və busboy "Unexpected end of form" xətası verir. Limiti yuxarıdakı
+     * `serverActions.bodySizeLimit` ilə üst-üstə salırıq.
+     */
+    proxyClientMaxBodySize: "24mb",
   },
 };
 

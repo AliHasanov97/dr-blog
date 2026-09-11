@@ -5,9 +5,13 @@ import {
   MEDIA_MIN_WIDTH,
   type ArticleBlock,
   type ImageAlign,
+  type ImageAspectRatio,
+  type ImageFit,
+  type ImageFocus,
   type SlideItem,
   type TextAlign,
 } from "@/lib/types";
+import { formatAspectRatio, parseAspectRatio } from "@/lib/article-image";
 
 /**
  * `ArticleBlock[]` ⇄ redaktorun HTML sənədi.
@@ -91,12 +95,15 @@ function blockToHtml(block: ArticleBlock): string {
     }
 
     case "image":
-      return `<div data-block="image"${attr("data-src", block.src)}${attr("data-alt", block.alt)}${attr("data-caption", block.caption)}${attr("data-align", block.align ?? "full")}${attr("data-width", String(block.width ?? MEDIA_DEFAULT_WIDTH))}></div>`;
+      return `<div data-block="image"${attr("data-src", block.src)}${attr("data-alt", block.alt)}${attr("data-caption", block.caption)}${attr("data-align", block.align ?? "full")}${attr("data-width", String(block.width ?? MEDIA_DEFAULT_WIDTH))}${attr("data-aspect-ratio", block.aspectRatio)}${attr("data-fit", block.fit)}${attr("data-focus", block.focus)}></div>`;
 
     case "slider": {
       const intro = block.intro ? `<p>${bbcodeToHtml(block.intro)}</p>` : "";
       return `${intro}<div data-block="slider"${attr("data-items", JSON.stringify(block.items))}${attr("data-align", block.align ?? "full")}${attr("data-width", String(block.width ?? MEDIA_DEFAULT_WIDTH))}></div>`;
     }
+
+    case "imageGroup":
+      return `<div data-block="imageGroup"${attr("data-items", JSON.stringify(block.items))}${attr("data-align", block.align ?? "full")}${attr("data-width", String(block.width ?? MEDIA_DEFAULT_WIDTH))}${attr("data-columns", block.columns ? String(block.columns) : undefined)}${attr("data-aspect-ratio", block.aspectRatio)}${attr("data-fit", block.fit)}></div>`;
 
     case "file":
       return `<div data-block="file"${attr("data-url", block.url)}${attr("data-title", block.title)}${attr("data-extension", block.extension)}${attr("data-size", block.sizeLabel)}${attr("data-description", block.description)}></div>`;
@@ -132,6 +139,12 @@ function innerBBCode(element: HTMLElement): string {
 }
 
 const ALIGNS: ImageAlign[] = ["full", "left", "right", "center"];
+const FITS: ImageFit[] = ["cover", "contain"];
+const FOCUSES: ImageFocus[] = [
+  "top-left", "top", "top-right",
+  "left", "center", "right",
+  "bottom-left", "bottom", "bottom-right",
+];
 
 const TEXT_ALIGNS: TextAlign[] = ["left", "center", "right", "justify"];
 
@@ -158,6 +171,27 @@ function readWidth(value: string | undefined): number {
   const parsed = Number.parseFloat(value ?? "");
   if (!Number.isFinite(parsed)) return MEDIA_DEFAULT_WIDTH;
   return Math.min(MEDIA_MAX_WIDTH, Math.max(MEDIA_MIN_WIDTH, Math.round(parsed)));
+}
+
+/** Naməlum və ya köhnəlmiş dəyəri kənara atır — sahə boş qalır, resolver default seçir */
+function readEnum<T extends string>(list: readonly T[], value: string | undefined): T | undefined {
+  return list.includes(value as T) ? (value as T) : undefined;
+}
+
+/**
+ * `data-aspect-ratio` onluq ədədini oxuyur.
+ * Etibarsız və ya kənar aralıqdadırsa `undefined` qaytarır — o halda
+ * resolver `align`-a görə köhnə sabit nisbəti seçir.
+ */
+function readAspectRatio(value: string | undefined): ImageAspectRatio | undefined {
+  const n = parseAspectRatio(value);
+  return n === undefined ? undefined : formatAspectRatio(n);
+}
+
+/** `data-columns` sütun sayını oxuyur, yalnız 1–4 aralığını qəbul edir */
+function readColumns(value: string | undefined): 1 | 2 | 3 | 4 | undefined {
+  const n = Number.parseInt(value ?? "", 10);
+  return n >= 1 && n <= 4 ? (n as 1 | 2 | 3 | 4) : undefined;
 }
 
 function readSlides(value: string | undefined): SlideItem[] {
@@ -199,6 +233,9 @@ function elementToBlock(el: HTMLElement): ArticleBlock | ArticleBlock[] | null {
       caption: el.dataset.caption || undefined,
       align: readAlign(el.dataset.align),
       width: readWidth(el.dataset.width),
+      aspectRatio: readAspectRatio(el.dataset.aspectRatio),
+      fit: readEnum(FITS, el.dataset.fit),
+      focus: readEnum(FOCUSES, el.dataset.focus),
     };
   }
 
@@ -208,6 +245,18 @@ function elementToBlock(el: HTMLElement): ArticleBlock | ArticleBlock[] | null {
       items: readSlides(el.dataset.items),
       align: readAlign(el.dataset.align),
       width: readWidth(el.dataset.width),
+    };
+  }
+
+  if (marker === "imageGroup") {
+    return {
+      type: "imageGroup",
+      items: readSlides(el.dataset.items),
+      align: readAlign(el.dataset.align),
+      width: readWidth(el.dataset.width),
+      columns: readColumns(el.dataset.columns),
+      aspectRatio: readAspectRatio(el.dataset.aspectRatio),
+      fit: readEnum(FITS, el.dataset.fit),
     };
   }
 

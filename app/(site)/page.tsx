@@ -30,6 +30,9 @@ export default async function HomePage() {
     <PageShell width="bleed">
       <HomeHero
         doctor={doctor}
+        heroEyebrow={settings.heroEyebrow}
+        heroHeadline={settings.heroHeadline}
+        heroDescription={settings.heroDescription}
         latestTitle={latest?.title}
         latestHref={latest ? `/meqaleler/${latest.slug}` : undefined}
       />

@@ -5,6 +5,9 @@ import type { DoctorProfile } from "@/lib/types";
 
 export interface HomeHeroProps {
   doctor: DoctorProfile;
+  heroEyebrow: string;
+  heroHeadline: string;
+  heroDescription: string;
   /** Hero-nun altındakı kiçik "son nəşr" lenti üçün */
   latestTitle?: string;
   latestHref?: string;
@@ -14,7 +17,14 @@ export interface HomeHeroProps {
  * Landing hero — tam enli tünd redaksiya bandı.
  * Mobil: portret üstdə, mətn altda. Desktop: 7/5 asimmetrik grid.
  */
-export function HomeHero({ doctor, latestTitle, latestHref }: HomeHeroProps) {
+export function HomeHero({
+  doctor,
+  heroEyebrow,
+  heroHeadline,
+  heroDescription,
+  latestTitle,
+  latestHref,
+}: HomeHeroProps) {
   return (
     <section className="relative overflow-hidden bg-primary-container text-on-primary">
       {/* Ambient işıq ləkələri */}
@@ -44,19 +54,16 @@ export function HomeHero({ doctor, latestTitle, latestHref }: HomeHeroProps) {
             <span className="flex items-center gap-space-xs">
               <span className="h-px w-8 bg-tertiary-fixed-dim/60" aria-hidden="true" />
               <span className="font-label text-label-md uppercase tracking-[0.18em] text-tertiary-fixed">
-                Kardiologiya · Elmi Bloq
+                {heroEyebrow}
               </span>
             </span>
 
             <h1 className="font-display text-[32px] leading-[40px] sm:text-[42px] sm:leading-[50px] lg:text-[56px] lg:leading-[64px] tracking-tight text-on-primary text-balance">
-              Ürək sağlamlığı haqqında{" "}
-              <span className="text-secondary-fixed">sübuta əsaslanan</span> yazılar
+              {heroHeadline}
             </h1>
 
             <p className="font-body text-body-md lg:text-body-lg text-on-primary-container max-w-xl leading-relaxed">
-              {doctor.fullName} — {doctor.fullTitle}. Beynəlxalq protokolların
-              sadə dildə izahı, klinik icmallar və pasiyentlər üçün praktik
-              bələdçilər.
+              {doctor.fullName} — {doctor.fullTitle}. {heroDescription}
             </p>
 
             <div className="flex flex-wrap items-center gap-space-sm pt-space-2xs">

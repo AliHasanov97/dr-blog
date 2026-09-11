@@ -104,6 +104,12 @@ export function ArticleListClient({
     });
   }
 
+  /** Silindikdən sonra siyahı serverdəki yeni vəziyyətə uyğunlaşır */
+  async function handleDelete(id: string) {
+    await deleteArticle(id);
+    await load(page, query, status, false);
+  }
+
   return (
     <div className="flex flex-col gap-space-md">
       <div className="flex flex-col gap-space-sm lg:flex-row lg:items-center lg:justify-between">
@@ -229,7 +235,7 @@ export function ArticleListClient({
                     <Icon name="edit" size={16} />
                   </Link>
                   <ConfirmButton
-                    onConfirm={() => deleteArticle(article.id)}
+                    onConfirm={() => handleDelete(article.id)}
                     itemName={article.title}
                     question="Bu məqaləni silmək istəyirsiniz?"
                   />

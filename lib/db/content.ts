@@ -16,6 +16,20 @@ export async function dbGetVideos(): Promise<VideoItem[]> {
   }));
 }
 
+export async function dbGetVideoById(id: string): Promise<VideoItem | null> {
+  const v = await prisma.video.findUnique({ where: { id } });
+  if (!v) return null;
+
+  return {
+    id: v.id,
+    title: v.title,
+    description: v.description ?? "",
+    thumbnailUrl: v.thumbnailUrl ?? "",
+    kindLabel: v.kindLabel ?? "",
+    url: v.videoUrl,
+  };
+}
+
 export async function dbGetProtocols(): Promise<ProtocolDocument[]> {
   const protocols = await prisma.protocolDocument.findMany({
     orderBy: { sortOrder: "asc" },

@@ -18,6 +18,8 @@ export type MediaScope =
   | { kind: "video" }
   /** Protokol sənədləri */
   | { kind: "protocol" }
+  /** Həkimin profil və portret şəkilləri */
+  | { kind: "doctor" }
   /** Logo və sayt üzrə ümumi şəkillər */
   | { kind: "site" };
 
@@ -42,6 +44,8 @@ export function prefixOf(scope: MediaScope): string {
       return "videolar";
     case "protocol":
       return "protokollar";
+    case "doctor":
+      return "hekim";
     case "site":
       return "sayt";
   }
@@ -70,6 +74,8 @@ export function scopeLabel(scope: MediaScope): string {
       return "Video örtükləri";
     case "protocol":
       return "Protokol sənədləri";
+    case "doctor":
+      return "Həkimin şəkilləri";
     case "site":
       return "Sayt üzrə ümumi";
   }

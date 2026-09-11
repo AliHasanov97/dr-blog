@@ -3,6 +3,7 @@ import Blockquote from "@tiptap/extension-blockquote";
 import { ReactNodeViewRenderer } from "@tiptap/react";
 import { ImageNodeView } from "./ImageNodeView";
 import { SliderNodeView } from "./SliderNodeView";
+import { GalleryNodeView } from "./GalleryNodeView";
 import { VideoNodeView } from "./VideoNodeView";
 import { FileNodeView } from "./FileNodeView";
 
@@ -124,6 +125,18 @@ export const ImageBlock = Node.create({
         default: 50,
         parseHTML: (el) => Number(el.getAttribute("data-width")) || 50,
       },
+      aspectRatio: {
+        default: null,
+        parseHTML: (el) => el.getAttribute("data-aspect-ratio") || null,
+      },
+      fit: {
+        default: null,
+        parseHTML: (el) => el.getAttribute("data-fit") || null,
+      },
+      focus: {
+        default: null,
+        parseHTML: (el) => el.getAttribute("data-focus") || null,
+      },
     };
   },
 
@@ -132,10 +145,8 @@ export const ImageBlock = Node.create({
   },
 
   renderHTML({ HTMLAttributes }) {
-    const { src, alt, caption, align, width } = HTMLAttributes as Record<
-      string,
-      string
-    >;
+    const { src, alt, caption, align, width, aspectRatio, fit, focus } =
+      HTMLAttributes as Record<string, string>;
     return [
       "div",
       mergeAttributes({
@@ -145,6 +156,9 @@ export const ImageBlock = Node.create({
         "data-caption": caption ?? "",
         "data-align": align ?? "full",
         "data-width": String(width ?? 50),
+        ...(aspectRatio ? { "data-aspect-ratio": aspectRatio } : {}),
+        ...(fit ? { "data-fit": fit } : {}),
+        ...(focus ? { "data-focus": focus } : {}),
       }),
     ];
   },
@@ -201,6 +215,72 @@ export const SliderBlock = Node.create({
 
   addNodeView() {
     return ReactNodeViewRenderer(SliderNodeView);
+  },
+});
+
+/* --------------------------------------------------------------
+ * Şəkil cərgəsi — bir neçə şəkil eyni sətirdə, yan-yana
+ * ------------------------------------------------------------ */
+
+export const GalleryBlock = Node.create({
+  name: "imageGroupBlock",
+  group: "block",
+  atom: true,
+  draggable: true,
+  selectable: true,
+
+  addAttributes() {
+    return {
+      items: {
+        default: "[]",
+        parseHTML: (el) => el.getAttribute("data-items") ?? "[]",
+      },
+      align: {
+        default: "full",
+        parseHTML: (el) => el.getAttribute("data-align") ?? "full",
+      },
+      width: {
+        default: 50,
+        parseHTML: (el) => Number(el.getAttribute("data-width")) || 50,
+      },
+      columns: {
+        default: null,
+        parseHTML: (el) => el.getAttribute("data-columns") || null,
+      },
+      aspectRatio: {
+        default: null,
+        parseHTML: (el) => el.getAttribute("data-aspect-ratio") || null,
+      },
+      fit: {
+        default: null,
+        parseHTML: (el) => el.getAttribute("data-fit") || null,
+      },
+    };
+  },
+
+  parseHTML() {
+    return [{ tag: 'div[data-block="imageGroup"]' }];
+  },
+
+  renderHTML({ HTMLAttributes }) {
+    const { items, align, width, columns, aspectRatio, fit } =
+      HTMLAttributes as Record<string, string>;
+    return [
+      "div",
+      mergeAttributes({
+        "data-block": "imageGroup",
+        "data-items": items ?? "[]",
+        "data-align": align ?? "full",
+        "data-width": String(width ?? 50),
+        ...(columns ? { "data-columns": columns } : {}),
+        ...(aspectRatio ? { "data-aspect-ratio": aspectRatio } : {}),
+        ...(fit ? { "data-fit": fit } : {}),
+      }),
+    ];
+  },
+
+  addNodeView() {
+    return ReactNodeViewRenderer(GalleryNodeView);
   },
 });
 

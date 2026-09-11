@@ -35,11 +35,6 @@ export interface Category {
   articleCount?: number;
 }
 
-export interface Tag {
-  id: string;
-  slug: string;
-  name: string;
-}
 
 /* ---------------------------------------------------------------
  * Müəllif
@@ -56,14 +51,6 @@ export interface Author {
 /* ---------------------------------------------------------------
  * Məqalə
  * ------------------------------------------------------------- */
-
-export type ArticleBadgeTone = "secondary" | "tertiary" | "neutral" | "error";
-
-export interface ArticleBadge {
-  label: string;
-  icon?: string;
-  tone?: ArticleBadgeTone;
-}
 
 /** Məqalə gövdəsinin blok tipləri — redaktor JSON-u kimi saxlanılır */
 export type ArticleBlock =
@@ -115,6 +102,24 @@ export type ArticleBlock =
        * olunur. Boş qalsa 50 sayılır.
        */
       width?: number;
+      /**
+       * Çərçivənin en:hündürlük nisbəti. Boş qalsa `align`-a görə təyin
+       * olunur: `left`/`right` üçün 4:3, qalanları üçün 16:9 — köhnə
+       * məqalələr bu sahə əlavə olunmazdan əvvəlki görünüşü saxlayır.
+       */
+      aspectRatio?: ImageAspectRatio;
+      /**
+       * Şəkil çərçivəyə necə sığsın.
+       * `cover` — çərçivəni doldurur, kənarları kəsilə bilər (default).
+       * `contain` — şəkil tam görünür, lazım gələrsə boşluq qalır.
+       */
+      fit?: ImageFit;
+      /**
+       * Kəsim zamanı hansı hissənin görünəcəyini təyin edir (`fit: "cover"`)
+       * və ya `contain` olanda şəklin çərçivədə necə düzüləcəyini.
+       * Boş qalsa mərkəz sayılır.
+       */
+      focus?: ImageFocus;
     }
   | {
       /** Slayd — bir neçə şəkil, oxucu sağa-sola sürüşdürür */
@@ -123,6 +128,27 @@ export type ArticleBlock =
       items: SlideItem[];
       align?: ImageAlign;
       /** Slaydın eni faizlə (20–100) */
+      width?: number;
+    }
+  | {
+      /**
+       * Şəkil cərgəsi — bir neçə şəkil eyni sətirdə, yan-yana (qalereya).
+       * Slaydan fərqi: hamısı eyni anda görünür, sürüşdürmə yoxdur.
+       */
+      type: "imageGroup";
+      items: SlideItem[];
+      /**
+       * Bir sətirdə sütun sayı (1–4). Boş qalsa şəkil sayına görə təyin
+       * olunur (ən çox 4) — mobil ekranda həmişə 2 sütuna düşür.
+       */
+      columns?: 1 | 2 | 3 | 4;
+      /** Bütün xanalar üçün ortaq nisbət. Boş qalsa 1:1 (kvadrat). */
+      aspectRatio?: ImageAspectRatio;
+      /** Bütün xanalar üçün ortaq sığma. Boş qalsa `cover`. */
+      fit?: ImageFit;
+      /** Mətnə görə yerləşmə — digər media blokları ilə eyni qaydalar */
+      align?: ImageAlign;
+      /** Cərgənin ümumi eni faizlə (20–100) — kənardakı tutacaqla dəyişilir */
       width?: number;
     }
   | {
@@ -168,6 +194,31 @@ export type TextAlign = "left" | "center" | "right" | "justify";
 
 export type ImageAlign = "full" | "left" | "right" | "center";
 
+/**
+ * Şəkil çərçivəsinin en:hündürlük nisbəti.
+ *
+ * Onluq ədəd kimi mətn saxlanılır (məs. `"1.7778"` = 16:9, `"1"` = 1:1) —
+ * sabit siyahı ilə məhdudlaşmır, çünki oxucu redaktorda çərçivənin
+ * hündürlüyünü siçanla sərbəst dartıb dəyişə bilir. Hazır düymələr
+ * (16:9, 4:3 və s.) sadəcə bu dəyəri qısayoldan təyin edir.
+ */
+export type ImageAspectRatio = string;
+
+/** Şəklin çərçivəyə sığma qaydası (CSS `object-fit`) */
+export type ImageFit = "cover" | "contain";
+
+/** Kəsim/düzülüş fokus nöqtəsi (CSS `object-position`) — 3×3 tor */
+export type ImageFocus =
+  | "top-left"
+  | "top"
+  | "top-right"
+  | "left"
+  | "center"
+  | "right"
+  | "bottom-left"
+  | "bottom"
+  | "bottom-right";
+
 /** Media blokunun icazə verilən en aralığı (faiz) */
 export const MEDIA_MIN_WIDTH = 20;
 export const MEDIA_MAX_WIDTH = 100;
@@ -202,17 +253,12 @@ export interface ArticleSummary {
   coverImageUrl?: string;
   publishedAt: string;
   publishedAtLabel: string;
-  readMinutes: number;
   referenceCount?: number;
   referenceLabel?: string;
   viewCount?: number;
   isFeatured?: boolean;
   isPeerReviewed?: boolean;
-  badges?: ArticleBadge[];
-  tags?: string[];
   author: Author;
-  /** Kart üzərində göstərilən qısa həkim şərhi */
-  doctorNote?: string;
 }
 
 /** Detal səhifəsi üçün tam forma */
@@ -220,9 +266,6 @@ export interface Article extends ArticleSummary {
   /** Bu məqaləyə şərh yazılmasına icazə (admin panelindən idarə olunur) */
   allowComments?: boolean;
   heroImageUrl?: string;
-  heroCaption?: string;
-  journalLabel?: string;
-  verificationNote?: string;
   tableOfContents: TableOfContentsItem[];
   blocks: ArticleBlock[];
   references: ArticleReference[];
@@ -257,10 +300,7 @@ export interface TopReadArticle {
   slug: string;
   title: string;
   excerpt: string;
-  readMinutes: number;
   readCountLabel: string;
-  rating: number;
-  ratingCount: number;
 }
 
 export interface VideoItem {
@@ -411,6 +451,4 @@ export interface SearchIndexItem {
   title: string;
   excerpt: string;
   categoryName: string;
-  readMinutes: number;
-  tags?: string[];
 }

@@ -2,19 +2,23 @@ import Link from "next/link";
 import { Icon } from "@/components/ui";
 import { Container } from "./Container";
 import { navItems, siteConfig } from "@/lib/site";
-import { mockDoctor } from "@/lib/mock/doctor";
+import type { DoctorProfile } from "@/lib/types";
+
+export interface SiteFooterProps {
+  doctor: DoctorProfile;
+}
 
 /** Desktop altlıq — mobil alt naviqasiya ilə toqquşmasın deyə yalnız lg-də görünür */
-export function SiteFooter() {
+export function SiteFooter({ doctor }: SiteFooterProps) {
   return (
     <footer className="hidden lg:block mt-space-3xl border-t border-surface-container bg-surface-container-low/60">
       <Container className="py-space-2xl grid grid-cols-12 gap-space-xl">
         <div className="col-span-5 flex flex-col gap-space-xs">
           <span className="font-headline text-headline-md text-on-surface">
-            {siteConfig.name}
+            {doctor.fullName}
           </span>
           <span className="font-label text-label-md uppercase tracking-wider text-secondary">
-            {siteConfig.title}
+            {doctor.shortTitle}
           </span>
           <p className="font-body text-body-sm text-on-surface-variant max-w-sm leading-relaxed">
             {siteConfig.description}
@@ -41,7 +45,7 @@ export function SiteFooter() {
             Kanallar
           </span>
           <div className="flex flex-wrap gap-space-xs">
-            {mockDoctor.socialLinks.map((link) => (
+            {doctor.socialLinks.map((link) => (
               <a
                 key={link.id}
                 href={link.url}
@@ -63,7 +67,7 @@ export function SiteFooter() {
 
       <Container className="py-space-md border-t border-surface-container flex items-center justify-between">
         <span className="font-label text-label-sm text-outline">
-          © {new Date().getFullYear()} {siteConfig.name}. Bütün hüquqlar qorunur.
+          © {new Date().getFullYear()} {doctor.fullName}. Bütün hüquqlar qorunur.
         </span>
         <span className="font-label text-label-sm text-outline">
           Bakı, Azərbaycan

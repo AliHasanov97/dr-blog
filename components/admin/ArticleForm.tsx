@@ -15,7 +15,7 @@ import { ChoiceGroup } from "./ChoiceGroup";
 import { HelpNote } from "./HelpNote";
 import { ImagePicker } from "./ImagePicker";
 import type { ActionResult } from "@/lib/admin/types";
-import { collectWarnings, estimateReadMinutes } from "@/lib/admin/article-helpers";
+import { collectWarnings } from "@/lib/admin/article-helpers";
 import { toDateLabel } from "@/lib/admin/format";
 import {
   autosaveArticle,
@@ -139,9 +139,6 @@ export function ArticleForm({
   const [publishedAt, setPublishedAt] = useState(
     article?.publishedAt ?? new Date().toISOString().slice(0, 10),
   );
-  const [manualMinutes, setManualMinutes] = useState<string>(
-    article ? String(article.readMinutes) : "",
-  );
   const [coverImageUrl, setCoverImageUrl] = useState(
     article?.coverImageUrl ?? coverOptions[0]?.value ?? "",
   );
@@ -158,7 +155,6 @@ export function ArticleForm({
    * əvvəl seçilmiş şəkil itmir, ona görə göndərilən dəyər ayrıca hesablanır. */
   const effectiveCover = coverMode === "none" ? "" : coverImageUrl;
   const showHeroImage = coverMode === "full";
-  const [tags, setTags] = useState((article?.tags ?? []).join(", "));
   const [isFeatured, setIsFeatured] = useState(article?.isFeatured ?? false);
   const [isPeerReviewed, setIsPeerReviewed] = useState(
     article?.isPeerReviewed ?? false,
@@ -166,8 +162,6 @@ export function ArticleForm({
   const [allowComments, setAllowComments] = useState(article?.allowComments ?? true);
   const [showTableOfContents, setShowTableOfContents] = useState(article?.showTableOfContents ?? true);
   const [metaDescription, setMetaDescription] = useState(article?.metaDescription ?? "");
-  const [doctorNote, setDoctorNote] = useState(article?.doctorNote ?? "");
-  const [journalLabel, setJournalLabel] = useState(article?.journalLabel ?? "");
   const [blocks, setBlocks] = useState<ArticleBlock[]>(article?.blocks ?? []);
   const [references, setReferences] = useState<ArticleReference[]>(
     article?.references ?? [],
@@ -188,8 +182,6 @@ export function ArticleForm({
     [articleKey],
   );
 
-  const autoMinutes = useMemo(() => estimateReadMinutes(blocks), [blocks]);
-  const readMinutes = manualMinutes ? Number(manualMinutes) || autoMinutes : autoMinutes;
   const warnings = useMemo(
     () => collectWarnings({ title, excerpt, blocks }),
     [title, excerpt, blocks],
@@ -225,17 +217,13 @@ export function ArticleForm({
       categorySlug,
       status: article?.status ?? "draft",
       publishedAt,
-      readMinutes,
       coverImageUrl: effectiveCover,
       showHeroImage,
-      tags: tags.split(",").map((t) => t.trim()).filter(Boolean),
       isFeatured,
       isPeerReviewed,
       allowComments,
       showTableOfContents,
       metaDescription: metaDescription.trim(),
-      doctorNote: doctorNote.trim(),
-      journalLabel: journalLabel.trim(),
       blocks,
       references,
     }),
@@ -247,17 +235,13 @@ export function ArticleForm({
       articleKey,
       article?.status,
       publishedAt,
-      readMinutes,
       effectiveCover,
       showHeroImage,
-      tags,
       isFeatured,
       isPeerReviewed,
       allowComments,
       showTableOfContents,
       metaDescription,
-      doctorNote,
-      journalLabel,
       blocks,
       references,
     ],
@@ -333,14 +317,11 @@ export function ArticleForm({
           ? "full"
           : "card",
     );
-    setTags(recovered.tags.join(", "));
     setIsFeatured(recovered.isFeatured);
     setIsPeerReviewed(recovered.isPeerReviewed);
     setAllowComments(recovered.allowComments ?? true);
     setShowTableOfContents(recovered.showTableOfContents ?? true);
     setMetaDescription(recovered.metaDescription ?? "");
-    setDoctorNote(recovered.doctorNote);
-    setJournalLabel(recovered.journalLabel);
     setBlocks(recovered.blocks);
     setReferences(recovered.references);
     setRecovered(null);
@@ -850,7 +831,6 @@ export function ArticleForm({
         categoryName={categoryName}
         coverImageUrl={effectiveCover}
         showCoverImage={showHeroImage}
-        readMinutes={readMinutes}
         dateLabel={toDateLabel(publishedAt)}
         blocks={blocks}
         isPeerReviewed={isPeerReviewed}
@@ -868,7 +848,6 @@ function PreviewModal({
   categoryName,
   coverImageUrl,
   showCoverImage,
-  readMinutes,
   dateLabel,
   blocks,
   isPeerReviewed,
@@ -881,7 +860,6 @@ function PreviewModal({
   categoryName: string;
   coverImageUrl: string;
   showCoverImage: boolean;
-  readMinutes: number;
   dateLabel: string;
   blocks: ArticleBlock[];
   isPeerReviewed: boolean;
@@ -938,7 +916,6 @@ function PreviewModal({
             categoryName={categoryName}
             coverImageUrl={coverImageUrl}
             showCoverImage={showCoverImage}
-            readMinutes={readMinutes}
             dateLabel={dateLabel}
             authorName="Dr. Narmin Aliyeva"
             blocks={blocks}

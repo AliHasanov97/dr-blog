@@ -130,7 +130,13 @@ export async function updateResource(
           await dbUpdateCategory(id, { name: values.name, slug: values.slug, icon: values.icon });
           break;
         case "videos":
-          await dbUpdateVideo(id, values);
+          await dbUpdateVideo(id, {
+            title: values.title,
+            description: values.description,
+            thumbnailUrl: values.thumbnailUrl,
+            videoUrl: values.url,
+            kindLabel: values.kindLabel,
+          });
           break;
         case "protocols":
           await dbUpdateProtocol(id, values);

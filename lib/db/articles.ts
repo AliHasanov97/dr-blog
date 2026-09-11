@@ -2,14 +2,30 @@ import { prisma } from "@/lib/prisma";
 import type {
   Article,
   ArticleSummary,
+  Author,
   Category,
   Comment,
   Paginated,
   SearchIndexItem,
+  TopReadArticle,
 } from "@/lib/types";
 import { ArticleStatus, CommentStatus, Prisma } from "@prisma/client";
 import { buildToc, normalizeHeadings } from "@/lib/article-toc";
 import { dbGetSiteSettings } from "@/lib/db/admin";
+import { dbGetArticleAuthor } from "@/lib/db/doctor";
+import { formatCompact } from "@/lib/utils";
+
+/**
+ * Müəllif tapılmadıqda (DoctorProfile hələ yaradılmayıbsa) istifadə olunur —
+ * səhifə boş kartla açılmaq əvəzinə çökməsin deyə.
+ */
+const FALLBACK_AUTHOR: Author = {
+  id: "doctor",
+  fullName: "Həkim",
+  title: "",
+  avatarUrl: "",
+  isVerified: false,
+};
 
 export interface ArticleQuery {
   categorySlug?: string;
@@ -21,7 +37,7 @@ export interface ArticleQuery {
   pageSize?: number;
 }
 
-function toSummary(article: any): ArticleSummary {
+function toSummary(article: any, author: Author): ArticleSummary {
   return {
     id: article.id,
     slug: article.slug,
@@ -42,29 +58,22 @@ function toSummary(article: any): ArticleSummary {
           year: "numeric"
         }).format(article.publishedAt)
       : "",
-    readMinutes: article.readMinutes,
     referenceCount: Array.isArray(article.references) ? article.references.length : 0,
-    referenceLabel: Array.isArray(article.references)
-      ? `${article.references.length} istinad`
-      : undefined,
+    referenceLabel:
+      Array.isArray(article.references) && article.references.length > 0
+        ? `${article.references.length} istinad`
+        : undefined,
     viewCount: article.viewCount,
     isFeatured: article.isFeatured,
     isPeerReviewed: article.isPeerReviewed,
-    badges: article.badges as ArticleSummary["badges"],
-    tags: article.tags?.map((t: any) => t.name) ?? [],
-    author: {
-      id: article.author.id,
-      fullName: article.author.fullName,
-      title: article.author.title,
-      avatarUrl: article.author.avatarUrl ?? "",
-      isVerified: article.author.isVerified,
-    },
-    doctorNote: article.doctorNote ?? undefined,
+    /* Ayrıca Author cədvəli yoxdur — bütün məqalələr eyni müəllifi (sayt
+     * həkimini) göstərir, ona görə bu, sorğu ilə yanaşı çağırılıb ötürülür. */
+    author,
   };
 }
 
-function toFullArticle(article: any): Article {
-  const summary = toSummary(article);
+function toFullArticle(article: any, author: Author): Article {
+  const summary = toSummary(article, author);
   /*
    * Məzmun siyahısı bazadakı `tableOfContents` sahəsindən deyil, bloklardan
    * hesablanır. Səbəb: o sahə yalnız admin panelindən yadda saxlayanda
@@ -79,9 +88,6 @@ function toFullArticle(article: any): Article {
   return {
     ...summary,
     heroImageUrl: article.heroImageUrl ?? undefined,
-    heroCaption: article.heroCaption ?? undefined,
-    journalLabel: article.journalLabel ?? undefined,
-    verificationNote: article.verificationNote ?? undefined,
     allowComments: article.allowComments !== false,
     tableOfContents: article.showTableOfContents === false ? [] : buildToc(blocks),
     blocks,
@@ -127,27 +133,25 @@ export async function dbGetArticles(
     where.OR = [
       { title: { contains: q, mode: "insensitive" } },
       { excerpt: { contains: q, mode: "insensitive" } },
-      { tags: { some: { name: { contains: q, mode: "insensitive" } } } },
     ];
   }
 
-  const [articles, total] = await Promise.all([
+  const [articles, total, author] = await Promise.all([
     prisma.article.findMany({
       where,
       include: {
         category: true,
-        author: true,
-        tags: true,
       },
       orderBy: { publishedAt: "desc" },
       skip: (page - 1) * pageSize,
       take: pageSize,
     }),
     prisma.article.count({ where }),
+    dbGetArticleAuthor(),
   ]);
 
   return {
-    items: articles.map(toSummary),
+    items: articles.map((a) => toSummary(a, author ?? FALLBACK_AUTHOR)),
     page,
     pageSize,
     total,
@@ -156,39 +160,41 @@ export async function dbGetArticles(
 }
 
 export async function dbGetFeaturedArticle(): Promise<ArticleSummary | null> {
-  const article = await prisma.article.findFirst({
-    where: {
-      status: ArticleStatus.PUBLISHED,
-      isFeatured: true,
-    },
-    include: {
-      category: true,
-      author: true,
-      tags: true,
-    },
-    orderBy: { publishedAt: "desc" },
-  });
+  const [article, author] = await Promise.all([
+    prisma.article.findFirst({
+      where: {
+        status: ArticleStatus.PUBLISHED,
+        isFeatured: true,
+      },
+      include: {
+        category: true,
+      },
+      orderBy: { publishedAt: "desc" },
+    }),
+    dbGetArticleAuthor(),
+  ]);
 
-  return article ? toSummary(article) : null;
+  return article ? toSummary(article, author ?? FALLBACK_AUTHOR) : null;
 }
 
 export async function dbGetArticleBySlug(slug: string): Promise<Article | null> {
-  const article = await prisma.article.findFirst({
-    where: {
-      slug,
-      status: ArticleStatus.PUBLISHED,
-    },
-    include: {
-      category: true,
-      author: true,
-      tags: true,
-      _count: {
-        select: { comments: { where: { status: CommentStatus.APPROVED } } },
+  const [article, author] = await Promise.all([
+    prisma.article.findFirst({
+      where: {
+        slug,
+        status: ArticleStatus.PUBLISHED,
       },
-    },
-  });
+      include: {
+        category: true,
+        _count: {
+          select: { comments: { where: { status: CommentStatus.APPROVED } } },
+        },
+      },
+    }),
+    dbGetArticleAuthor(),
+  ]);
 
-  return article ? toFullArticle(article) : null;
+  return article ? toFullArticle(article, author ?? FALLBACK_AUTHOR) : null;
 }
 
 /**
@@ -221,22 +227,23 @@ export async function dbGetRelatedArticles(
 
   if (!current) return [];
 
-  const articles = await prisma.article.findMany({
-    where: {
-      status: ArticleStatus.PUBLISHED,
-      categoryId: current.categoryId,
-      slug: { not: slug },
-    },
-    include: {
-      category: true,
-      author: true,
-      tags: true,
-    },
-    orderBy: { publishedAt: "desc" },
-    take: limit,
-  });
+  const [articles, author] = await Promise.all([
+    prisma.article.findMany({
+      where: {
+        status: ArticleStatus.PUBLISHED,
+        categoryId: current.categoryId,
+        slug: { not: slug },
+      },
+      include: {
+        category: true,
+      },
+      orderBy: { publishedAt: "desc" },
+      take: limit,
+    }),
+    dbGetArticleAuthor(),
+  ]);
 
-  return articles.map(toSummary);
+  return articles.map((a) => toSummary(a, author ?? FALLBACK_AUTHOR));
 }
 
 export async function dbGetComments(slug: string): Promise<Comment[]> {
@@ -435,7 +442,6 @@ export async function dbGetSearchIndex(
       { title: { contains: q, mode: "insensitive" } },
       { excerpt: { contains: q, mode: "insensitive" } },
       { category: { name: { contains: q, mode: "insensitive" } } },
-      { tags: { some: { name: { contains: q, mode: "insensitive" } } } },
     ];
   }
 
@@ -447,9 +453,7 @@ export async function dbGetSearchIndex(
       slug: true,
       title: true,
       excerpt: true,
-      readMinutes: true,
       category: { select: { name: true } },
-      tags: { select: { name: true } },
     },
   });
 
@@ -458,8 +462,31 @@ export async function dbGetSearchIndex(
     title: a.title,
     excerpt: a.excerpt,
     categoryName: a.category.name,
-    readMinutes: a.readMinutes,
-    tags: a.tags.map((t) => t.name),
+  }));
+}
+
+/** Bloq səhifəsinin «Ən Çox Oxunanlar» bölməsi — baxış sayına görə */
+export async function dbGetTopReadArticles(
+  limit = 3,
+): Promise<TopReadArticle[]> {
+  const articles = await prisma.article.findMany({
+    where: { status: ArticleStatus.PUBLISHED },
+    orderBy: { viewCount: "desc" },
+    take: Math.min(10, Math.max(1, limit)),
+    select: {
+      slug: true,
+      title: true,
+      excerpt: true,
+      viewCount: true,
+    },
+  });
+
+  return articles.map((a, i) => ({
+    rank: `#${String(i + 1).padStart(2, "0")}`,
+    slug: a.slug,
+    title: a.title,
+    excerpt: a.excerpt,
+    readCountLabel: `${formatCompact(a.viewCount)} oxu`,
   }));
 }
 

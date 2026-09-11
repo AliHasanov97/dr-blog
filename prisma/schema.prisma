@@ -27,39 +27,14 @@ model Category {
   @@map("categories")
 }
 
-model Tag {
-  id       String    @id @default(cuid())
-  slug     String    @unique
-  name     String
-  articles Article[] @relation("ArticleTags")
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@map("tags")
-}
-
-// ---------------------------------------------------------------
-// Muellif
-// ---------------------------------------------------------------
-
-model Author {
-  id         String    @id @default(cuid())
-  fullName   String
-  title      String
-  avatarUrl  String?
-  isVerified Boolean   @default(false)
-  articles   Article[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@map("authors")
-}
-
 // ---------------------------------------------------------------
 // Meqale
 // ---------------------------------------------------------------
+//
+// Muellif ucun ayrica cedvel yoxdur — sayt bir hekime aiddir, meqalenin
+// muellif kartinda gorunen ad/sekil/tesdiq nisani birbasa DoctorProfile-dan
+// gelir (bax: lib/db/doctor.ts -> dbGetArticleAuthor). Bu sekilde ad ve ya
+// sekil YALNIZ bir yerden (/admin/hekim) deyisdirilir.
 
 enum ArticleStatus {
   DRAFT
@@ -77,11 +52,9 @@ model Article {
   // Cover ve Hero
   coverImageUrl String?
   heroImageUrl  String?
-  heroCaption   String?
 
   // Metadata
   publishedAt DateTime?
-  readMinutes Int       @default(5)
   viewCount   Int       @default(0)
   likeCount   Int       @default(0)
 
@@ -98,13 +71,7 @@ model Article {
   // Bu meqaleye serh yazilmasina icaze
   allowComments       Boolean @default(true)
 
-  // Journal ve verifikasiya
-  journalLabel     String?
-  verificationNote String?
-  doctorNote       String?
-
   // JSON saheler (complex structures)
-  badges          Json? // ArticleBadge[]
   tableOfContents Json? // TableOfContentsItem[]
   blocks          Json // ArticleBlock[]
   references      Json? // ArticleReference[]
@@ -113,10 +80,6 @@ model Article {
   categoryId String
   category   Category @relation(fields: [categoryId], references: [id])
 
-  authorId String
-  author   Author @relation(fields: [authorId], references: [id])
-
-  tags     Tag[]     @relation("ArticleTags")
   comments Comment[]
 
   createdAt DateTime @default(now())

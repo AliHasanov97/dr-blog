@@ -14,7 +14,6 @@ export interface ArticlePreviewProps {
   coverImageUrl: string;
   /** Örtük şəklinin məqalənin başında göstərilməsi (admin açarı) */
   showCoverImage?: boolean;
-  readMinutes: number;
   dateLabel: string;
   authorName: string;
   blocks: ArticleBlock[];
@@ -40,7 +39,6 @@ export function ArticlePreview({
   categoryName,
   coverImageUrl,
   showCoverImage = true,
-  readMinutes,
   dateLabel,
   authorName,
   blocks,
@@ -82,11 +80,6 @@ export function ArticlePreview({
         >
           <div className="flex items-center flex-wrap gap-x-space-sm gap-y-1 font-label text-label-sm text-outline">
             <span className="text-secondary font-semibold">{categoryName}</span>
-            <span aria-hidden="true">•</span>
-            <span className="inline-flex items-center gap-1">
-              <Icon name="schedule" size={13} />
-              {readMinutes} dəqiqə oxu
-            </span>
             <span aria-hidden="true">•</span>
             <span>{dateLabel}</span>
           </div>

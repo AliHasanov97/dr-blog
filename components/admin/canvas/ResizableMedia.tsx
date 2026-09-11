@@ -170,3 +170,33 @@ function ResizeHandle({
     />
   );
 }
+
+/**
+ * Şəkil çərçivəsinin aşağı kənarındakı hündürlük tutacağı.
+ * `ResizeHandle`-in şaquli qardaşıdır — eyni görünüş, əks ox. `useHeightDrag`
+ * hook-u ilə birlikdə işlədilir (bax: `ImageNodeView`, `GalleryNodeView`).
+ */
+export function HeightHandle({
+  dragging,
+  onPointerDown,
+}: {
+  dragging?: boolean;
+  onPointerDown: (event: ReactPointerEvent<HTMLButtonElement>) => void;
+}) {
+  return (
+    <button
+      type="button"
+      contentEditable={false}
+      onPointerDown={onPointerDown}
+      onMouseDown={(e) => e.stopPropagation()}
+      title="Hündürlüyü dəyişmək üçün sürüşdürün"
+      aria-label="Hündürlüyü dəyiş"
+      className={cn(
+        "absolute -bottom-1.5 start-1/2 -translate-x-1/2 z-10 w-12 h-3 rounded-full",
+        "bg-secondary/90 border-2 border-surface shadow-level-2",
+        "cursor-ns-resize hover:bg-secondary",
+        dragging && "bg-secondary",
+      )}
+    />
+  );
+}

@@ -14,7 +14,6 @@ export interface ArticleCardProps {
    * `list`     — yan şəkilli sətir kartı
    */
   variant?: "featured" | "grid" | "compact" | "list";
-  showDoctorNote?: boolean;
   priority?: boolean;
   className?: string;
 }
@@ -22,7 +21,6 @@ export interface ArticleCardProps {
 export function ArticleCard({
   article,
   variant = "compact",
-  showDoctorNote = false,
   priority = false,
   className,
 }: ArticleCardProps) {
@@ -51,19 +49,13 @@ export function ArticleCard({
               <CoverFallback icon={article.category.icon} size={72} />
             )}
             <div className="absolute inset-0 bg-gradient-to-t from-primary-container/55 via-transparent to-primary-container/25" />
-            <div className="absolute top-space-sm inset-x-space-sm flex items-start justify-between gap-space-xs">
-              {article.isPeerReviewed ? (
+            {article.isPeerReviewed && (
+              <div className="absolute top-space-sm inset-x-space-sm flex items-start">
                 <Badge tone="solid" icon="verified">
                   Resenziyalı Nəşr
                 </Badge>
-              ) : (
-                <span />
-              )}
-              <span className="inline-flex items-center gap-1 rounded-full bg-primary-container/70 backdrop-blur-sm px-2 py-1 font-label text-label-sm text-white">
-                <Icon name="schedule" size={13} />
-                {article.readMinutes} dəq
-              </span>
-            </div>
+              </div>
+            )}
           </div>
 
           <div className="p-card-padding lg:p-space-xl flex flex-col gap-space-xs justify-center">
@@ -78,15 +70,6 @@ export function ArticleCard({
             <p className="font-body text-body-sm lg:text-body-md text-on-surface-variant leading-relaxed line-clamp-3">
               {article.excerpt}
             </p>
-
-            {showDoctorNote && article.doctorNote && (
-              <div className="rounded-lg border-s-2 border-secondary bg-secondary/[0.07] p-space-sm flex items-start gap-space-xs mt-space-2xs">
-                <Icon name="format_quote" size={16} className="text-secondary mt-0.5" />
-                <p className="font-display italic text-body-sm text-on-surface line-clamp-2">
-                  {article.doctorNote}
-                </p>
-              </div>
-            )}
 
             <div className="pt-space-sm mt-space-2xs border-t border-surface-container flex items-center justify-between gap-space-sm">
               <span className="flex items-center gap-space-xs min-w-0">
@@ -145,10 +128,7 @@ export function ArticleCard({
           </div>
 
           <div className="p-space-md flex flex-col gap-space-2xs flex-1">
-            <ArticleMeta
-              dateLabel={article.publishedAtLabel}
-              readMinutes={article.readMinutes}
-            />
+            <ArticleMeta dateLabel={article.publishedAtLabel} />
             <h3 className="font-headline text-headline-sm text-on-surface leading-snug line-clamp-2">
               {article.title}
             </h3>
@@ -194,11 +174,6 @@ export function ArticleCard({
               <span className="font-label text-label-sm text-outline">
                 {article.publishedAtLabel}
               </span>
-              {article.badges?.[0] && (
-                <Badge tone={article.badges[0].tone ?? "neutral"} icon={article.badges[0].icon}>
-                  {article.badges[0].label}
-                </Badge>
-              )}
             </div>
             <h3 className="font-headline text-headline-sm lg:text-headline-md text-on-surface leading-snug line-clamp-2">
               {article.title}
@@ -207,7 +182,6 @@ export function ArticleCard({
               {article.excerpt}
             </p>
             <ArticleMeta
-              readMinutes={article.readMinutes}
               referenceLabel={article.referenceLabel}
               className="pt-space-2xs"
             />
@@ -221,18 +195,6 @@ export function ArticleCard({
   return (
     <Card interactive className={cn("group flex flex-col gap-space-xs h-full", className)}>
       <Link href={href} className="flex flex-col gap-space-xs h-full">
-        <div className="flex items-center justify-between gap-space-xs">
-          {article.tags?.[0] && (
-            <Badge tone="secondary" pill={false}>
-              #{article.tags[0]}
-            </Badge>
-          )}
-          <span className="inline-flex items-center gap-1 font-label text-label-sm text-outline">
-            <Icon name="schedule" size={13} />
-            {article.readMinutes} dəq oxuma
-          </span>
-        </div>
-
         <h3 className="font-headline text-headline-sm text-on-surface leading-snug">
           {article.title}
         </h3>

@@ -73,14 +73,10 @@ export default async function ArticlesPage({ searchParams }: PageProps) {
                   />
                 )}
                 <div className="absolute inset-0 bg-gradient-to-t from-primary-container/45 via-transparent to-primary-container/25" />
-                <div className="absolute top-space-sm inset-x-space-sm flex items-start justify-between gap-space-xs">
+                <div className="absolute top-space-sm inset-x-space-sm flex items-start">
                   <Badge tone="solid" icon="verified">
                     Rəy verilib
                   </Badge>
-                  <span className="inline-flex items-center gap-1 rounded-full bg-primary-container/70 backdrop-blur-sm px-2 py-1 font-label text-label-sm text-white">
-                    <Icon name="schedule" size={13} />
-                    {featured.readMinutes} dəq oxu
-                  </span>
                 </div>
               </div>
 
@@ -104,7 +100,7 @@ export default async function ArticlesPage({ searchParams }: PageProps) {
                       Məqaləni dinlə
                     </span>
                     <span className="font-label text-label-sm text-outline truncate">
-                      Peşəkar səsli icmal • {featured.readMinutes} dəq
+                      Peşəkar səsli icmal
                     </span>
                   </span>
                   <span className="ml-auto flex items-end gap-0.5 h-6" aria-hidden="true">

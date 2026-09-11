@@ -13,14 +13,6 @@ const mockCategories = [
   { id: "cat-research", slug: "elmi-nesrler", name: "Elmi Nəşrlər (AHA/ESC)", icon: "science" },
 ];
 
-const mockAuthor = {
-  id: "auth-narmin",
-  fullName: "Dr. Nərmin Əliyeva",
-  title: "T.e.n., Kardioloq & Terapevt",
-  avatarUrl: "/images/doctor-avatar.svg",
-  isVerified: true,
-};
-
 const mockDoctor = {
   fullName: "Dr. Nərmin Əliyeva",
   shortTitle: "T.e.n., Kardioloq & Terapevt",
@@ -151,17 +143,10 @@ const mockArticles = [
     categorySlug: "kardiologiya",
     coverImageUrl: "/images/article-stress.svg",
     heroImageUrl: "/images/article-stress.svg",
-    heroCaption: "Təbii mühitdə gəzinti simpatik sinir sisteminin oyanıqlığını azaldır.",
     publishedAt: new Date("2024-11-14"),
-    readMinutes: 6,
     viewCount: 4820,
     isFeatured: true,
     isPeerReviewed: true,
-    journalLabel: "Kliniki İcmal Məcmuəsi • Sayı 11",
-    verificationNote: "Kardiologiya kafedrası • Yoxlanılıb və təsdiqlənmişdir",
-    badges: [{ label: "Rəsmi Protokol", icon: "verified", tone: "secondary" }, { label: "ESC 2024", tone: "neutral" }],
-    tags: ["Kardiologiya", "Profilaktika", "Stress"],
-    doctorNote: "Həkimin şərhi: «Stress fonunda artan kortizol damar spazmını sürətləndirir...»",
     likeCount: 142,
     tableOfContents: [
       { id: "bolme-1", index: "01", title: "Xroniki stress ürək damarlarına necə təsir edir?" },
@@ -188,14 +173,9 @@ const mockArticles = [
     coverImageUrl: "/images/article-infarkt.svg",
     heroImageUrl: "/images/article-infarkt.svg",
     publishedAt: new Date("2024-11-18"),
-    readMinutes: 8,
     viewCount: 4820,
     isFeatured: true,
     isPeerReviewed: true,
-    journalLabel: "Ekspert Təhlili • Ayın Təhlili",
-    verificationNote: "Kardiologiya kafedrası • Rəy verilib",
-    badges: [{ label: "Rəy verilib", icon: "verified", tone: "secondary" }, { label: "Ekspert Təhlili", tone: "neutral" }],
-    tags: ["İnfarkt", "Təcili yardım"],
     likeCount: 210,
     tableOfContents: [
       { id: "inf-1", index: "01", title: "Atipik simptomlar niyə gözdən qaçır?" },
@@ -219,11 +199,8 @@ const mockArticles = [
     categorySlug: "tezyiq-ve-aritmiya",
     coverImageUrl: "/images/article-tezyiq.svg",
     publishedAt: new Date("2024-11-08"),
-    readMinutes: 4,
     viewCount: 3120,
     isPeerReviewed: true,
-    badges: [{ label: "Meta-təhlil", icon: "verified_user", tone: "secondary" }],
-    tags: ["Hipertoniya"],
     likeCount: 88,
     tableOfContents: [
       { id: "tz-1", index: "01", title: "Natrium tək günahkar deyil" },
@@ -264,9 +241,7 @@ async function main() {
   // Clear existing data
   await prisma.comment.deleteMany();
   await prisma.article.deleteMany();
-  await prisma.tag.deleteMany();
   await prisma.category.deleteMany();
-  await prisma.author.deleteMany();
   await prisma.doctorProfile.deleteMany();
   await prisma.contactChannel.deleteMany();
   await prisma.officeLocation.deleteMany();
@@ -288,18 +263,6 @@ async function main() {
     });
   }
 
-  // Create author
-  console.log("Creating author...");
-  await prisma.author.create({
-    data: {
-      id: mockAuthor.id,
-      fullName: mockAuthor.fullName,
-      title: mockAuthor.title,
-      avatarUrl: mockAuthor.avatarUrl,
-      isVerified: mockAuthor.isVerified,
-    },
-  });
-
   // Create articles
   console.log("Creating articles...");
   for (const art of mockArticles) {
@@ -315,22 +278,15 @@ async function main() {
         status: ArticleStatus.PUBLISHED,
         coverImageUrl: art.coverImageUrl,
         heroImageUrl: art.heroImageUrl,
-        heroCaption: art.heroCaption,
         publishedAt: art.publishedAt,
-        readMinutes: art.readMinutes,
         viewCount: art.viewCount,
         likeCount: art.likeCount,
         isFeatured: art.isFeatured || false,
         isPeerReviewed: art.isPeerReviewed || false,
-        journalLabel: art.journalLabel,
-        verificationNote: art.verificationNote,
-        doctorNote: art.doctorNote,
-        badges: art.badges,
         tableOfContents: art.tableOfContents,
         blocks: art.blocks,
         references: art.references,
         categoryId: category.id,
-        authorId: mockAuthor.id,
       },
     });
   }

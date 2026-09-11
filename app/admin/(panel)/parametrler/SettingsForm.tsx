@@ -11,7 +11,6 @@ const TABS = [
   { id: "general", label: "Ümumi", icon: "tune" },
   { id: "appearance", label: "Görünüş", icon: "palette" },
   { id: "articles", label: "Məqalələr", icon: "article" },
-  { id: "system", label: "Sistem", icon: "info" },
 ] as const;
 
 type TabId = typeof TABS[number]["id"];
@@ -118,22 +117,32 @@ export function SettingsForm({ settings }: SettingsFormProps) {
             <hr className="border-surface-container" />
 
             <div>
-              <h3 className="font-label text-label-lg text-on-surface mb-1">Əlaqə</h3>
-              <p className="text-sm text-outline mb-4">Sistem bildirişləri üçün e-poçt və təcili nömrə</p>
+              <h3 className="font-label text-label-lg text-on-surface mb-1">Ana səhifə</h3>
+              <p className="text-sm text-outline mb-4">Hero bölməsindəki başlıq və mətnlər</p>
 
               <div className="grid gap-space-md sm:grid-cols-2">
                 <TextField
-                  label="E-poçt ünvanı"
-                  type="email"
-                  placeholder="info@example.com"
-                  value={values.contactEmail}
-                  onChange={(e) => set("contactEmail", e.target.value)}
+                  label="Üst yazı"
+                  placeholder="Kardiologiya · Elmi Bloq"
+                  value={values.heroEyebrow}
+                  onChange={(e) => set("heroEyebrow", e.target.value)}
+                  className="sm:col-span-2"
                 />
                 <TextField
-                  label="Təcili yardım nömrəsi"
-                  placeholder="+994 XX XXX XX XX"
-                  value={values.emergencyNumber}
-                  onChange={(e) => set("emergencyNumber", e.target.value)}
+                  label="Əsas başlıq"
+                  placeholder="Ürək sağlamlığı haqqında sübuta əsaslanan yazılar"
+                  value={values.heroHeadline}
+                  onChange={(e) => set("heroHeadline", e.target.value)}
+                  className="sm:col-span-2"
+                />
+                <TextAreaField
+                  label="Alt mətn"
+                  hint="Həkimin adı və titulundan sonra gəlir"
+                  rows={2}
+                  placeholder="Beynəlxalq protokolların sadə dildə izahı, klinik icmallar və pasiyentlər üçün praktik bələdçilər."
+                  value={values.heroDescription}
+                  onChange={(e) => set("heroDescription", e.target.value)}
+                  className="sm:col-span-2"
                 />
               </div>
             </div>
@@ -178,32 +187,6 @@ export function SettingsForm({ settings }: SettingsFormProps) {
           </div>
         )}
 
-        {/* Sistem tab */}
-        {activeTab === "system" && (
-          <div>
-            <h3 className="font-label text-label-lg text-on-surface mb-1">Sistem məlumatları</h3>
-            <p className="text-sm text-outline mb-4">Texniki məlumatlar (yalnız oxumaq üçün)</p>
-
-            <div className="grid gap-3 sm:grid-cols-2">
-              <InfoCard label="Data mənbəyi" value="Mock (in-memory)" icon="database" />
-              <InfoCard label="API ünvanı" value={process.env.NEXT_PUBLIC_API_BASE_URL || "Konfiqurasiya olunmayıb"} icon="cloud" />
-              <InfoCard label="Autentifikasiya" value="Cookie sessiyası" icon="lock" />
-              <InfoCard label="Versiya" value="0.1.0" icon="info" />
-            </div>
-
-            <div className="mt-space-lg p-4 rounded-lg bg-surface-container/50 border border-outline-variant/50">
-              <div className="flex items-start gap-3">
-                <Icon name="tips_and_updates" size={20} className="text-secondary shrink-0 mt-0.5" />
-                <div>
-                  <p className="font-medium text-sm text-on-surface">Backend qoşulma</p>
-                  <p className="text-sm text-outline mt-1">
-                    Hazırda sayt mock data ilə işləyir. Real backend qoşulduqda bu məlumatlar avtomatik yenilənəcək.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );
@@ -254,19 +237,6 @@ function ToggleCard({
         className={active ? "text-secondary" : "text-outline"}
       />
     </button>
-  );
-}
-
-// Info card component
-function InfoCard({ label, value, icon }: { label: string; value: string; icon: string }) {
-  return (
-    <div className="flex items-center gap-3 p-3 rounded-lg bg-surface-container/50">
-      <Icon name={icon} size={18} className="text-outline shrink-0" />
-      <div className="flex-1 min-w-0">
-        <p className="text-xs text-outline">{label}</p>
-        <p className="text-sm text-on-surface truncate">{value}</p>
-      </div>
-    </div>
   );
 }
 

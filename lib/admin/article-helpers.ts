@@ -6,33 +6,6 @@ function countWords(text: string): number {
   return stripBBCode(text).split(/\s+/).filter(Boolean).length;
 }
 
-/** Bloklardakı söz sayına görə oxuma müddətini hesablayır */
-export function estimateReadMinutes(blocks: ArticleBlock[]): number {
-  let words = 0;
-  for (const block of blocks) {
-    if (
-      block.type === "lead" ||
-      block.type === "paragraph" ||
-      block.type === "heading" ||
-      block.type === "quote"
-    ) {
-      words += countWords(block.text);
-    } else if (block.type === "checklist") {
-      words += countWords(block.intro ?? "");
-      for (const item of block.items) {
-        words += countWords(item.title) + countWords(item.description);
-      }
-    } else if (block.type === "slider") {
-      words += countWords(block.intro ?? "");
-    } else if (block.type === "video") {
-      words += countWords(block.caption ?? "");
-    } else if (block.type === "file") {
-      words += countWords(block.title) + countWords(block.description ?? "");
-    }
-  }
-  return Math.max(1, Math.round(words / 170));
-}
-
 /** Doldurulmamış vacib sahələri sadə dildə sadalayır */
 export function collectWarnings(input: {
   title: string;
@@ -51,6 +24,7 @@ export function collectWarnings(input: {
     if (b.type === "checklist") return b.items.every((i) => !stripBBCode(i.title));
     if (b.type === "image") return !b.src.trim();
     if (b.type === "slider") return b.items.every((i) => !i.src.trim());
+    if (b.type === "imageGroup") return b.items.every((i) => !i.src.trim());
     if (b.type === "video") return !b.videoId.trim();
     if (b.type === "file") return !b.url.trim();
     return false;

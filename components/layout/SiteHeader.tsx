@@ -8,19 +8,20 @@ import { Logo } from "./Logo";
 import { Container } from "./Container";
 import { SearchDialog } from "./SearchDialog";
 import { navItems } from "@/lib/site";
-import type { SearchIndexItem } from "@/lib/types";
+import type { DoctorProfile, SearchIndexItem } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 export interface SiteHeaderProps {
   /** Axtarış qutusu boş olanda göstərilən təkliflər */
   searchSuggestions: SearchIndexItem[];
+  doctor: DoctorProfile;
 }
 
 /**
  * Sabit üst panel.
  * Mobil: loqo + axtarış. Desktop: əlavə olaraq üfüqi naviqasiya və ⌘K göstəricisi.
  */
-export function SiteHeader({ searchSuggestions }: SiteHeaderProps) {
+export function SiteHeader({ searchSuggestions, doctor }: SiteHeaderProps) {
   const pathname = usePathname();
   const [searchOpen, setSearchOpen] = useState(false);
 
@@ -46,7 +47,7 @@ export function SiteHeader({ searchSuggestions }: SiteHeaderProps) {
     <>
       <header className="fixed top-0 inset-x-0 z-50 pt-safe bg-surface-bright/90 backdrop-blur-xl shadow-[0_1px_12px_rgba(17,28,45,0.05)]">
         <Container className="h-20 flex items-center justify-between gap-space-md">
-          <Logo contextLabel={current?.label} />
+          <Logo doctor={doctor} contextLabel={current?.label} />
 
           <nav
             className="hidden lg:flex items-center gap-space-2xs"

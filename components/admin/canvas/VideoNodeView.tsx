@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { NodeViewWrapper, type NodeViewProps } from "@tiptap/react";
 import { Icon } from "@/components/ui";
-import { extractYouTubeId } from "@/components/article/ArticleVideo";
+import { extractYouTubeId } from "@/lib/youtube";
 import { ResizableMedia } from "./ResizableMedia";
 import { alignOptions } from "./ImageNodeView";
 import {

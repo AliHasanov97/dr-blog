@@ -23,8 +23,9 @@ import {
   type NewCommentInput,
   dbGetCategories,
   dbGetSearchIndex,
+  dbGetTopReadArticles,
 } from "@/lib/db";
-import { dbGetVideos, dbGetProtocols } from "@/lib/db/content";
+import { dbGetVideos, dbGetVideoById, dbGetProtocols } from "@/lib/db/content";
 
 export interface ArticleQuery {
   categorySlug?: string;
@@ -101,8 +102,7 @@ export async function getArticles(
     items = items.filter(
       (a) =>
         a.title.toLocaleLowerCase("az").includes(q) ||
-        a.excerpt.toLocaleLowerCase("az").includes(q) ||
-        (a.tags ?? []).some((t) => t.toLocaleLowerCase("az").includes(q)),
+        a.excerpt.toLocaleLowerCase("az").includes(q),
     );
   }
 
@@ -222,13 +222,25 @@ export async function getHomeFilters(): Promise<Category[]> {
   return mockResponse(homeFilters);
 }
 
-export const getTopReadArticles = () => mockResponse(mockTopRead);
+export async function getTopReadArticles() {
+  if (!USE_MOCK) {
+    return safeDb("ən çox oxunanlar", () => dbGetTopReadArticles(5), []);
+  }
+  return mockResponse(mockTopRead);
+}
 
 export async function getVideos() {
   if (!USE_MOCK) {
     return safeDb("videolar", () => dbGetVideos(), []);
   }
   return mockResponse(store.videos);
+}
+
+export async function getVideoById(id: string) {
+  if (!USE_MOCK) {
+    return safeDb("video", () => dbGetVideoById(id), null);
+  }
+  return mockResponse(store.videos.find((v) => v.id === id) ?? null);
 }
 
 export async function getProtocols() {
@@ -256,16 +268,13 @@ export async function getSearchIndex(
     title: a.title,
     excerpt: a.excerpt,
     categoryName: a.category.name,
-    readMinutes: a.readMinutes,
-    tags: a.tags,
   }));
   const filtered = q
     ? all.filter(
         (a) =>
           a.title.toLocaleLowerCase("az").includes(q) ||
           a.excerpt.toLocaleLowerCase("az").includes(q) ||
-          a.categoryName.toLocaleLowerCase("az").includes(q) ||
-          (a.tags ?? []).some((t) => t.toLocaleLowerCase("az").includes(q)),
+          a.categoryName.toLocaleLowerCase("az").includes(q),
       )
     : all;
   return mockResponse(filtered.slice(0, limit));

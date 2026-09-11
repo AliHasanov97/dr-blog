@@ -23,6 +23,7 @@ import { ArticleMediaProvider } from "./ArticleMediaContext";
 import type { MediaScope } from "@/lib/admin/storage/scope";
 import {
   FileBlock,
+  GalleryBlock,
   ImageBlock,
   LineHeight,
   QuoteBlock,
@@ -102,6 +103,7 @@ const insertChoices = [
   { key: "codeBlock", icon: "code", label: "Kod bloku" },
   { key: "horizontalRule", icon: "horizontal_rule", label: "Ufuqi xett" },
   { key: "image", icon: "image", label: "Sekil" },
+  { key: "imageGroup", icon: "grid_view", label: "Sekil cergesi" },
   { key: "slider", icon: "gallery_thumbnail", label: "Slayd" },
   { key: "video", icon: "smart_display", label: "Video" },
   { key: "file", icon: "attach_file", label: "Fayl (PDF)" },
@@ -163,7 +165,7 @@ export function ArticleCanvas({
   );
   /** Şəkil seçici — hansı blok üçün və ekranın hansı nöqtəsində açılsın */
   const [picker, setPicker] = useState<{
-    kind: "image" | "slider";
+    kind: "image" | "slider" | "imageGroup";
     x: number;
     y: number;
   } | null>(null);
@@ -209,6 +211,7 @@ export function ArticleCanvas({
       RefNode,
       ImageBlock,
       SliderBlock,
+      GalleryBlock,
       VideoBlock,
       FileBlock,
       Placeholder.configure({
@@ -286,6 +289,7 @@ export function ArticleCanvas({
         break;
       case "image":
       case "slider":
+      case "imageGroup":
         setPicker({ kind, ...(at ?? caretPoint()) });
         break;
       case "video":
@@ -319,7 +323,20 @@ export function ArticleCanvas({
         .focus()
         .insertContent({
           type: "imageBlock",
-          attrs: { src, alt: "", caption: "", align: "full", width: "half" },
+          attrs: { src, alt: "", caption: "", align: "full", width: 50 },
+        })
+        .run();
+    } else if (picker.kind === "imageGroup") {
+      editor
+        .chain()
+        .focus()
+        .insertContent({
+          type: "imageGroupBlock",
+          attrs: {
+            items: JSON.stringify([{ src, alt: "", caption: "" }]),
+            align: "full",
+            width: 50,
+          },
         })
         .run();
     } else {
@@ -379,7 +396,9 @@ export function ArticleCanvas({
           title={
             picker.kind === "image"
               ? "Hansı şəkli əlavə edək?"
-              : "Slaydın ilk şəkli"
+              : picker.kind === "imageGroup"
+                ? "Cərgənin ilk şəkli"
+                : "Slaydın ilk şəkli"
           }
           width={420}
           onClose={() => setPicker(null)}

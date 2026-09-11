@@ -1,13 +1,5 @@
 import type { Author, DoctorProfile } from "@/lib/types";
 
-export const mockAuthor: Author = {
-  id: "auth-narmin",
-  fullName: "Dr. Nərmin Əliyeva",
-  title: "T.e.n., Kardioloq & Terapevt",
-  avatarUrl: "/images/doctor-avatar.svg",
-  isVerified: true,
-};
-
 export const mockDoctor: DoctorProfile = {
   fullName: "Dr. Nərmin Əliyeva",
   shortTitle: "T.e.n., Kardioloq & Terapevt",
@@ -135,4 +127,19 @@ export const mockDoctor: DoctorProfile = {
       url: "https://researchgate.net",
     },
   ],
+};
+
+/**
+ * Məqalələrin müəllif kartında göstərilən şəxs.
+ *
+ * Ayrıca Author cədvəli yoxdur — sayt bir həkimə aiddir, ona görə bu,
+ * `mockDoctor`-dan hesablanır (real bazada `dbGetArticleAuthor` eyni işi
+ * `DoctorProfile`-dan görür).
+ */
+export const mockAuthor: Author = {
+  id: "doctor",
+  fullName: mockDoctor.fullName,
+  title: mockDoctor.shortTitle,
+  avatarUrl: mockDoctor.avatarUrl ?? "",
+  isVerified: mockDoctor.isVerified,
 };

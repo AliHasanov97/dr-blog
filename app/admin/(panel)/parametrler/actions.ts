@@ -22,9 +22,6 @@ export async function updateSettings(
   if (!clean.siteName.trim()) {
     return { success: false, message: "Sayt adı boş ola bilməz." };
   }
-  if (clean.contactEmail && !/^\S+@\S+\.\S+$/.test(clean.contactEmail.trim())) {
-    return { success: false, message: "Əlaqə e-poçtu düzgün deyil." };
-  }
 
   if (!USE_MOCK) {
     try {

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Card, Icon } from "@/components/ui";
+import { Card } from "@/components/ui";
 import type { TopReadArticle } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -30,15 +30,6 @@ export function TopReadList({ items, className }: TopReadListProps) {
             </span>
             <span className="font-body text-body-sm text-on-surface-variant line-clamp-1">
               {item.excerpt}
-            </span>
-            <span className="flex items-center gap-space-sm pt-0.5 font-label text-label-sm text-outline">
-              <span className="inline-flex items-center gap-0.5">
-                <Icon name="schedule" size={13} />
-                {item.readMinutes} dəq
-              </span>
-              <span className="text-on-tertiary-container">
-                {item.rating.toFixed(1)} ★ ({item.ratingCount} rəy)
-              </span>
             </span>
           </span>
         </Link>

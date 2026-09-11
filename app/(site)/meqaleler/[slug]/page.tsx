@@ -17,7 +17,7 @@ import {
   ViewTracker,
 } from "@/components/article";
 import { ArticleCard } from "@/components/articles";
-import { Badge, Card, Icon, SectionHeader } from "@/components/ui";
+import { Card, Icon, SectionHeader } from "@/components/ui";
 import { getSiteSettings } from "@/lib/admin/queries";
 import {
   getArticleBySlug,
@@ -104,26 +104,9 @@ export default async function ArticleDetailPage({ params }: PageProps) {
             {/* --- Əsas sütun --- */}
             <article className="min-w-0 flex flex-col gap-space-lg">
               <header className="flex flex-col gap-space-sm">
-                <div className="flex items-center flex-wrap gap-space-xs">
-                  {article.badges?.map((badge) => (
-                    <Badge
-                      key={badge.label}
-                      tone={badge.tone ?? "neutral"}
-                      icon={badge.icon}
-                    >
-                      {badge.label}
-                    </Badge>
-                  ))}
-                </div>
-
                 <div className="flex items-center flex-wrap gap-x-space-sm gap-y-1 font-label text-label-sm text-outline">
                   <span className="text-secondary font-semibold">
                     {article.category.name}
-                  </span>
-                  <span aria-hidden="true">•</span>
-                  <span className="inline-flex items-center gap-1">
-                    <Icon name="schedule" size={14} />
-                    {article.readMinutes} dəqiqə oxu
                   </span>
                   <span aria-hidden="true">•</span>
                   <span>{article.publishedAtLabel}</span>
@@ -145,24 +128,12 @@ export default async function ArticleDetailPage({ params }: PageProps) {
                   <div className="flex flex-col gap-0.5 min-w-0">
                     <span className="flex items-center gap-1">
                       <span className="font-label text-label-lg text-on-surface truncate">
-                        Tibb Elmləri Namizədi {article.author.fullName}
+                        Müəllif {article.author.fullName}
                       </span>
                       {article.author.isVerified && (
                         <Icon name="verified" size={15} className="text-secondary" filled />
                       )}
                     </span>
-                    {article.verificationNote && (
-                      <span className="flex items-center gap-1 font-label text-label-sm text-secondary">
-                        <Icon name="check_circle" size={13} />
-                        {article.verificationNote}
-                      </span>
-                    )}
-                    {article.journalLabel && (
-                      <span className="flex items-center gap-1 font-label text-label-sm text-outline">
-                        <Icon name="menu_book" size={13} />
-                        {article.journalLabel}
-                      </span>
-                    )}
                   </div>
                 </Card>
               </header>
@@ -180,11 +151,6 @@ export default async function ArticleDetailPage({ params }: PageProps) {
                       priority
                     />
                   </div>
-                  {article.heroCaption && (
-                    <figcaption className="font-label text-label-sm text-outline text-center">
-                      {article.heroCaption}
-                    </figcaption>
-                  )}
                 </figure>
               )}
 
