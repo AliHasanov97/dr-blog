@@ -285,6 +285,7 @@ function ArticleBlockRenderer({
           description={
             block.description ? renderInline(block.description, inline) : undefined
           }
+          access={block.access}
         />
       );
 

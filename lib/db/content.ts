@@ -41,5 +41,6 @@ export async function dbGetProtocols(): Promise<ProtocolDocument[]> {
     description: p.description ?? "",
     fileSizeLabel: p.fileSizeLabel ?? "",
     fileUrl: p.fileUrl,
+    access: (p.access as "download" | "read" | "both" | null) ?? "download",
   }));
 }

@@ -290,6 +290,8 @@ model ProtocolDocument {
   fileSizeLabel String?
   fileUrl       String
   sortOrder     Int     @default(0)
+  /** PDF olduqda: "download" | "read" | "both" — boş qalsa "download" sayılır */
+  access        String? @default("download")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

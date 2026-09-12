@@ -5,6 +5,7 @@ import { NodeViewWrapper, type NodeViewProps } from "@tiptap/react";
 import { Icon } from "@/components/ui";
 import { useArticleScope } from "./ArticleMediaContext";
 import { FilePicker } from "../FilePicker";
+import { ChoiceGroup } from "../ChoiceGroup";
 import { cn } from "@/lib/utils";
 import {
   BlockBar,
@@ -13,6 +14,27 @@ import {
   BlockBarPanel,
   BlockBarSep,
 } from "./BlockBar";
+
+const ACCESS_OPTIONS = [
+  {
+    value: "download",
+    label: "Yalnız endirmə",
+    icon: "download",
+    description: "Oxucu faylı endirir, səhifədə açılmır.",
+  },
+  {
+    value: "read",
+    label: "Yalnız oxumaq",
+    icon: "visibility",
+    description: "Fayl səhifədə açılır, endirmə linki göstərilmir.",
+  },
+  {
+    value: "both",
+    label: "Hər ikisi",
+    icon: "layers",
+    description: "Həm səhifədə açılır, həm də endirmək olur.",
+  },
+] as const;
 
 export function FileNodeView({
   node,
@@ -27,9 +49,17 @@ export function FileNodeView({
   const extension = (node.attrs.extension as string) || "PDF";
   const sizeLabel = (node.attrs.size as string) || "";
   const description = (node.attrs.description as string) || "";
+  const access = ((node.attrs.access as string) || "download") as
+    | "download"
+    | "read"
+    | "both";
+  const isPdf = extension.toUpperCase() === "PDF";
+  const canRead = isPdf && (access === "read" || access === "both");
+  const canDownload = !canRead || access === "both";
 
   const [picking, setPicking] = useState(!url);
   const [panel, setPanel] = useState(false);
+  const [accessPanel, setAccessPanel] = useState(false);
 
   return (
     <NodeViewWrapper className="my-space-md" data-drag-handle>
@@ -57,14 +87,25 @@ export function FileNodeView({
                   </span>
                 )}
                 <span className="flex items-center gap-space-xs text-secondary">
-                  <Icon name="download" size={14} />
+                  <Icon name={canDownload ? "download" : "visibility"} size={14} />
                   <span className="font-label text-label-sm">
-                    Oxucu bu faylı endirə biləcək
+                    {canDownload && canRead
+                      ? "Oxucu səhifədə oxuya və endirə biləcək"
+                      : canDownload
+                        ? "Oxucu bu faylı endirə biləcək"
+                        : "Oxucu yalnız səhifədə oxuya biləcək, endirə bilməyəcək"}
                     {sizeLabel && ` • ${sizeLabel}`}
                   </span>
                 </span>
               </span>
             </div>
+            {canRead && (
+              <iframe
+                src={url}
+                title={title || "PDF baxışı"}
+                className="w-full h-[600px] mt-space-sm rounded-xl border border-secondary/30 pointer-events-none"
+              />
+            )}
           </div>
         ) : (
           <button
@@ -102,6 +143,14 @@ export function FileNodeView({
               active={panel}
               onClick={() => setPanel((v) => !v)}
             />
+            {isPdf && (
+              <BlockBarButton
+                icon={canDownload ? (canRead ? "layers" : "download") : "visibility"}
+                title="Oxucu bu faylla nə edə bilsin?"
+                active={accessPanel}
+                onClick={() => setAccessPanel((v) => !v)}
+              />
+            )}
             <BlockBarSep />
             <BlockBarButton
               icon="delete"
@@ -110,6 +159,20 @@ export function FileNodeView({
               onClick={deleteNode}
             />
           </BlockBar>
+
+          {accessPanel && (
+            <BlockBarPanel>
+              <ChoiceGroup
+                label="Oxucu bu faylla nə edə bilsin?"
+                value={access}
+                onChange={(value) =>
+                  updateAttributes({ access: value as typeof access })
+                }
+                options={ACCESS_OPTIONS}
+                variant="cards"
+              />
+            </BlockBarPanel>
+          )}
 
           {panel && (
             <BlockBarPanel>

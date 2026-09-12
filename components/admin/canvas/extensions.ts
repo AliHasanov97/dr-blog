@@ -372,6 +372,13 @@ export const FileBlock = Node.create({
         default: "",
         parseHTML: (el) => el.getAttribute("data-description") ?? "",
       },
+      access: {
+        default: "download",
+        parseHTML: (el) => {
+          const value = el.getAttribute("data-access");
+          return value === "read" || value === "both" ? value : "download";
+        },
+      },
     };
   },
 
@@ -380,7 +387,7 @@ export const FileBlock = Node.create({
   },
 
   renderHTML({ HTMLAttributes }) {
-    const { url, title, extension, size, description } =
+    const { url, title, extension, size, description, access } =
       HTMLAttributes as Record<string, string>;
     return [
       "div",
@@ -391,6 +398,7 @@ export const FileBlock = Node.create({
         "data-extension": extension ?? "PDF",
         "data-size": size ?? "",
         "data-description": description ?? "",
+        "data-access": access ?? "download",
       }),
     ];
   },

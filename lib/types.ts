@@ -171,6 +171,13 @@ export type ArticleBlock =
       extension?: string;
       sizeLabel?: string;
       description?: string;
+      /**
+       * PDF olduqda oxucuya nə təklif olunur. Boş qalsa `"download"` sayılır.
+       *  - `download` — yalnız endirmə kartı (əvvəlki tək davranış)
+       *  - `read`     — yalnız səhifədə oxumaq, endirmə linki göstərilmir
+       *  - `both`     — endirmə kartı və altında səhifədə oxuma birlikdə
+       */
+      access?: "download" | "read" | "both";
     }
   | {
       /** Cədvəl — HTML formatında saxlanılır */
@@ -318,6 +325,13 @@ export interface ProtocolDocument {
   description: string;
   fileSizeLabel: string;
   fileUrl: string;
+  /**
+   * PDF olduqda oxucuya nə təklif olunur. Boş qalsa `"download"` sayılır.
+   *  - `download` — yalnız endirmə kartı
+   *  - `read`     — yalnız səhifədə oxumaq, endirmə linki göstərilmir
+   *  - `both`     — endirmə kartı və altında səhifədə oxuma birlikdə
+   */
+  access?: "download" | "read" | "both";
 }
 
 /* ---------------------------------------------------------------

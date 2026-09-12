@@ -106,7 +106,7 @@ function blockToHtml(block: ArticleBlock): string {
       return `<div data-block="imageGroup"${attr("data-items", JSON.stringify(block.items))}${attr("data-align", block.align ?? "full")}${attr("data-width", String(block.width ?? MEDIA_DEFAULT_WIDTH))}${attr("data-columns", block.columns ? String(block.columns) : undefined)}${attr("data-aspect-ratio", block.aspectRatio)}${attr("data-fit", block.fit)}></div>`;
 
     case "file":
-      return `<div data-block="file"${attr("data-url", block.url)}${attr("data-title", block.title)}${attr("data-extension", block.extension)}${attr("data-size", block.sizeLabel)}${attr("data-description", block.description)}></div>`;
+      return `<div data-block="file"${attr("data-url", block.url)}${attr("data-title", block.title)}${attr("data-extension", block.extension)}${attr("data-size", block.sizeLabel)}${attr("data-description", block.description)}${attr("data-access", block.access)}></div>`;
 
     case "video":
       return `<div data-block="video"${attr("data-video-id", block.videoId)}${attr("data-caption", block.caption)}${attr("data-align", block.align ?? "full")}${attr("data-width", String(block.width ?? MEDIA_DEFAULT_WIDTH))}></div>`;
@@ -147,6 +147,11 @@ const FOCUSES: ImageFocus[] = [
 ];
 
 const TEXT_ALIGNS: TextAlign[] = ["left", "center", "right", "justify"];
+const FILE_ACCESS: NonNullable<Extract<ArticleBlock, { type: "file" }>["access"]>[] = [
+  "download",
+  "read",
+  "both",
+];
 
 /** Elementin `text-align` dəyərini oxuyur; «sola» saxlanmır */
 function readTextAlign(el: HTMLElement): TextAlign | undefined {
@@ -268,6 +273,7 @@ function elementToBlock(el: HTMLElement): ArticleBlock | ArticleBlock[] | null {
       extension: el.dataset.extension || undefined,
       sizeLabel: el.dataset.size || undefined,
       description: el.dataset.description || undefined,
+      access: readEnum(FILE_ACCESS, el.dataset.access),
     };
   }
 

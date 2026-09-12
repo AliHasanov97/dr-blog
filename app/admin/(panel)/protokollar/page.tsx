@@ -53,6 +53,18 @@ export default async function AdminProtocolsPage() {
             sizeField: "fileSizeLabel",
             colSpan: 2,
           },
+          {
+            name: "access",
+            label: "Oxucu bu sənədlə nə edə bilsin?",
+            type: "select",
+            hint: "Yalnız PDF üçün əhəmiyyətlidir",
+            colSpan: 2,
+            options: [
+              { value: "download", label: "Yalnız endirmə" },
+              { value: "read", label: "Yalnız oxumaq" },
+              { value: "both", label: "Hər ikisi" },
+            ],
+          },
         ]}
         columns={[
           {

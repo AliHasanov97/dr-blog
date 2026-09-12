@@ -9,6 +9,7 @@ export async function dbCreateProtocol(data: {
   description?: string;
   fileSizeLabel?: string;
   fileUrl: string;
+  access?: string;
 }) {
   const maxOrder = await prisma.protocolDocument.aggregate({ _max: { sortOrder: true } });
   return prisma.protocolDocument.create({
@@ -17,6 +18,7 @@ export async function dbCreateProtocol(data: {
       description: data.description,
       fileSizeLabel: data.fileSizeLabel || "—",
       fileUrl: data.fileUrl,
+      access: data.access || "download",
       sortOrder: (maxOrder._max.sortOrder ?? 0) + 1,
     },
   });
@@ -30,6 +32,7 @@ export async function dbUpdateProtocol(id: string, data: Record<string, string>)
       ...(data.description && { description: data.description }),
       ...(data.fileSizeLabel && { fileSizeLabel: data.fileSizeLabel }),
       ...(data.fileUrl && { fileUrl: data.fileUrl }),
+      ...(data.access && { access: data.access }),
     },
   });
 }

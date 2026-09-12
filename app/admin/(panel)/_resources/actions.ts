@@ -66,6 +66,7 @@ const mappers: Record<CollectionKey, Mapper> = {
     description: v.description,
     fileSizeLabel: v.fileSizeLabel || "—",
     fileUrl: v.fileUrl || "#",
+    access: v.access || "download",
   }),
   faq: (v, existing) => ({
     id: existing?.id ?? nextId("faq"),
@@ -99,6 +100,7 @@ export async function createResource(
             description: values.description,
             fileSizeLabel: values.fileSizeLabel,
             fileUrl: values.fileUrl || "#",
+            access: values.access,
           });
           break;
         case "faq":
