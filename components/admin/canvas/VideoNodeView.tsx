@@ -87,7 +87,7 @@ export function VideoNodeView({
       </ResizableMedia>
 
       {selected && (
-        <>
+        <div className="relative">
           <BlockBar>
             {alignOptions.map((option) => (
               <BlockBarButton
@@ -125,7 +125,7 @@ export function VideoNodeView({
           </BlockBar>
 
           {panel && (
-            <BlockBarPanel>
+            <BlockBarPanel onClose={() => setPanel(false)}>
               <BlockBarInput
                 label="YouTube linki"
                 hint={videoId ? `Hazırkı video: ${videoId}` : undefined}
@@ -147,7 +147,7 @@ export function VideoNodeView({
               />
             </BlockBarPanel>
           )}
-        </>
+        </div>
       )}
     </NodeViewWrapper>
   );

@@ -38,8 +38,13 @@ export function SliderNodeView({
   const scope = useArticleScope("body");
   const items = readItems(node.attrs.items as string);
   const [active, setActive] = useState(0);
-  const [picker, setPicker] = useState<"add" | "replace" | null>(null);
-  const [panel, setPanel] = useState(false);
+  /* Eyni anda yalnız bir panel açıq olur — əks halda üzən panellər
+   * üst-üstə düşərdi (bax: BlockBarPanel absolute mövqeləndirilir). */
+  const [openPanel, setOpenPanel] = useState<"caption" | "add" | "replace" | null>(
+    null,
+  );
+  const panel = openPanel === "caption";
+  const picker = openPanel === "add" || openPanel === "replace" ? openPanel : null;
   const align = (node.attrs.align as string) || "full";
   const width = Number(node.attrs.width) || 50;
 
@@ -84,7 +89,7 @@ export function SliderNodeView({
           ) : (
             <button
               type="button"
-              onClick={() => setPicker("add")}
+              onClick={() => setOpenPanel("add")}
               className="absolute inset-0 flex flex-col items-center justify-center gap-1 text-outline hover:text-secondary"
             >
               <Icon name="gallery_thumbnail" size={32} />
@@ -136,7 +141,7 @@ export function SliderNodeView({
       </ResizableMedia>
 
       {selected && (
-        <>
+        <div className="relative">
           <BlockBar>
             {alignOptions.map((option) => (
               <BlockBarButton
@@ -171,21 +176,21 @@ export function SliderNodeView({
               icon="add_photo_alternate"
               title="Yeni slayd əlavə et"
               active={picker === "add"}
-              onClick={() => setPicker((v) => (v === "add" ? null : "add"))}
+              onClick={() => setOpenPanel((v) => (v === "add" ? null : "add"))}
             />
             <BlockBarButton
               icon="swap_horiz"
               title="Bu slaydın şəklini dəyiş"
               active={picker === "replace"}
               onClick={() =>
-                setPicker((v) => (v === "replace" ? null : "replace"))
+                setOpenPanel((v) => (v === "replace" ? null : "replace"))
               }
             />
             <BlockBarButton
               icon="edit_note"
               title="Bu slaydın altyazısı və təsviri"
               active={panel}
-              onClick={() => setPanel((v) => !v)}
+              onClick={() => setOpenPanel((v) => (v === "caption" ? null : "caption"))}
             />
             <BlockBarSep />
             <BlockBarButton
@@ -206,7 +211,7 @@ export function SliderNodeView({
           </BlockBar>
 
           {panel && items.length > 0 && (
-            <BlockBarPanel>
+            <BlockBarPanel onClose={() => setOpenPanel(null)}>
               <BlockBarInput
                 label={`${active + 1}-ci slaydın altyazısı`}
                 placeholder="Birinci mərhələ"
@@ -224,7 +229,7 @@ export function SliderNodeView({
           )}
 
           {picker && (
-            <BlockBarPanel>
+            <BlockBarPanel onClose={() => setOpenPanel(null)}>
               <ImagePicker
                 scope={scope}
                 label={
@@ -241,12 +246,12 @@ export function SliderNodeView({
                   } else {
                     updateItem(active, { src: value });
                   }
-                  setPicker(null);
+                  setOpenPanel(null);
                 }}
               />
             </BlockBarPanel>
           )}
-        </>
+        </div>
       )}
     </NodeViewWrapper>
   );

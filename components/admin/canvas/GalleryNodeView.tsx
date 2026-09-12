@@ -58,9 +58,14 @@ export function GalleryNodeView({
   const scope = useArticleScope("body");
   const items = readItems(node.attrs.items as string);
   const [active, setActive] = useState(0);
-  const [picker, setPicker] = useState<"add" | "replace" | null>(null);
-  const [panel, setPanel] = useState(false);
-  const [settings, setSettings] = useState(false);
+  /* Eyni anda yalnız bir panel açıq olur — əks halda üzən panellər
+   * üst-üstə düşərdi (bax: BlockBarPanel absolute mövqeləndirilir). */
+  const [openPanel, setOpenPanel] = useState<
+    "settings" | "caption" | "add" | "replace" | null
+  >(null);
+  const settings = openPanel === "settings";
+  const panel = openPanel === "caption";
+  const picker = openPanel === "add" || openPanel === "replace" ? openPanel : null;
 
   const align = (node.attrs.align as string) || "full";
   const width = Number(node.attrs.width) || 50;
@@ -115,7 +120,7 @@ export function GalleryNodeView({
           {items.length === 0 ? (
             <button
               type="button"
-              onClick={() => setPicker("add")}
+              onClick={() => setOpenPanel("add")}
               className="relative w-full aspect-square rounded-xl overflow-hidden border border-dashed border-outline-variant bg-surface-container-low flex flex-col items-center justify-center gap-1 text-outline hover:text-secondary"
             >
               <Icon name="grid_view" size={30} />
@@ -161,7 +166,7 @@ export function GalleryNodeView({
       </ResizableMedia>
 
       {selected && (
-        <>
+        <div className="relative">
           <BlockBar>
             {alignOptions.map((option) => (
               <BlockBarButton
@@ -195,14 +200,14 @@ export function GalleryNodeView({
               icon="aspect_ratio"
               title="Nisbət və sığma"
               active={settings}
-              onClick={() => setSettings((v) => !v)}
+              onClick={() => setOpenPanel((v) => (v === "settings" ? null : "settings"))}
             />
             <BlockBarSep />
             <BlockBarButton
               icon="add_photo_alternate"
               title="Cərgəyə şəkil əlavə et"
               active={picker === "add"}
-              onClick={() => setPicker((v) => (v === "add" ? null : "add"))}
+              onClick={() => setOpenPanel((v) => (v === "add" ? null : "add"))}
             />
             {items.length > 0 && (
               <>
@@ -211,14 +216,14 @@ export function GalleryNodeView({
                   title="Seçili şəkli dəyiş"
                   active={picker === "replace"}
                   onClick={() =>
-                    setPicker((v) => (v === "replace" ? null : "replace"))
+                    setOpenPanel((v) => (v === "replace" ? null : "replace"))
                   }
                 />
                 <BlockBarButton
                   icon="edit_note"
                   title="Seçili şəklin altyazısı və təsviri"
                   active={panel}
-                  onClick={() => setPanel((v) => !v)}
+                  onClick={() => setOpenPanel((v) => (v === "caption" ? null : "caption"))}
                 />
                 <BlockBarSep />
                 <BlockBarButton
@@ -242,7 +247,7 @@ export function GalleryNodeView({
           </BlockBar>
 
           {settings && (
-            <BlockBarPanel>
+            <BlockBarPanel onClose={() => setOpenPanel(null)}>
               <div className="flex flex-col gap-1">
                 <span className="font-label text-label-sm text-on-surface-variant">
                   Xanaların nisbəti
@@ -302,7 +307,7 @@ export function GalleryNodeView({
           )}
 
           {panel && current && (
-            <BlockBarPanel>
+            <BlockBarPanel onClose={() => setOpenPanel(null)}>
               <BlockBarInput
                 label={`${activeIndex + 1}-ci şəklin altyazısı`}
                 placeholder="Qısa izah"
@@ -320,7 +325,7 @@ export function GalleryNodeView({
           )}
 
           {picker && (
-            <BlockBarPanel>
+            <BlockBarPanel onClose={() => setOpenPanel(null)}>
               <ImagePicker
                 scope={scope}
                 label={picker === "add" ? "Yeni şəkil" : "Seçili şəklin yenisi"}
@@ -333,12 +338,12 @@ export function GalleryNodeView({
                   } else {
                     updateItem(activeIndex, { src: value });
                   }
-                  setPicker(null);
+                  setOpenPanel(null);
                 }}
               />
             </BlockBarPanel>
           )}
-        </>
+        </div>
       )}
     </NodeViewWrapper>
   );

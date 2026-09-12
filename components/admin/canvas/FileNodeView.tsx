@@ -57,9 +57,14 @@ export function FileNodeView({
   const canRead = isPdf && (access === "read" || access === "both");
   const canDownload = !canRead || access === "both";
 
-  const [picking, setPicking] = useState(!url);
-  const [panel, setPanel] = useState(false);
-  const [accessPanel, setAccessPanel] = useState(false);
+  /* Eyni anda yalnız bir panel açıq olur — əks halda üzən panellər
+   * üst-üstə düşərdi (bax: BlockBarPanel absolute mövqeləndirilir). */
+  const [openPanel, setOpenPanel] = useState<"picker" | "caption" | "access" | null>(
+    !url ? "picker" : null,
+  );
+  const picking = openPanel === "picker";
+  const panel = openPanel === "caption";
+  const accessPanel = openPanel === "access";
 
   return (
     <NodeViewWrapper className="my-space-md" data-drag-handle>
@@ -110,7 +115,7 @@ export function FileNodeView({
         ) : (
           <button
             type="button"
-            onClick={() => setPicking(true)}
+            onClick={() => setOpenPanel("picker")}
             className="w-full flex flex-col items-center justify-center gap-space-sm rounded-xl border-2 border-dashed border-secondary/40 bg-secondary/[0.04] py-space-xl text-secondary hover:bg-secondary/[0.08] hover:border-secondary/60 transition-colors"
           >
             <span className="w-12 h-12 rounded-full bg-secondary/15 flex items-center justify-center">
@@ -129,26 +134,26 @@ export function FileNodeView({
       </div>
 
       {selected && (
-        <>
+        <div className="relative">
           <BlockBar>
             <BlockBarButton
               icon="upload_file"
               title="Faylı dəyiş və ya yenisini yüklə"
               active={picking}
-              onClick={() => setPicking((v) => !v)}
+              onClick={() => setOpenPanel((v) => (v === "picker" ? null : "picker"))}
             />
             <BlockBarButton
               icon="edit_note"
               title="Faylın adı və izahı"
               active={panel}
-              onClick={() => setPanel((v) => !v)}
+              onClick={() => setOpenPanel((v) => (v === "caption" ? null : "caption"))}
             />
             {isPdf && (
               <BlockBarButton
                 icon={canDownload ? (canRead ? "layers" : "download") : "visibility"}
                 title="Oxucu bu faylla nə edə bilsin?"
                 active={accessPanel}
-                onClick={() => setAccessPanel((v) => !v)}
+                onClick={() => setOpenPanel((v) => (v === "access" ? null : "access"))}
               />
             )}
             <BlockBarSep />
@@ -161,7 +166,7 @@ export function FileNodeView({
           </BlockBar>
 
           {accessPanel && (
-            <BlockBarPanel>
+            <BlockBarPanel onClose={() => setOpenPanel(null)}>
               <ChoiceGroup
                 label="Oxucu bu faylla nə edə bilsin?"
                 value={access}
@@ -175,7 +180,7 @@ export function FileNodeView({
           )}
 
           {panel && (
-            <BlockBarPanel>
+            <BlockBarPanel onClose={() => setOpenPanel(null)}>
               <BlockBarInput
                 label="Faylın adı"
                 hint="Oxucu bu adı görür"
@@ -193,7 +198,7 @@ export function FileNodeView({
           )}
 
           {picking && (
-            <BlockBarPanel>
+            <BlockBarPanel onClose={() => setOpenPanel(null)}>
               <FilePicker
                 scope={scope}
                 value={url}
@@ -204,13 +209,12 @@ export function FileNodeView({
                     extension: file.extension,
                     size: file.sizeLabel,
                   });
-                  setPicking(false);
-                  if (!title) setPanel(true);
+                  setOpenPanel(title ? null : "caption");
                 }}
               />
             </BlockBarPanel>
           )}
-        </>
+        </div>
       )}
     </NodeViewWrapper>
   );

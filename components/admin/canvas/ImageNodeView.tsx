@@ -54,9 +54,14 @@ export function ImageNodeView({
 }: NodeViewProps) {
   /* Yüklənən fayl məqalənin öz qovluğuna düşsün deyə */
   const scope = useArticleScope("body");
-  const [panel, setPanel] = useState(false);
-  const [settings, setSettings] = useState(false);
-  const [picking, setPicking] = useState(false);
+  /* Eyni anda yalnız bir panel açıq olur — əks halda üzən panellər
+   * üst-üstə düşərdi (bax: BlockBarPanel absolute mövqeləndirilir). */
+  const [openPanel, setOpenPanel] = useState<"settings" | "caption" | "picker" | null>(
+    null,
+  );
+  const settings = openPanel === "settings";
+  const panel = openPanel === "caption";
+  const picking = openPanel === "picker";
 
   const src = (node.attrs.src as string) || "";
   const alt = (node.attrs.alt as string) || "";
@@ -111,7 +116,7 @@ export function ImageNodeView({
               ) : (
                 <button
                   type="button"
-                  onClick={() => setPicking(true)}
+                  onClick={() => setOpenPanel("picker")}
                   className="absolute inset-0 flex flex-col items-center justify-center gap-1 text-outline hover:text-secondary"
                 >
                   <Icon name="add_photo_alternate" size={30} />
@@ -132,7 +137,7 @@ export function ImageNodeView({
       </ResizableMedia>
 
       {selected && (
-        <>
+        <div className="relative">
           <BlockBar>
             {alignOptions.map((option) => (
               <BlockBarButton
@@ -159,19 +164,19 @@ export function ImageNodeView({
               icon="aspect_ratio"
               title="Ölçü, sığma və fokus"
               active={settings}
-              onClick={() => setSettings((v) => !v)}
+              onClick={() => setOpenPanel((v) => (v === "settings" ? null : "settings"))}
             />
             <BlockBarButton
               icon="edit_note"
               title="Altyazı və təsvir"
               active={panel}
-              onClick={() => setPanel((v) => !v)}
+              onClick={() => setOpenPanel((v) => (v === "caption" ? null : "caption"))}
             />
             <BlockBarButton
               icon="swap_horiz"
               title="Şəkli dəyiş və ya yenisini yüklə"
               active={picking}
-              onClick={() => setPicking((v) => !v)}
+              onClick={() => setOpenPanel((v) => (v === "picker" ? null : "picker"))}
             />
             <BlockBarButton
               icon="delete"
@@ -182,7 +187,7 @@ export function ImageNodeView({
           </BlockBar>
 
           {settings && (
-            <BlockBarPanel>
+            <BlockBarPanel onClose={() => setOpenPanel(null)}>
               <div className="flex flex-col gap-1">
                 <span className="font-label text-label-sm text-on-surface-variant">
                   Çərçivənin nisbəti
@@ -276,7 +281,7 @@ export function ImageNodeView({
           )}
 
           {panel && (
-            <BlockBarPanel>
+            <BlockBarPanel onClose={() => setOpenPanel(null)}>
               <BlockBarInput
                 label="Altyazı"
                 placeholder="Şəklin altında yazılacaq mətn"
@@ -294,7 +299,7 @@ export function ImageNodeView({
           )}
 
           {picking && (
-            <BlockBarPanel>
+            <BlockBarPanel onClose={() => setOpenPanel(null)}>
               <ImagePicker
                 scope={scope}
                 label="Hansı şəkil?"
@@ -302,12 +307,12 @@ export function ImageNodeView({
                 options={coverOptions}
                 onChange={(value) => {
                   updateAttributes({ src: value });
-                  setPicking(false);
+                  setOpenPanel(null);
                 }}
               />
             </BlockBarPanel>
           )}
-        </>
+        </div>
       )}
     </NodeViewWrapper>
   );

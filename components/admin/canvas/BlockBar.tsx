@@ -1,6 +1,6 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { useEffect, type ReactNode } from "react";
 import { Icon } from "@/components/ui";
 import { cn } from "@/lib/utils";
 
@@ -65,14 +65,53 @@ export function BlockBarButton({
   );
 }
 
-/** «✎» ilə açılan gizli sahələr */
-export function BlockBarPanel({ children }: { children: ReactNode }) {
+/**
+ * «✎» ilə açılan gizli sahələr.
+ *
+ * Blokun altında ÜZƏN panel kimi açılır (`absolute`) — normal mətn axınına
+ * qoşulmur, ona görə aşağıdakı məzmunu itələmir. (Valideyn `BlockBar`-ı
+ * saxlayan qutu `relative` olmalıdır ki, panel düzgün nöqtədən açılsın.)
+ *
+ * `onClose` verilsə, sağ üst küncdə bağlama düyməsi çıxır və Escape ilə də
+ * bağlanır — əvvəllər panelı bağlamağın yeganə yolu eyni işarəyə təkrar
+ * basmaq və ya bloku seçimdən çıxarmaq (boş yerə klikləmək) idi, bu isə
+ * dolu məqalədə çətin olurdu.
+ */
+export function BlockBarPanel({
+  children,
+  onClose,
+}: {
+  children: ReactNode;
+  onClose?: () => void;
+}) {
+  useEffect(() => {
+    if (!onClose) return;
+    const close = onClose;
+    function onKey(event: KeyboardEvent) {
+      if (event.key === "Escape") close();
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
   return (
     <div
       contentEditable={false}
       onMouseDown={(e) => e.stopPropagation()}
-      className="clear-both mt-1 rounded-lg border border-surface-container bg-surface-container-lowest shadow-level-1 p-space-sm flex flex-col gap-space-xs max-w-md"
+      className="absolute z-20 top-full left-0 mt-1 max-h-[70vh] w-[min(90vw,24rem)] overflow-y-auto rounded-lg border border-surface-container bg-surface-container-lowest shadow-level-2 p-space-sm flex flex-col gap-space-xs"
     >
+      {onClose && (
+        <button
+          type="button"
+          onMouseDown={(e) => e.preventDefault()}
+          onClick={onClose}
+          title="Bağla"
+          aria-label="Bağla"
+          className="self-end -mt-0.5 -me-0.5 w-6 h-6 flex items-center justify-center rounded-full text-on-surface-variant hover:bg-surface-container"
+        >
+          <Icon name="close" size={14} />
+        </button>
+      )}
       {children}
     </div>
   );
@@ -100,7 +139,7 @@ export function BlockBarInput({
         value={value}
         placeholder={placeholder}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full rounded-md border border-outline-variant bg-surface px-space-sm py-1.5 font-body text-body-sm text-on-surface outline-none focus:border-primary-container focus:ring-2 focus:ring-tertiary-fixed-dim/40"
+        className="w-full rounded-md border border-outline-variant bg-surface px-space-sm py-1.5 font-body text-body-sm text-on-surface outline-none focus:border-primary focus:ring-2 focus:ring-tertiary-fixed-dim/40"
       />
       {hint && (
         <span className="font-label text-label-sm text-outline">{hint}</span>
