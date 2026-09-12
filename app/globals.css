@@ -165,6 +165,57 @@
 }
 
 /* =============================================================
+   Tünd tema — istifadəçi seçəndə <html data-theme="dark"> qoyulur
+   Default HƏMİŞƏ açıqdır (data-theme yoxdursa) — bax: ThemeToggle.tsx
+   "Fixed" rollar (məs. --color-primary-fixed) qəsdən dəyişmir: M3-də bu
+   rollar hər iki temada eyni qalmaq üçün nəzərdə tutulub.
+   ============================================================= */
+:root[data-theme="dark"] {
+  --color-surface: #10141b;
+  --color-surface-dim: #10141b;
+  --color-surface-bright: #363b47;
+  --color-surface-container-lowest: #0b0e14;
+  --color-surface-container-low: #181c24;
+  --color-surface-container: #1c212b;
+  --color-surface-container-high: #262b36;
+  --color-surface-container-highest: #313640;
+  --color-surface-variant: #45464d;
+  --color-surface-tint: #bec6e0;
+
+  --color-on-surface: #e2e2e9;
+  --color-on-surface-variant: #c5c6ce;
+  --color-inverse-surface: #e2e2e9;
+  --color-inverse-on-surface: #111c2d;
+
+  --color-outline: #8f9099;
+  --color-outline-variant: #45464d;
+
+  --color-primary: #bec6e0;
+  --color-on-primary: #131b2e;
+  --color-primary-container: #3f465c;
+  --color-on-primary-container: #dae2fd;
+  --color-inverse-primary: #000000;
+
+  --color-secondary: #8bd6b6;
+  --color-on-secondary: #00382a;
+  --color-secondary-container: #00513b;
+  --color-on-secondary-container: #a6f2d1;
+
+  --color-tertiary: #e0c298;
+  --color-on-tertiary: #442c0f;
+  --color-tertiary-container: #584323;
+  --color-on-tertiary-container: #fedeb2;
+
+  --color-error: #ffb4ab;
+  --color-on-error: #690005;
+  --color-error-container: #93000a;
+  --color-on-error-container: #ffdad6;
+
+  --color-background: #10141b;
+  --color-on-background: #e2e2e9;
+}
+
+/* =============================================================
    Baza qatı
    ============================================================= */
 @layer base {
@@ -182,6 +233,12 @@
     overscroll-behavior-y: none;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    color-scheme: light;
+    transition: background-color 0.15s ease, color 0.15s ease;
+  }
+
+  :root[data-theme="dark"] body {
+    color-scheme: dark;
   }
 
   h1,

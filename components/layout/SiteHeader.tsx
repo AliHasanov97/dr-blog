@@ -7,6 +7,7 @@ import { Icon } from "@/components/ui";
 import { Logo } from "./Logo";
 import { Container } from "./Container";
 import { SearchDialog } from "./SearchDialog";
+import { ThemeToggle } from "./ThemeToggle";
 import { navItems } from "@/lib/site";
 import type { DoctorProfile, SearchIndexItem } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -100,6 +101,8 @@ export function SiteHeader({ searchSuggestions, doctor }: SiteHeaderProps) {
             >
               <Icon name="search" size={22} />
             </button>
+
+            <ThemeToggle />
           </div>
         </Container>
       </header>

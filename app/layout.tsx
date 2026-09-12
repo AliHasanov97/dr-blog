@@ -63,8 +63,23 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="az" className={`${newsreader.variable} ${jakarta.variable}`}>
+    <html
+      lang="az"
+      className={`${newsreader.variable} ${jakarta.variable}`}
+      suppressHydrationWarning
+    >
       <head>
+        {/*
+         * Tema seçimi localStorage-dan burada, boyanmazdan əvvəl oxunur —
+         * əks halda səhifə açıq temada çəkilib sonra tünd temaya "atlayardı"
+         * (FOUC). Default HƏMİŞƏ açıqdır, yalnız açıq şəkildə "dark"
+         * saxlanılıbsa dəyişir (bax: ThemeToggle.tsx).
+         */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `try{if(localStorage.getItem("theme")==="dark"){document.documentElement.setAttribute("data-theme","dark")}}catch(e){}`,
+          }}
+        />
         {/* Material Symbols — ikon şrifti (next/font ikon şriftlərini dəstəkləmir) */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
