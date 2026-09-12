@@ -20,8 +20,6 @@ export interface OrphanScan {
   referenced: number;
   /** Silinməyə namizəd fayllar — HƏLƏ SİLİNMƏYİB, təsdiq gözləyir */
   orphans: OrphanFile[];
-  /** Sayılmayıb — yaxınlarda yüklənib, hələ heç bir qeydə bağlanmamış ola bilər */
-  skippedRecent: number;
 }
 
 /** Şəkil/sənəd bloklarından R2 ünvanlarını çıxarır */
@@ -90,20 +88,18 @@ async function collectReferencedUrls(): Promise<Set<string>> {
 }
 
 /**
- * Fayl yüklənəndən dərhal sonra hələ heç bir qeydə bağlanmaya bilər —
- * admin panelində forma açıq qalıb, hələ "saxla" düyməsinə basılmayıb.
- * Bu müddətdən köhnə olmayan fayllar namizəd siyahısına düşmür.
- */
-const GRACE_MS = 24 * 60 * 60 * 1000;
-
-/**
  * R2-də heç bir bazada qeydə bağlı olmayan faylları TAPIR — HEÇ NƏ SİLMİR.
  * Admin nəticəni gözdən keçirib `deleteOrphanFiles`-ə ötürməlidir.
+ *
+ * Yaşına görə filtr yoxdur — yenicə yüklənmiş fayl da siyahıya düşə bilər
+ * (məs. hələ saxlanmamış bir tərtib). Nəticə "əvvəlcə göstər, sonra
+ * təsdiqlə" axını ilə istifadə olunmalıdır: hər faylın tarixi göstərilir,
+ * admin şübhəlini seçimdən çıxarır.
  */
 export async function findOrphanedMedia(): Promise<OrphanScan> {
   const driver = storage();
   if (!driver) {
-    return { ready: false, scanned: 0, referenced: 0, orphans: [], skippedRecent: 0 };
+    return { ready: false, scanned: 0, referenced: 0, orphans: [] };
   }
 
   const [referenced, allFiles] = await Promise.all([
@@ -111,25 +107,15 @@ export async function findOrphanedMedia(): Promise<OrphanScan> {
     driver.listAll(),
   ]);
 
-  const now = Date.now();
-  const orphans: OrphanFile[] = [];
-  let skippedRecent = 0;
-
-  for (const file of allFiles) {
-    if (referenced.has(file.url)) continue;
-    if (now - file.modified < GRACE_MS) {
-      skippedRecent++;
-      continue;
-    }
-    orphans.push(file);
-  }
+  const orphans = allFiles
+    .filter((file) => !referenced.has(file.url))
+    .sort((a, b) => b.modified - a.modified);
 
   return {
     ready: true,
     scanned: allFiles.length,
     referenced: referenced.size,
     orphans,
-    skippedRecent,
   };
 }
 

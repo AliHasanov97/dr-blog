@@ -19,6 +19,14 @@ function humanDate(ms: number): string {
   );
 }
 
+const IMAGE_EXT = /\.(jpg|jpeg|png|webp|gif|avif)$/i;
+
+/** Fayl adından qovluq/təsadüfi sonluq atılmış qısa göstəriş adı */
+function shortLabel(name: string): string {
+  const file = name.split("/").pop() ?? name;
+  return file.length > 40 ? `${file.slice(0, 18)}…${file.slice(-16)}` : file;
+}
+
 type Status =
   | { kind: "idle" }
   | { kind: "checking" }
@@ -51,14 +59,7 @@ export function MediaSweepButton() {
       }
       const orphans = res.orphans ?? [];
       if (orphans.length === 0) {
-        setStatus({
-          kind: "empty",
-          message:
-            res.message +
-            (typeof res.skippedRecent === "number" && res.skippedRecent > 0
-              ? ` (${res.skippedRecent} fayla toxunulmadı — çox təzədir)`
-              : ""),
-        });
+        setStatus({ kind: "empty", message: res.message ?? "" });
         return;
       }
       setSelected(new Set(orphans.map((o) => o.name)));
@@ -104,8 +105,7 @@ export function MediaSweepButton() {
         fayllar adətən dərhal silinir. Bu düymə isə R2-də qalıb heç bir yerdə
         işlədilməyən faylları (məs. məqalə mətnindən silinmiş tək bir şəkli)
         tapır — <strong>heç nəyi dərhal silmir</strong>, əvvəlcə siyahını
-        göstərir, siz seçib təsdiqləyəndən sonra silinir. Son 24 saatda
-        yüklənən fayllara toxunulmur.
+        (tarixi ilə birlikdə) göstərir, siz seçib təsdiqləyəndən sonra silinir.
       </p>
 
       {status.kind === "found" && (
@@ -114,31 +114,64 @@ export function MediaSweepButton() {
             {status.orphans.length} fayl heç bir yerdə istifadə olunmur. Silinməsini
             istəmədiyiniz varsa işarəni götürün.
           </p>
-          <div className="max-h-64 overflow-y-auto flex flex-col gap-1 rounded-md bg-surface-container-lowest p-1">
-            {status.orphans.map((o) => (
-              <label
-                key={o.name}
-                className={cn(
-                  "flex items-center gap-space-xs rounded-md px-space-xs py-1.5 cursor-pointer hover:bg-surface-container-low",
-                  !selected.has(o.name) && "opacity-50",
-                )}
-              >
-                <input
-                  type="checkbox"
-                  checked={selected.has(o.name)}
-                  onChange={() => toggle(o.name)}
-                  className="shrink-0"
-                />
-                <span className="flex flex-col min-w-0 flex-1">
-                  <span className="font-body text-body-sm text-on-surface truncate">
-                    {o.name}
+          <div className="max-h-[28rem] overflow-y-auto flex flex-col gap-1.5 rounded-md bg-surface-container-lowest p-1.5">
+            {status.orphans.map((o) => {
+              const isImage = IMAGE_EXT.test(o.name);
+              return (
+                <label
+                  key={o.name}
+                  className={cn(
+                    "flex items-center gap-space-sm rounded-md px-space-xs py-space-xs cursor-pointer hover:bg-surface-container-low",
+                    !selected.has(o.name) && "opacity-50",
+                  )}
+                >
+                  <input
+                    type="checkbox"
+                    checked={selected.has(o.name)}
+                    onChange={() => toggle(o.name)}
+                    className="shrink-0"
+                  />
+
+                  {isImage ? (
+                    <a
+                      href={o.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={(e) => e.stopPropagation()}
+                      className="shrink-0"
+                      title="Tam ölçüdə bax"
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element -- R2-dən gələn uzaq şəkil, Next domen icazəsi lazım deyil */}
+                      <img
+                        src={o.url}
+                        alt={shortLabel(o.name)}
+                        loading="lazy"
+                        className="w-16 h-16 object-cover rounded-lg border border-surface-container bg-surface-container hover:opacity-80 transition-opacity"
+                      />
+                    </a>
+                  ) : (
+                    <span className="w-16 h-16 shrink-0 rounded-lg border border-surface-container bg-surface-container flex items-center justify-center text-on-surface-variant">
+                      <Icon name="draft" size={26} />
+                    </span>
+                  )}
+
+                  <span className="flex flex-col min-w-0 flex-1 gap-0.5">
+                    <span
+                      className="font-body text-body-sm text-on-surface truncate"
+                      title={o.name}
+                    >
+                      {shortLabel(o.name)}
+                    </span>
+                    <span className="font-label text-label-sm text-outline truncate" title={o.name}>
+                      {o.name}
+                    </span>
+                    <span className="font-label text-label-sm text-outline">
+                      {humanSize(o.size)} • {humanDate(o.modified)}
+                    </span>
                   </span>
-                  <span className="font-label text-label-sm text-outline">
-                    {humanSize(o.size)} • {humanDate(o.modified)}
-                  </span>
-                </span>
-              </label>
-            ))}
+                </label>
+              );
+            })}
           </div>
           <div className="flex items-center gap-space-sm mt-space-2xs">
             <Button

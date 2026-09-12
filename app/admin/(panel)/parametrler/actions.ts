@@ -47,7 +47,7 @@ export async function updateSettings(
  * Admin nəticəni gözdən keçirdikdən sonra `confirmDeleteOrphans`-ı çağırır.
  */
 export async function checkOrphanedMedia(): Promise<
-  ActionResult & { scanned?: number; referenced?: number; skippedRecent?: number; orphans?: OrphanFile[] }
+  ActionResult & { scanned?: number; referenced?: number; orphans?: OrphanFile[] }
 > {
   if (USE_MOCK) {
     return { success: false, message: "Mock rejimdə fayl anbarı yoxdur." };
@@ -66,7 +66,6 @@ export async function checkOrphanedMedia(): Promise<
         : "Yetim fayl tapılmadı.",
     scanned: result.scanned,
     referenced: result.referenced,
-    skippedRecent: result.skippedRecent,
     orphans: result.orphans,
   };
 }
