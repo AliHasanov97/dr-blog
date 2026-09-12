@@ -10,6 +10,9 @@ export function ReferencesPanel({
   references,
   title = "İstifadə olunmuş elmi ədəbiyyat",
 }: ReferencesPanelProps) {
+  /* Elmi ədəbiyyat istifadə olunmayan məqalədə boş panel göstərməyə dəyməz */
+  if (references.length === 0) return null;
+
   return (
     <CollapsiblePanel title={title} icon="science">
       <ol className="flex flex-col gap-space-sm">
