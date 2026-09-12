@@ -27,9 +27,13 @@ export interface AdminArticleQuery {
   /** Başlıq və ya qısa təsvir üzrə axtarış */
   search?: string;
   /** «all» — bütün vəziyyətlər */
-  status?: "all" | "published" | "draft" | "review";
+  status?: "all" | "published" | "draft";
+  /** Kateqoriya slug-ı üzrə süzgəc — verilməyəndə hamısı */
+  category?: string;
   page?: number;
   pageSize?: number;
+  sortBy?: "date" | "title" | "category" | "status" | "views" | "reactions";
+  sortDir?: "asc" | "desc";
 }
 
 export interface AdminArticleListResult {
@@ -38,7 +42,7 @@ export interface AdminArticleListResult {
   page: number;
   totalPages: number;
   /** Vəziyyət süzgəclərinin sayğacları — filtrə görə dəyişmir */
-  counts: { all: number; published: number; draft: number; review: number };
+  counts: { all: number; published: number; draft: number };
 }
 
 export async function dbListArticles(
@@ -47,10 +51,16 @@ export async function dbListArticles(
   const page = Math.max(1, Math.floor(query.page ?? 1));
   const pageSize = Math.min(100, Math.max(1, Math.floor(query.pageSize ?? 20)));
   const search = query.search?.trim();
+  /* Standart: ən yeni məqalə başda (dərc tarixinə görə) */
+  const sortBy = query.sortBy ?? "date";
+  const sortDir = query.sortDir ?? "desc";
 
   const where: Prisma.ArticleWhereInput = {};
   if (query.status && query.status !== "all") {
     where.status = query.status.toUpperCase() as ArticleStatus;
+  }
+  if (query.category) {
+    where.category = { slug: query.category };
   }
   if (search) {
     where.OR = [
@@ -64,51 +74,81 @@ export async function dbListArticles(
    * səhifəyə görə deyil. Əks halda «Qaralama (2)» yazısı yalnız cari
    * səhifədəki qaralamaları sayardı.
    */
-  const [total, published, draft, review, allCount, author] = await Promise.all([
+  const [total, published, draft, allCount, author] = await Promise.all([
     prisma.article.count({ where }),
     prisma.article.count({ where: { status: ArticleStatus.PUBLISHED } }),
     prisma.article.count({ where: { status: ArticleStatus.DRAFT } }),
-    prisma.article.count({ where: { status: ArticleStatus.REVIEW } }),
     prisma.article.count(),
     dbGetArticleAuthor(),
   ]);
   const resolvedAuthor = author ?? FALLBACK_AUTHOR;
 
-  const articles = await prisma.article.findMany({
-    where,
-    skip: (page - 1) * pageSize,
-    take: pageSize,
-    select: {
-      id: true,
-      slug: true,
-      title: true,
-      excerpt: true,
-      status: true,
-      publishedAt: true,
-      updatedAt: true,
-      viewCount: true,
-      likeCount: true,
-      isFeatured: true,
-      isPeerReviewed: true,
-      coverImageUrl: true,
-      heroImageUrl: true,
-      showTableOfContents: true,
-      allowComments: true,
-      reactionClear: true,
-      reactionLearned: true,
-      reactionQuestion: true,
-      category: true,
-      _count: { select: { comments: true } },
-    },
-    orderBy: { updatedAt: "desc" },
-  });
+  const select = {
+    id: true,
+    slug: true,
+    title: true,
+    excerpt: true,
+    status: true,
+    publishedAt: true,
+    updatedAt: true,
+    viewCount: true,
+    likeCount: true,
+    isFeatured: true,
+    isPeerReviewed: true,
+    coverImageUrl: true,
+    heroImageUrl: true,
+    showTableOfContents: true,
+    allowComments: true,
+    reactionClear: true,
+    reactionLearned: true,
+    reactionQuestion: true,
+    category: true,
+    _count: { select: { comments: true } },
+  } satisfies Prisma.ArticleSelect;
+
+  let articles: Prisma.ArticleGetPayload<{ select: typeof select }>[];
+
+  if (sortBy === "reactions") {
+    /*
+     * "Oxucu rəyi" sütunu üç sahənin cəmidir — Prisma-nın tipli `orderBy`-ı
+     * hesablanmış ifadəni dəstəkləmir. Filtrə uyğun bütün sətirlər gətirilir,
+     * yaddaşda cəmə görə sıralanır və səhifə əl ilə kəsilir. Sayt bir həkimin
+     * bloqudur — məqalə sayı bunu problemsiz edir.
+     */
+    const all = await prisma.article.findMany({ where, select });
+    all.sort((a, b) => {
+      const ta = a.reactionClear + a.reactionLearned + a.reactionQuestion;
+      const tb = b.reactionClear + b.reactionLearned + b.reactionQuestion;
+      return sortDir === "asc" ? ta - tb : tb - ta;
+    });
+    articles = all.slice((page - 1) * pageSize, page * pageSize);
+  } else {
+    const orderBy: Prisma.ArticleOrderByWithRelationInput =
+      sortBy === "title"
+        ? { title: sortDir }
+        : sortBy === "category"
+          ? { category: { name: sortDir } }
+          : sortBy === "status"
+            ? { status: sortDir }
+            : sortBy === "views"
+              ? { viewCount: sortDir }
+              : { publishedAt: { sort: sortDir, nulls: "last" } };
+
+    articles = await prisma.article.findMany({
+      where,
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+      select,
+      orderBy,
+    });
+  }
 
   const items = articles.map((a) => ({
     id: a.id,
     slug: a.slug,
     title: a.title,
     excerpt: a.excerpt,
-    status: a.status.toLowerCase() as "published" | "draft" | "review",
+    status: a.status.toLowerCase() as "published" | "draft",
     category: {
       id: a.category.id,
       slug: a.category.slug,
@@ -148,7 +188,7 @@ export async function dbListArticles(
     total,
     page,
     totalPages: Math.max(1, Math.ceil(total / pageSize)),
-    counts: { all: allCount, published, draft, review },
+    counts: { all: allCount, published, draft },
   };
 }
 
@@ -171,7 +211,7 @@ export async function dbGetArticle(id: string) {
     slug: article.slug,
     title: article.title,
     excerpt: article.excerpt,
-    status: article.status.toLowerCase() as "published" | "draft" | "review",
+    status: article.status.toLowerCase() as "published" | "draft",
     category: {
       id: article.category.id,
       slug: article.category.slug,

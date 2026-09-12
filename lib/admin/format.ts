@@ -3,7 +3,6 @@ import type { ArticleStatus, CommentStatus, MessageStatus } from "@/lib/mock/sto
 export const articleStatusLabels: Record<ArticleStatus, string> = {
   published: "Saytda görünür",
   draft: "Qaralama",
-  review: "Yoxlanılır",
 };
 
 export const commentStatusLabels: Record<CommentStatus, string> = {

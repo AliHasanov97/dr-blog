@@ -2,13 +2,26 @@ import type { ReactNode } from "react";
 import { Icon } from "@/components/ui";
 import { cn } from "@/lib/utils";
 
+export interface DataTableHeader {
+  key: string;
+  label: string;
+  className?: string;
+  /** Klikləyib sıralana bilər — `onSortChange` verilməsə təsiri yoxdur */
+  sortable?: boolean;
+}
+
 export interface DataTableProps {
-  headers: { key: string; label: string; className?: string }[];
+  headers: DataTableHeader[];
   children: ReactNode;
   /** Sətir yoxdursa göstərilən mətn */
   emptyLabel?: string;
   isEmpty?: boolean;
   className?: string;
+  /** Hazırda sıralanan sütun */
+  sortKey?: string;
+  sortDir?: "asc" | "desc";
+  /** Sıralana bilən başlığa klikləndə çağırılır */
+  onSortChange?: (key: string) => void;
 }
 
 /** Üfüqi sürüşən cədvəl karkası — mobil ekranda içəridə scroll olur */
@@ -18,6 +31,9 @@ export function DataTable({
   emptyLabel = "Qeyd tapılmadı",
   isEmpty = false,
   className,
+  sortKey,
+  sortDir,
+  onSortChange,
 }: DataTableProps) {
   if (isEmpty) {
     return (
@@ -35,18 +51,45 @@ export function DataTable({
       <table className="w-full min-w-[44rem] border-collapse">
         <thead>
           <tr className="border-b border-surface-container">
-            {headers.map((h) => (
-              <th
-                key={h.key}
-                scope="col"
-                className={cn(
-                  "px-space-md py-space-sm text-start font-label text-label-sm uppercase tracking-wider text-outline whitespace-nowrap",
-                  h.className,
-                )}
-              >
-                {h.label}
-              </th>
-            ))}
+            {headers.map((h) => {
+              const active = h.sortable && sortKey === h.key;
+              return (
+                <th
+                  key={h.key}
+                  scope="col"
+                  className={cn(
+                    "px-space-md py-space-sm text-start font-label text-label-sm uppercase tracking-wider text-outline whitespace-nowrap",
+                    h.className,
+                  )}
+                >
+                  {h.sortable && onSortChange ? (
+                    <button
+                      type="button"
+                      onClick={() => onSortChange(h.key)}
+                      className={cn(
+                        "inline-flex items-center gap-0.5 hover:text-on-surface transition-colors",
+                        active && "text-on-surface",
+                      )}
+                    >
+                      {h.label}
+                      <Icon
+                        name={
+                          active
+                            ? sortDir === "asc"
+                              ? "arrow_upward"
+                              : "arrow_downward"
+                            : "unfold_more"
+                        }
+                        size={14}
+                        className={active ? "text-secondary" : "text-outline/60"}
+                      />
+                    </button>
+                  ) : (
+                    h.label
+                  )}
+                </th>
+              );
+            })}
           </tr>
         </thead>
         <tbody className="divide-y divide-surface-container">{children}</tbody>

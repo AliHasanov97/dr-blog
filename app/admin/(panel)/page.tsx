@@ -181,13 +181,7 @@ export default async function AdminDashboardPage() {
                     <span className="flex items-center gap-space-xs">
                       <StatusPill
                         label={articleStatusLabels[article.status]}
-                        tone={
-                          article.status === "published"
-                            ? "success"
-                            : article.status === "review"
-                              ? "warning"
-                              : "neutral"
-                        }
+                        tone={article.status === "published" ? "success" : "neutral"}
                       />
                       <span className="font-label text-label-sm text-outline">
                         {article.publishedAtLabel}

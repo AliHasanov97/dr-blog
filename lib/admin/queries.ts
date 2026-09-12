@@ -64,18 +64,42 @@ export async function listArticles(
     return dbListArticles(query);
   }
 
-  /* Mock rejimi: eyni filtr və səhifələmə yaddaşdakı anbara tətbiq olunur */
+  /* Mock rejimi: eyni filtr, sıralama və səhifələmə yaddaşdakı anbara tətbiq olunur */
   const page = Math.max(1, Math.floor(query.page ?? 1));
   const pageSize = Math.min(100, Math.max(1, Math.floor(query.pageSize ?? 20)));
   const search = query.search?.trim().toLocaleLowerCase("az");
+  const sortBy = query.sortBy ?? "date";
+  const sortDir = query.sortDir ?? "desc";
 
-  const sorted = [...store.articles].sort((a, b) =>
-    b.updatedAt.localeCompare(a.updatedAt),
-  );
+  const sorted = [...store.articles];
+  const dir = sortDir === "asc" ? 1 : -1;
+  sorted.sort((a, b) => {
+    switch (sortBy) {
+      case "title":
+        return dir * a.title.localeCompare(b.title, "az");
+      case "category":
+        return dir * a.category.name.localeCompare(b.category.name, "az");
+      case "status":
+        return dir * a.status.localeCompare(b.status);
+      case "views":
+        return dir * ((a.viewCount ?? 0) - (b.viewCount ?? 0));
+      case "reactions": {
+        const ta = (a.reactions?.clear ?? 0) + (a.reactions?.learned ?? 0) + (a.reactions?.question ?? 0);
+        const tb = (b.reactions?.clear ?? 0) + (b.reactions?.learned ?? 0) + (b.reactions?.question ?? 0);
+        return dir * (ta - tb);
+      }
+      case "date":
+      default:
+        return dir * a.publishedAt.localeCompare(b.publishedAt);
+    }
+  });
 
   let filtered = sorted;
   if (query.status && query.status !== "all") {
     filtered = filtered.filter((a) => a.status === query.status);
+  }
+  if (query.category) {
+    filtered = filtered.filter((a) => a.category.slug === query.category);
   }
   if (search) {
     filtered = filtered.filter(
@@ -94,7 +118,6 @@ export async function listArticles(
       all: sorted.length,
       published: sorted.filter((a) => a.status === "published").length,
       draft: sorted.filter((a) => a.status === "draft").length,
-      review: sorted.filter((a) => a.status === "review").length,
     },
   };
 }

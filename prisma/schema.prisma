@@ -38,6 +38,9 @@ model Category {
 
 enum ArticleStatus {
   DRAFT
+  // ARTIQ İŞLƏNMİR — interfeysdən çıxarılıb. Postgres enum dəyərini silmək
+  // növü yenidən qurmağı tələb edir, ona görə saxlanılır (bax: Video modelindəki
+  // eyni qərar).
   REVIEW
   PUBLISHED
 }

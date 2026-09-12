@@ -32,7 +32,7 @@ import { DEFAULT_SETTINGS, type SiteSettings } from "@/lib/settings";
  * Admin-ə xas əlavə tiplər
  * ------------------------------------------------------------ */
 
-export type ArticleStatus = "published" | "draft" | "review";
+export type ArticleStatus = "published" | "draft";
 export type CommentStatus = "pending" | "approved" | "rejected";
 export type MessageStatus = "new" | "read" | "answered" | "archived";
 
@@ -93,7 +93,7 @@ export type { SiteSettings } from "@/lib/settings";
 function seedArticles(): AdminArticle[] {
   return mockArticles.map((article, i) => ({
     ...article,
-    status: i === 6 ? "draft" : i === 4 ? "review" : "published",
+    status: i === 6 ? "draft" : "published",
     updatedAt: article.publishedAt,
   }));
 }

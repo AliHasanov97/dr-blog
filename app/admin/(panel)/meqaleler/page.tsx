@@ -1,6 +1,6 @@
 import { AdminPageHeader, HelpNote } from "@/components/admin";
 import { ButtonLink } from "@/components/ui";
-import { listArticles } from "@/lib/admin/queries";
+import { listArticles, listCategories } from "@/lib/admin/queries";
 import { ArticleListClient } from "./ArticleListClient";
 
 /** Admin siyahısında bir dəfəyə göstərilən məqalə sayı */
@@ -10,7 +10,10 @@ export const metadata = { title: "Məqalələr" };
 
 export default async function AdminArticlesPage() {
   /* İlk səhifə serverdə hazırlanır; qalanı «Daha çox» ilə yüklənir */
-  const initial = await listArticles({ pageSize: PAGE_SIZE });
+  const [initial, categories] = await Promise.all([
+    listArticles({ pageSize: PAGE_SIZE }),
+    listCategories(),
+  ]);
 
   return (
     <>
@@ -50,6 +53,7 @@ export default async function AdminArticlesPage() {
       <ArticleListClient
         initial={initial}
         pageSize={PAGE_SIZE}
+        categories={categories}
       />
     </>
   );

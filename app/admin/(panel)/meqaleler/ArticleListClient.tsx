@@ -12,14 +12,18 @@ import {
 import { Button, Chip, Icon, SearchBar } from "@/components/ui";
 import { articleStatusLabels } from "@/lib/admin/format";
 import type { AdminArticle, ArticleStatus } from "@/lib/mock/store";
-import type { AdminArticleListResult } from "@/lib/db/admin";
+import type { AdminArticleListResult, AdminArticleQuery } from "@/lib/db/admin";
 import { deleteArticle, fetchAdminArticles, setArticleStatus } from "./actions";
 
 export interface ArticleListClientProps {
   /** Serverdə hazırlanmış ilk səhifə və sayğaclar */
   initial: AdminArticleListResult;
   pageSize: number;
+  categories: { slug: string; name: string }[];
 }
+
+type SortBy = NonNullable<AdminArticleQuery["sortBy"]>;
+type SortDir = NonNullable<AdminArticleQuery["sortDir"]>;
 
 /** Yazı yazılarkən hər hərfdə sorğu getməsin deyə gözləmə müddəti */
 const SEARCH_DELAY = 300;
@@ -28,14 +32,17 @@ const filters: { slug: ArticleStatus | "all"; name: string; icon: string }[] = [
   { slug: "all", name: "Hamısı", icon: "apps" },
   { slug: "published", name: "Saytda görünür", icon: "public" },
   { slug: "draft", name: "Qaralama", icon: "edit_note" },
-  { slug: "review", name: "Yoxlanılır", icon: "visibility" },
 ];
 
 const statusTone = {
   published: "success",
-  review: "warning",
   draft: "neutral",
 } as const;
+
+/** Yeni sütuna keçəndə standart istiqamət — mətn sütunları A→Z, ədədi/tarix sütunları böyükdən kiçiyə */
+function defaultDirFor(key: SortBy): SortDir {
+  return key === "title" || key === "category" || key === "status" ? "asc" : "desc";
+}
 
 /** Consistent number formatting to avoid hydration mismatch */
 function formatNumber(n: number): string {
@@ -45,9 +52,14 @@ function formatNumber(n: number): string {
 export function ArticleListClient({
   initial,
   pageSize,
+  categories,
 }: ArticleListClientProps) {
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState<ArticleStatus | "all">("all");
+  const [category, setCategory] = useState<string>("all");
+  /* Standart: ən yeni məqalə başda */
+  const [sortBy, setSortBy] = useState<SortBy>("date");
+  const [sortDir, setSortDir] = useState<SortDir>("desc");
   const [pending, startTransition] = useTransition();
 
   const [visible, setVisible] = useState(initial.items);
@@ -57,10 +69,21 @@ export function ArticleListClient({
   const [totalPages, setTotalPages] = useState(initial.totalPages);
 
   const load = useCallback(
-    async (nextPage: number, q: string, st: ArticleStatus | "all", append: boolean) => {
+    async (
+      nextPage: number,
+      q: string,
+      st: ArticleStatus | "all",
+      cat: string,
+      sBy: SortBy,
+      sDir: SortDir,
+      append: boolean,
+    ) => {
       const result = await fetchAdminArticles({
         search: q,
         status: st,
+        category: cat === "all" ? undefined : cat,
+        sortBy: sBy,
+        sortDir: sDir,
         page: nextPage,
         pageSize,
       });
@@ -87,11 +110,24 @@ export function ArticleListClient({
     }
     const timer = setTimeout(() => {
       startTransition(async () => {
-        await load(1, query, status, false);
+        await load(1, query, status, category, sortBy, sortDir, false);
       });
     }, SEARCH_DELAY);
     return () => clearTimeout(timer);
-  }, [query, status, load]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- sortBy/sortDir dəyişəndə `handleSortChange` sorğunu dərhal göndərir, bura ikiqat sorğunun qarşısını almaq üçün əlavə edilmir
+  }, [query, status, category, load]);
+
+  /** Sütun başlığına klikləyəndə sıralanır — eyni sütuna təkrar klik istiqaməti dəyişir */
+  function handleSortChange(key: string) {
+    const nextBy = key as SortBy;
+    const nextDir: SortDir =
+      sortBy === nextBy ? (sortDir === "asc" ? "desc" : "asc") : defaultDirFor(nextBy);
+    setSortBy(nextBy);
+    setSortDir(nextDir);
+    startTransition(async () => {
+      await load(1, query, status, category, nextBy, nextDir, false);
+    });
+  }
 
   /** Bir kliklə saytda göstər / gizlət */
   function toggleVisibility(article: AdminArticle) {
@@ -100,14 +136,14 @@ export function ArticleListClient({
     startTransition(async () => {
       await setArticleStatus(article.id, next);
       /* Sayğaclar və siyahı serverdəki yeni vəziyyətə uyğunlaşır */
-      await load(1, query, status, false);
+      await load(1, query, status, category, sortBy, sortDir, false);
     });
   }
 
   /** Silindikdən sonra siyahı serverdəki yeni vəziyyətə uyğunlaşır */
   async function handleDelete(id: string) {
     await deleteArticle(id);
-    await load(page, query, status, false);
+    await load(page, query, status, category, sortBy, sortDir, false);
   }
 
   return (
@@ -126,26 +162,54 @@ export function ArticleListClient({
             />
           ))}
         </div>
-        <div className="lg:w-80 shrink-0">
-          <SearchBar
-            value={query}
-            onChange={setQuery}
-            placeholder="Başlıq, slug və ya kateqoriya..."
-          />
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-space-xs">
+          <div className="relative sm:w-52 shrink-0">
+            <label htmlFor="category-filter" className="sr-only">
+              Kateqoriya
+            </label>
+            <select
+              id="category-filter"
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              className="w-full h-12 pl-space-md pr-10 rounded-xl bg-surface-container-low text-on-surface font-body text-body-sm border-none outline-none focus:ring-1 focus:ring-primary/40 appearance-none"
+            >
+              <option value="all">Bütün kateqoriyalar</option>
+              {categories.map((c) => (
+                <option key={c.slug} value={c.slug}>
+                  {c.name}
+                </option>
+              ))}
+            </select>
+            <Icon
+              name="expand_more"
+              size={20}
+              className="absolute right-space-sm top-1/2 -translate-y-1/2 text-outline pointer-events-none"
+            />
+          </div>
+          <div className="lg:w-72 shrink-0">
+            <SearchBar
+              value={query}
+              onChange={setQuery}
+              placeholder="Başlıq, slug və ya kateqoriya..."
+            />
+          </div>
         </div>
       </div>
 
       <div className="rounded-xl border border-surface-container bg-surface-container-lowest shadow-level-1 overflow-hidden">
         <DataTable
           headers={[
-            { key: "title", label: "Məqalə" },
-            { key: "category", label: "Kateqoriya" },
-            { key: "status", label: "Vəziyyət" },
-            { key: "date", label: "Tarix" },
-            { key: "views", label: "Oxunma", className: "text-end" },
-            { key: "reactions", label: "Oxucu rəyi", className: "text-end" },
+            { key: "title", label: "Məqalə", sortable: true },
+            { key: "category", label: "Kateqoriya", sortable: true },
+            { key: "status", label: "Vəziyyət", sortable: true },
+            { key: "date", label: "Tarix", sortable: true },
+            { key: "views", label: "Oxunma", className: "text-end", sortable: true },
+            { key: "reactions", label: "Oxucu rəyi", className: "text-end", sortable: true },
             { key: "actions", label: "", className: "text-end" },
           ]}
+          sortKey={sortBy}
+          sortDir={sortDir}
+          onSortChange={handleSortChange}
           isEmpty={visible.length === 0}
           emptyLabel="Bu filtrə uyğun məqalə yoxdur."
         >
@@ -260,7 +324,7 @@ export function ArticleListClient({
               disabled={pending}
               onClick={() =>
                 startTransition(async () => {
-                  await load(page + 1, query, status, true);
+                  await load(page + 1, query, status, category, sortBy, sortDir, true);
                 })
               }
             >
