@@ -259,7 +259,8 @@ export async function dbGetComments(slug: string): Promise<Comment[]> {
       articleId: article.id,
       status: CommentStatus.APPROVED,
     },
-    orderBy: { createdAt: "desc" },
+    /* İlk yazan birinci görünsün — söhbət kimi xronoloji sıra */
+    orderBy: { createdAt: "asc" },
   });
 
   // Build tree structure

@@ -59,6 +59,9 @@ export interface AdminComment extends Comment {
   status: CommentStatus;
   /** Cavab olduqda ana şərhin id-si */
   parentId?: string;
+  /** Cavab olduqda — ana şərhin müəllifi və mətni (moderasiyada kontekst üçün) */
+  parentAuthorName?: string;
+  parentBody?: string;
 }
 
 export interface ContactMessage {
@@ -114,6 +117,8 @@ function seedComments(): AdminComment[] {
           articleTitle: article?.title ?? slug,
           status: "approved",
           parentId: comment.id,
+          parentAuthorName: comment.authorName,
+          parentBody: comment.body,
           replies: undefined,
         });
       }

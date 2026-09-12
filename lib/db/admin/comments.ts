@@ -5,11 +5,12 @@ export async function dbListComments() {
   const comments = await prisma.comment.findMany({
     include: {
       article: { select: { slug: true, title: true } },
+      /* Cavabın hansı şərhə aid olduğu admin panelində görünsün deyə */
+      parent: { select: { authorName: true, body: true } },
     },
-    orderBy: [
-      { status: "asc" },
-      { createdAt: "desc" },
-    ],
+    /* Sayt tərəfindəki kimi xronoloji sıra — ilk yazılan şərh/cavab birinci
+     * gəlsin ki, məqalə qrupu daxilində söhbət ardıcıllığı qarışmasın. */
+    orderBy: { createdAt: "asc" },
   });
 
   return comments.map((c) => ({
@@ -33,6 +34,8 @@ export async function dbListComments() {
     likeCount: c.likeCount,
     status: c.status.toLowerCase() as "pending" | "approved" | "rejected",
     parentId: c.parentId,
+    parentAuthorName: c.parent?.authorName,
+    parentBody: c.parent?.body,
   }));
 }
 

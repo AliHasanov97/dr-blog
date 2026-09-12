@@ -72,7 +72,14 @@ export async function deleteComment(id: string): Promise<ActionResult> {
   return { success: true };
 }
 
-/** Həkim adından cavab yazır — dərhal təsdiqlənmiş sayılır */
+/**
+ * Həkim adından cavab yazır — dərhal təsdiqlənmiş sayılır.
+ *
+ * Ana şərh hələ "gözləyir" statusundadırsa, o da bu əməliyyatla birlikdə
+ * təsdiqlənir: admin ona cavab yazırsa, deməli artıq görüb və məzmununu
+ * qəbul edir — əks halda cavab saytda görünərdi, amma hələ təsdiqlənməmiş
+ * ana şərh gizli qaldığı üçün cavab "asılı qalıb" heç yerdə çıxmazdı.
+ */
 export async function replyToComment(
   parentId: string,
   body: string,
@@ -88,19 +95,29 @@ export async function replyToComment(
 
       const doctor = await prisma.doctorProfile.findFirst();
 
-      await prisma.comment.create({
-        data: {
-          parentId,
-          articleId: parent.articleId,
-          authorName: doctor?.fullName || "Həkim",
-          authorRole: "Müəllif",
-          authorAvatarUrl: doctor?.avatarUrl,
-          isAuthorVerified: true,
-          isDoctorReply: true,
-          body: body.trim(),
-          status: PrismaCommentStatus.APPROVED,
-        },
-      });
+      await prisma.$transaction([
+        ...(parent.status !== PrismaCommentStatus.APPROVED
+          ? [
+              prisma.comment.update({
+                where: { id: parentId },
+                data: { status: PrismaCommentStatus.APPROVED },
+              }),
+            ]
+          : []),
+        prisma.comment.create({
+          data: {
+            parentId,
+            articleId: parent.articleId,
+            authorName: doctor?.fullName || "Həkim",
+            authorRole: "Müəllif",
+            authorAvatarUrl: doctor?.avatarUrl,
+            isAuthorVerified: true,
+            isDoctorReply: true,
+            body: body.trim(),
+            status: PrismaCommentStatus.APPROVED,
+          },
+        }),
+      ]);
 
       refresh(parent.article.slug);
       return { success: true, message: "Cavab əlavə olundu." };
@@ -113,6 +130,8 @@ export async function replyToComment(
   const parent = store.comments.find((c) => c.id === parentId);
   if (!parent) return { success: false, message: "Şərh tapılmadı." };
   if (!body.trim()) return { success: false, message: "Cavab mətni boşdur." };
+
+  parent.status = "approved";
 
   store.comments.push({
     id: nextId("cm"),
