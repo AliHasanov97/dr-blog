@@ -7,14 +7,13 @@ import {
   LocationCard,
 } from "@/components/contact";
 import { SocialLinkList } from "@/components/doctor";
-import { Alert, Badge, Icon, SectionHeader } from "@/components/ui";
+import { Badge, Icon, SectionHeader } from "@/components/ui";
 import {
   getContactChannels,
   getDoctorProfile,
   getFaq,
   getOfficeLocation,
 } from "@/lib/api";
-import { siteConfig } from "@/lib/site";
 
 /*
  * Əlaqə səhifəsi məzmunu bazadan gəlir. Konteynerdə qurulanda baza
@@ -60,14 +59,7 @@ export default async function ContactPage() {
         </p>
       </section>
 
-      <Alert tone="danger" title="Kritik Təcili Xəbərdarlıq" icon="e911_emergency">
-        Kəskin sinə ağrıları, ritm itkisi və ya asfiksiya hallarında vaxt
-        itirmədən dərhal {siteConfig.emergencyNumber} Təcili Tibbi Yardıma
-        müraciət edin. Bu platforma təcili kardiometrik yardım üçün nəzərdə
-        tutulmayıb.
-      </Alert>
-
-      {/* Sürətli əlaqə kanalları */}
+      {/* Sürətli əlaqə kanalları — başlıqdan dərhal sonra, ən önəmli məzmun */}
       <section className="flex flex-col gap-space-sm">
         <SectionHeader
           title="Sürətli Əlaqə Kanalları"
