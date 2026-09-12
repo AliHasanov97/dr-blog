@@ -32,16 +32,21 @@ export function NewsletterComposer({ activeCount }: NewsletterComposerProps) {
   const MIN_SUBJECT = 3;
   const MIN_BODY = 20;
 
-  const blockers: string[] = [];
-  if (subject.trim().length < MIN_SUBJECT) blockers.push("mövzu sətrini yazın");
-  if (body.trim().length < MIN_BODY) {
-    blockers.push(
-      `bülleten mətni ən azı ${MIN_BODY} simvol olmalıdır (hazırda ${body.trim().length})`,
-    );
-  }
-  if (activeCount === 0) blockers.push("aktiv abunəçi yoxdur");
+  const ready =
+    subject.trim().length >= MIN_SUBJECT &&
+    body.trim().length >= MIN_BODY &&
+    activeCount > 0;
 
-  const ready = blockers.length === 0;
+  /* Yazmağa başlanmış, amma hələ qısa olan sahə qırmızılaşır — boş sahəyə
+   * səhifə açılan kimi qırmızı vurmaq vaxtından əvvəl xəbərdarlıq olardı */
+  const subjectError =
+    subject.length > 0 && subject.trim().length < MIN_SUBJECT
+      ? `Ən azı ${MIN_SUBJECT} simvol olmalıdır`
+      : undefined;
+  const bodyError =
+    body.length > 0 && body.trim().length < MIN_BODY
+      ? `Ən azı ${MIN_BODY} simvol olmalıdır (hazırda ${body.trim().length})`
+      : undefined;
 
   function runTest() {
     setFeedback(null);
@@ -78,6 +83,7 @@ export function NewsletterComposer({ activeCount }: NewsletterComposerProps) {
           placeholder="Həftəlik icmal: ürək sağlamlığı və stress"
           value={subject}
           onChange={(e) => setSubject(e.target.value)}
+          error={subjectError}
         />
         <TextAreaField
           label="Mətn"
@@ -87,6 +93,7 @@ export function NewsletterComposer({ activeCount }: NewsletterComposerProps) {
           }
           value={body}
           onChange={(e) => setBody(e.target.value)}
+          error={bodyError}
         />
 
         <p className="flex items-start gap-1 font-label text-label-sm text-outline leading-snug">
@@ -95,11 +102,11 @@ export function NewsletterComposer({ activeCount }: NewsletterComposerProps) {
           hər məktubda oxucunun öz «abunəlikdən çıx» linki olur.
         </p>
 
-        {/* Düymə niyə passivdir — səbəb açıq yazılır */}
-        {!ready && (
-          <p className="flex items-start gap-1 font-label text-label-sm text-on-tertiary-fixed-variant leading-snug">
+        {/* Sahəyə bağlı olmayan tək səbəb — mövzu/mətn xətaları artıq öz sahələrinin altındadır */}
+        {activeCount === 0 && (
+          <p className="flex items-start gap-1 font-label text-label-sm text-on-tertiary-container leading-snug">
             <Icon name="edit_note" size={14} className="mt-0.5 shrink-0" />
-            Göndərmək üçün: {blockers.join(", ")}.
+            Göndərmək üçün aktiv abunəçi olmalıdır.
           </p>
         )}
 

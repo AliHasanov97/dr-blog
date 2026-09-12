@@ -37,6 +37,8 @@ export function DoctorProfileForm({ doctor }: DoctorProfileFormProps) {
   const [step, setStep] = useState(0);
   const [showPreview, setShowPreview] = useState(true);
   const [pending, startTransition] = useTransition();
+  /** "Yadda saxla" boş adla basılıbsa — sahə birbaşa qırmızılaşsın deyə */
+  const [submitAttempted, setSubmitAttempted] = useState(false);
   const [feedback, setFeedback] = useState<
     { tone: "ok" | "error"; text: string } | null
   >(null);
@@ -55,6 +57,12 @@ export function DoctorProfileForm({ doctor }: DoctorProfileFormProps) {
   const [researchAreas, setResearchAreas] = useState(doctor.researchAreas);
 
   function submit() {
+    if (!fullName.trim()) {
+      /* Ayrıca banner yerinə — Kimlik addımına aparılır, "Tam ad" sahəsi qırmızılaşır */
+      setSubmitAttempted(true);
+      setStep(0);
+      return;
+    }
     const payload: DoctorPayload = {
       fullName,
       shortTitle,
@@ -319,7 +327,14 @@ export function DoctorProfileForm({ doctor }: DoctorProfileFormProps) {
                       compact
                     />
                   </div>
-                  <TextField label="Tam ad" required value={fullName} onChange={(e) => setFullName(e.target.value)} hint="Saytın hər yerində görünür" />
+                  <TextField
+                    label="Tam ad"
+                    required
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    hint="Saytın hər yerində görünür"
+                    error={submitAttempted && !fullName.trim() ? "Ad boş ola bilməz" : undefined}
+                  />
                   <TextField label="Qısa titul" placeholder="Pediatrik kardioloq" value={shortTitle} onChange={(e) => setShortTitle(e.target.value)} hint="Header və altlıqda" />
                   <TextField label="Tam titul" placeholder="Tibb üzrə fəlsəfə doktoru" value={fullTitle} onChange={(e) => setFullTitle(e.target.value)} hint="Hero və Haqqında səhifəsində" />
                   <TextField label="Qısa xülasə" placeholder="18+ İl Təcrübə • 48 Elmi Məqalə" value={tagline} onChange={(e) => setTagline(e.target.value)} hint="Hero-da görünür" />

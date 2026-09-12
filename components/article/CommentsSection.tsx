@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useState } from "react";
-import { Button, Card, Icon } from "@/components/ui";
+import { Button, Card, Icon, TextAreaField, TextField } from "@/components/ui";
 import { submitComment } from "@/app/(site)/meqaleler/[slug]/actions";
 import { useCommentLike } from "./useCommentLike";
 import type { Comment } from "@/lib/types";
@@ -80,10 +80,36 @@ function CommentForm({
   const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);
   const [feedback, setFeedback] = useState<Feedback>(null);
+  const [nameError, setNameError] = useState<string | undefined>();
+  const [emailError, setEmailError] = useState<string | undefined>();
+  const [draftError, setDraftError] = useState<string | undefined>();
 
   async function handleSubmit() {
-    setSending(true);
     setFeedback(null);
+    setNameError(undefined);
+    setEmailError(undefined);
+    setDraftError(undefined);
+
+    /* Serverdəki eyni qaydalar — sahə göndərilmədən əvvəl birbaşa qırmızılaşır */
+    const trimmedName = name.trim();
+    if (trimmedName.length < 3) {
+      setNameError("Ən azı 3 simvol olmalıdır");
+      return;
+    }
+    if (trimmedName.length > 80) {
+      setNameError("Ad çox uzundur");
+      return;
+    }
+    if (draft.trim().length < 10) {
+      setDraftError("Ən azı 10 simvol olmalıdır");
+      return;
+    }
+    if (email.trim() && !/^\S+@\S+\.\S+$/.test(email.trim())) {
+      setEmailError("E-poçt ünvanı düzgün deyil");
+      return;
+    }
+
+    setSending(true);
     try {
       const result = await submitComment({
         slug,
@@ -134,26 +160,32 @@ function CommentForm({
       )}
 
       <div className="grid gap-space-xs sm:grid-cols-2">
-        <Field
-          value={name}
-          onChange={setName}
-          placeholder="Adınız və soyadınız"
+        <TextField
           label="Adınız"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="Adınız və soyadınız"
           autoComplete="name"
+          error={nameError}
         />
-        <Field
-          value={email}
-          onChange={setEmail}
-          placeholder="E-poçt (istəyə bağlı, dərc olunmur)"
+        <TextField
           label="E-poçt"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="E-poçt (istəyə bağlı, dərc olunmur)"
           type="email"
           autoComplete="email"
+          error={emailError}
         />
       </div>
 
-      <textarea
+      <TextAreaField
+        label="Şərhiniz"
         value={draft}
-        onChange={(e) => setDraft(e.target.value)}
+        onChange={(e) => {
+          setDraft(e.target.value);
+          setDraftError(undefined);
+        }}
         rows={3}
         maxLength={2000}
         placeholder={
@@ -161,8 +193,7 @@ function CommentForm({
             ? "Cavabınızı yazın"
             : "Fikrinizi bölüşün və ya müzakirəyə qoşulun"
         }
-        aria-label="Şərhiniz"
-        className="w-full rounded-md border border-outline-variant bg-surface-container-lowest px-space-sm py-space-sm font-body text-body-md text-on-surface placeholder:text-outline outline-none focus:border-primary-container focus:ring-2 focus:ring-tertiary-fixed-dim/50 resize-y"
+        error={draftError}
       />
 
       {feedback && (
@@ -198,34 +229,6 @@ function CommentForm({
         </Button>
       </div>
     </Card>
-  );
-}
-
-function Field({
-  value,
-  onChange,
-  placeholder,
-  label,
-  type = "text",
-  autoComplete,
-}: {
-  value: string;
-  onChange: (v: string) => void;
-  placeholder: string;
-  label: string;
-  type?: string;
-  autoComplete?: string;
-}) {
-  return (
-    <input
-      type={type}
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      placeholder={placeholder}
-      aria-label={label}
-      autoComplete={autoComplete}
-      className="h-11 w-full rounded-md border border-outline-variant bg-surface-container-lowest px-space-sm font-body text-body-md text-on-surface placeholder:text-outline outline-none focus:border-primary-container focus:ring-2 focus:ring-tertiary-fixed-dim/50"
-    />
   );
 }
 

@@ -9,8 +9,11 @@ import { COVER_MODES, type CoverMode } from "./types";
 export interface InfoStepProps {
   title: string;
   onTitleChange: (value: string) => void;
+  /** Doldurulmayıb və növbəti addıma keçmək cəhd olunubsa — sahə qırmızı işarələnir */
+  titleError?: string;
   excerpt: string;
   onExcerptChange: (value: string) => void;
+  excerptError?: string;
   categorySlug: string;
   onCategoryChange: (value: string) => void;
   categories: Category[];
@@ -26,8 +29,10 @@ export interface InfoStepProps {
 export function InfoStep({
   title,
   onTitleChange,
+  titleError,
   excerpt,
   onExcerptChange,
+  excerptError,
   categorySlug,
   onCategoryChange,
   categories,
@@ -50,15 +55,18 @@ export function InfoStep({
               placeholder="Ürək sağlamlığı və gündəlik stress"
               value={title}
               onChange={(e) => onTitleChange(e.target.value)}
+              error={titleError}
             />
           </div>
           <div className="sm:col-span-2">
             <TextAreaField
               label="Qısa təsvir"
+              required
               rows={2}
               placeholder="Xroniki gərginliyin ürək damarlarına təsiri və müasir protokollar."
               value={excerpt}
               onChange={(e) => onExcerptChange(e.target.value)}
+              error={excerptError}
             />
           </div>
           <ChoiceGroup

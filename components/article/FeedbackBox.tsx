@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useState, useSyncExternalStore } from "react";
-import { Button, Card, Icon, TextAreaField } from "@/components/ui";
+import { Button, Card, Icon, TextAreaField, TextField } from "@/components/ui";
 import {
   submitArticleQuestion,
   submitArticleReaction,
@@ -157,10 +157,34 @@ function QuestionForm({
   const [question, setQuestion] = useState("");
   const [sending, setSending] = useState(false);
   const [feedback, setFeedback] = useState<Feedback>(null);
+  const [nameError, setNameError] = useState<string | undefined>();
+  const [contactError, setContactError] = useState<string | undefined>();
+  const [questionError, setQuestionError] = useState<string | undefined>();
 
   async function handleSend() {
-    setSending(true);
     setFeedback(null);
+    setNameError(undefined);
+    setContactError(undefined);
+    setQuestionError(undefined);
+
+    /* Serverdəki eyni qaydalar — sahə göndərilmədən əvvəl birbaşa qırmızılaşır */
+    if (name.trim().length < 3) {
+      setNameError("Ən azı 3 simvol olmalıdır");
+      return;
+    }
+    if (
+      !/^\S+@\S+\.\S+$/.test(contact.trim()) &&
+      !/^[+\d][\d\s()-]{8,}$/.test(contact.trim())
+    ) {
+      setContactError("Düzgün e-poçt və ya telefon yazın");
+      return;
+    }
+    if (question.trim().length < 10) {
+      setQuestionError("Ən azı 10 simvol olmalıdır");
+      return;
+    }
+
+    setSending(true);
     try {
       const result = await submitArticleQuestion({
         slug,
@@ -192,23 +216,21 @@ function QuestionForm({
       </span>
 
       <div className="grid gap-space-xs sm:grid-cols-2">
-        <input
-          type="text"
+        <TextField
+          label="Adınız"
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="Adınız və soyadınız"
-          aria-label="Adınız"
           autoComplete="name"
-          className="h-11 w-full rounded-md border border-outline-variant bg-surface-container-lowest px-space-sm font-body text-body-md text-on-surface placeholder:text-outline outline-none focus:border-primary-container focus:ring-2 focus:ring-tertiary-fixed-dim/50"
+          error={nameError}
         />
-        <input
-          type="text"
+        <TextField
+          label="Əlaqə vasitəsi"
           value={contact}
           onChange={(e) => setContact(e.target.value)}
           placeholder="E-poçt və ya telefon"
-          aria-label="Əlaqə vasitəsi"
           autoComplete="email"
-          className="h-11 w-full rounded-md border border-outline-variant bg-surface-container-lowest px-space-sm font-body text-body-md text-on-surface placeholder:text-outline outline-none focus:border-primary-container focus:ring-2 focus:ring-tertiary-fixed-dim/50"
+          error={contactError}
         />
       </div>
 
@@ -219,8 +241,10 @@ function QuestionForm({
         onChange={(e) => {
           setQuestion(e.target.value);
           setFeedback(null);
+          setQuestionError(undefined);
         }}
         placeholder="Sualınızı buraya yazın..."
+        error={questionError}
       />
 
       {feedback && (

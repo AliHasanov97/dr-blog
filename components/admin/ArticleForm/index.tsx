@@ -300,7 +300,10 @@ export function ArticleForm({
 
   function save(status: ArticleStatus) {
     if (!title.trim()) {
-      setFeedback({ tone: "error", text: "Əvvəlcə başlıq yazın." });
+      /* Ayrıca banner yerinə — istifadəçi Başlıq addımına aparılır və
+       * konkret sahə qırmızılaşır (bax: InfoStep-ə keçirilən titleError) */
+      setStepErrors(["Başlıq daxil edin"]);
+      setStep(0);
       return;
     }
     startTransition(async () => {
@@ -403,8 +406,8 @@ export function ArticleForm({
       </div>
 
       {recovered && (
-        <div className="rounded-lg border border-tertiary-fixed-dim bg-tertiary-fixed/40 p-space-sm flex flex-col sm:flex-row sm:items-center gap-space-sm">
-          <span className="flex items-start gap-space-xs font-body text-body-sm text-on-tertiary-fixed-variant flex-1">
+        <div className="rounded-lg border border-tertiary/30 bg-tertiary/10 p-space-sm flex flex-col sm:flex-row sm:items-center gap-space-sm">
+          <span className="flex items-start gap-space-xs font-body text-body-sm text-on-tertiary-container flex-1">
             <Icon name="history" size={18} className="mt-0.5 shrink-0" />
             Yarımçıq qalmış qaralamanız var: «{recovered.title}». Bərpa edim?
           </span>
@@ -438,8 +441,14 @@ export function ArticleForm({
             <InfoStep
               title={title}
               onTitleChange={setTitle}
+              titleError={
+                stepErrors.length > 0 && !title.trim() ? "Başlıq daxil edin" : undefined
+              }
               excerpt={excerpt}
               onExcerptChange={setExcerpt}
+              excerptError={
+                stepErrors.length > 0 && !excerpt.trim() ? "Qısa təsvir daxil edin" : undefined
+              }
               categorySlug={categorySlug}
               onCategoryChange={setCategorySlug}
               categories={categories}

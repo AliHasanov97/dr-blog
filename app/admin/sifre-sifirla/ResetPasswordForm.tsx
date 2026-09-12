@@ -18,6 +18,10 @@ export function ResetPasswordForm({ token }: ResetPasswordFormProps) {
   const [confirm, setConfirm] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
+  /* Server gözləmədən, real vaxtda — "confirm" sahəsi birbaşa qırmızılaşır */
+  const confirmError =
+    confirm.length > 0 && password !== confirm ? "Şifrələr üst-üstə düşmür" : undefined;
+
   if (state.done) {
     return (
       <div className="flex flex-col gap-space-md">
@@ -70,9 +74,10 @@ export function ResetPasswordForm({ token }: ResetPasswordFormProps) {
         placeholder="Şifrəni təkrar yazın"
         value={confirm}
         onChange={(e) => setConfirm(e.target.value)}
+        error={confirmError}
       />
 
-      {state.error && (
+      {state.error && !confirmError && (
         <p
           role="alert"
           className="flex items-center gap-1 rounded-md bg-error-container/60 px-space-sm py-space-xs font-label text-label-md text-on-error-container"

@@ -14,28 +14,34 @@ export function PasswordForm() {
   const [next, setNext] = useState("");
   const [confirm, setConfirm] = useState("");
   const [showPasswords, setShowPasswords] = useState(false);
+  const [currentError, setCurrentError] = useState<string | undefined>();
+  const [nextError, setNextError] = useState<string | undefined>();
+  const [confirmError, setConfirmError] = useState<string | undefined>();
 
   function submit() {
     setFeedback(null);
+    setCurrentError(undefined);
+    setNextError(undefined);
+    setConfirmError(undefined);
     if (next.length < 8) {
-      setFeedback({ tone: "error", text: "Yeni şifrə ən azı 8 simvol olmalıdır." });
+      setNextError("Ən azı 8 simvol olmalıdır");
       return;
     }
     if (next !== confirm) {
-      setFeedback({ tone: "error", text: "Yeni şifrələr üst-üstə düşmür." });
+      setConfirmError("Yeni şifrələr üst-üstə düşmür");
       return;
     }
     startTransition(async () => {
       const result = await changePasswordAction(current, next);
-      setFeedback(
-        result.success
-          ? { tone: "ok", text: result.message ?? "Şifrə dəyişdirildi." }
-          : { tone: "error", text: result.message ?? "Alınmadı." },
-      );
       if (result.success) {
+        setFeedback({ tone: "ok", text: result.message ?? "Şifrə dəyişdirildi." });
         setCurrent("");
         setNext("");
         setConfirm("");
+      } else {
+        /* Client tərəfi artıq uzunluq/uyğunluğu yoxlayıb — server xətası
+         * demək olar həmişə cari şifrənin yanlış olmasıdır */
+        setCurrentError(result.message ?? "Alınmadı");
       }
     });
   }
@@ -50,6 +56,7 @@ export function PasswordForm() {
           autoComplete="current-password"
           value={current}
           onChange={(e) => setCurrent(e.target.value)}
+          error={currentError}
         />
       </div>
 
@@ -62,6 +69,7 @@ export function PasswordForm() {
         autoComplete="new-password"
         value={next}
         onChange={(e) => setNext(e.target.value)}
+        error={nextError}
       />
 
       <TextField
@@ -72,6 +80,7 @@ export function PasswordForm() {
         autoComplete="new-password"
         value={confirm}
         onChange={(e) => setConfirm(e.target.value)}
+        error={confirmError}
       />
 
       <button

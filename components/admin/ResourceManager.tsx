@@ -94,6 +94,8 @@ export function ResourceManager({
   const [mode, setMode] = useState<Mode>({ kind: "closed" });
   const [values, setValues] = useState<Record<string, string>>({});
   const [error, setError] = useState<string | null>(null);
+  /** Boş buraxılan konkret sahə — onun altında qırmızı göstərilir, ümumi mesaj yerinə */
+  const [errorField, setErrorField] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
   /*
@@ -114,6 +116,19 @@ export function ResourceManager({
     );
     return patched as MediaScope;
   }, [scopeProp, keyField, scopeKeyValue]);
+
+  /*
+   * Yalnız text/textarea/number sahələri həmişə öz altında qırmızı göstərə
+   * bilir (TextField/TextAreaField). "select" seçim sayına görə ChoiceGroup-a
+   * da çevrilə bilər — o, `error` dəstəkləmir. Belə hallarda ümumi mesaj
+   * (aşağıda) saxlanılır ki, xəta gözdən qaçmasın.
+   */
+  const errorFieldType = fields.find((f) => f.name === errorField)?.type;
+  const errorShownInline =
+    errorFieldType === "text" ||
+    errorFieldType === "number" ||
+    errorFieldType === "url" ||
+    errorFieldType === "textarea";
 
   const visible = useMemo(() => {
     const q = query.toLocaleLowerCase("az").trim();
@@ -137,6 +152,7 @@ export function ResourceManager({
     if (keyField) blank[keyField] = crypto.randomUUID();
     setValues(blank);
     setError(null);
+    setErrorField(null);
     setMode({ kind: "create" });
   }
 
@@ -146,6 +162,7 @@ export function ResourceManager({
     if (keyField) next[keyField] = text(row, keyField);
     setValues(next);
     setError(null);
+    setErrorField(null);
     setMode({ kind: "edit", id: row.id });
   }
 
@@ -155,8 +172,10 @@ export function ResourceManager({
     );
     if (missing) {
       setError(`«${missing.label}» sahəsi doldurulmalıdır.`);
+      setErrorField(missing.name);
       return;
     }
+    setErrorField(null);
     startTransition(async () => {
       const result =
         mode.kind === "edit"
@@ -279,6 +298,7 @@ export function ResourceManager({
                       placeholder={field.placeholder}
                       value={value}
                       onChange={(e) => set(e.target.value)}
+                      error={field.name === errorField ? error ?? undefined : undefined}
                       className={span}
                     />
                   );
@@ -359,6 +379,7 @@ export function ResourceManager({
                       options={options}
                       value={value}
                       onChange={(e) => set(e.target.value)}
+                      error={field.name === errorField ? error ?? undefined : undefined}
                       className={span}
                     />
                   );
@@ -402,12 +423,16 @@ export function ResourceManager({
                     placeholder={field.placeholder}
                     value={value}
                     onChange={(e) => set(e.target.value)}
+                    error={field.name === errorField ? error ?? undefined : undefined}
                     className={span}
                   />
                 );
               })}
 
-              {error && (
+              {/* errorShownInline olanda mesaj artıq həmin sahənin altında
+               * görünür — burada yalnız sahəyə bağlanmayan (server) xətalar
+               * və inline dəstəkləməyən sahə növləri (seçim, şəkil və s.) qalır */}
+              {error && !errorShownInline && (
                 <p className="sm:col-span-2 flex items-center gap-1 font-label text-label-sm text-error">
                   <Icon name="error" size={14} />
                   {error}

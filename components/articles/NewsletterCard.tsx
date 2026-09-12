@@ -75,10 +75,19 @@ export function NewsletterCard({
             <input
               type="email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e) => {
+                setEmail(e.target.value);
+                if (status === "error") setStatus("idle");
+              }}
               placeholder="poct@unvan.az"
               aria-label="E-poçt ünvanınız"
-              className="flex-1 h-11 px-space-sm rounded-md bg-white/10 border border-white/20 font-body text-body-sm text-white placeholder:text-white/50 outline-none focus:border-secondary-fixed focus:ring-2 focus:ring-secondary-fixed/30"
+              aria-invalid={status === "error"}
+              className={cn(
+                "flex-1 h-11 px-space-sm rounded-md bg-white/10 font-body text-body-sm text-white placeholder:text-white/50 outline-none border",
+                status === "error"
+                  ? "border-error ring-2 ring-error/30"
+                  : "border-white/20 focus:border-secondary-fixed focus:ring-2 focus:ring-secondary-fixed/30",
+              )}
             />
             <Button
               type="submit"
