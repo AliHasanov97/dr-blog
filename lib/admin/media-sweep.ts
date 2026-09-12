@@ -10,6 +10,8 @@ export interface OrphanFile {
   url: string;
   size: number;
   modified: number;
+  /** İnsan üçün izah — hansı məqaləyə/bölməyə aid olduğu (məs. «Məqalə: «Ürək çatışmazlığı» — üz qabığı şəkli») */
+  context: string;
 }
 
 export interface OrphanScan {
@@ -87,6 +89,41 @@ async function collectReferencedUrls(): Promise<Set<string>> {
   return refs;
 }
 
+/** Qovluq adına görə məqalə hissəsinin oxunaqlı izahı */
+const ARTICLE_PART_LABEL: Record<string, string> = {
+  ortuk: "üz qabığı şəkli",
+  metn: "mətn şəkli",
+  senedler: "əlavə sənəd",
+};
+
+/** `meqaleler/<slug>/<hissə>/...` açarından slug və hissəni çıxarır */
+function parseArticlePath(name: string): { articleKey: string; partLabel: string } | null {
+  const match = /^meqaleler\/([^/]+)\/([^/]+)\//.exec(name);
+  if (!match) return null;
+  return { articleKey: match[1], partLabel: ARTICLE_PART_LABEL[match[2]] ?? "fayl" };
+}
+
+/**
+ * Faylın açarından insan üçün izah qurur — hansı məqaləyə, ya da hansı
+ * ümumi bölməyə (protokol, video, həkim, sayt) aid olduğunu göstərir.
+ * Kriptik `meqaleler/<guid>/ortuk/<random>.jpg` açarı yerinə admin bunu
+ * görür: «Məqalə: «Ürək çatışmazlığı» — üz qabığı şəkli».
+ */
+function describeContext(name: string, titleBySlug: Map<string, string>): string {
+  const article = parseArticlePath(name);
+  if (article) {
+    const title = titleBySlug.get(article.articleKey);
+    return title
+      ? `Məqalə: «${title}» — ${article.partLabel}`
+      : `Silinmiş/tapılmayan məqalə (${article.articleKey}) — ${article.partLabel}`;
+  }
+  if (name.startsWith("protokollar/")) return "Protokol sənədi";
+  if (name.startsWith("videolar/")) return "Video örtüyü";
+  if (name.startsWith("hekim/")) return "Həkim profili şəkli";
+  if (name.startsWith("sayt/")) return "Sayt üzrə ümumi fayl";
+  return "Naməlum mənşə";
+}
+
 /**
  * R2-də heç bir bazada qeydə bağlı olmayan faylları TAPIR — HEÇ NƏ SİLMİR.
  * Admin nəticəni gözdən keçirib `deleteOrphanFiles`-ə ötürməlidir.
@@ -107,9 +144,29 @@ export async function findOrphanedMedia(): Promise<OrphanScan> {
     driver.listAll(),
   ]);
 
-  const orphans = allFiles
+  const candidates = allFiles
     .filter((file) => !referenced.has(file.url))
     .sort((a, b) => b.modified - a.modified);
+
+  /* Hansı məqalələrin adı lazımdır — hamısı bir sorğuda gətirilir */
+  const articleKeys = new Set<string>();
+  for (const file of candidates) {
+    const parsed = parseArticlePath(file.name);
+    if (parsed) articleKeys.add(parsed.articleKey);
+  }
+  const titleBySlug = new Map<string, string>();
+  if (articleKeys.size > 0) {
+    const rows = await prisma.article.findMany({
+      where: { slug: { in: [...articleKeys] } },
+      select: { slug: true, title: true },
+    });
+    for (const row of rows) titleBySlug.set(row.slug, row.title);
+  }
+
+  const orphans: OrphanFile[] = candidates.map((file) => ({
+    ...file,
+    context: describeContext(file.name, titleBySlug),
+  }));
 
   return {
     ready: true,

@@ -156,14 +156,14 @@ export function MediaSweepButton() {
                   )}
 
                   <span className="flex flex-col min-w-0 flex-1 gap-0.5">
+                    <span className="font-label text-label-md text-on-surface truncate">
+                      {o.context}
+                    </span>
                     <span
-                      className="font-body text-body-sm text-on-surface truncate"
+                      className="font-body text-body-sm text-on-surface-variant truncate"
                       title={o.name}
                     >
                       {shortLabel(o.name)}
-                    </span>
-                    <span className="font-label text-label-sm text-outline truncate" title={o.name}>
-                      {o.name}
                     </span>
                     <span className="font-label text-label-sm text-outline">
                       {humanSize(o.size)} • {humanDate(o.modified)}
