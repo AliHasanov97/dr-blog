@@ -1,16 +1,23 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { SESSION_COOKIE } from "@/lib/auth/session";
+import { SESSION_COOKIE } from "@/lib/auth/session-cookie";
 
 /**
  * /admin altındakı bütün route-ları qoruyur.
  * Burada yalnız cookie-nin mövcudluğu və bitmə vaxtı yoxlanılır (Edge runtime);
- * tam doğrulama server komponentlərdəki `getSession()` ilə aparılır.
+ * tam doğrulama, imza yoxlaması daxil, server komponentlərdəki `getSession()`
+ * ilə aparılır (bax: `lib/auth/session.ts`).
+ *
+ * Cookie dəyəri `<base64url payload>.<imza>` formatındadır — imzanı burada
+ * yoxlamırıq (Edge Runtime `node:crypto`-nu dəstəkləmir), sadəcə nöqtədən
+ * əvvəlki hissəni ayırıb bitmə vaxtına baxırıq.
  */
 function isSessionValid(value: string | undefined): boolean {
   if (!value) return false;
   try {
+    const dot = value.lastIndexOf(".");
+    const payload = dot === -1 ? value : value.slice(0, dot);
     const json = JSON.parse(
-      Buffer.from(value, "base64url").toString("utf-8"),
+      Buffer.from(payload, "base64url").toString("utf-8"),
     ) as { expiresAt?: number };
     return typeof json.expiresAt === "number" && json.expiresAt > Date.now();
   } catch {
