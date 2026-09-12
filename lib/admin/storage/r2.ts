@@ -53,11 +53,16 @@ export function missingR2Settings(): string[] {
   return missing;
 }
 
-/** Faylın oxunacağı ünvan */
+/**
+ * Faylın oxunacağı ünvan.
+ *
+ * Açarın hər qovluq hissəsi ayrı kodlaşdırılır ki, «/» hərfi `%2F`-ə
+ * çevrilməsin — tək kodlanmış blok bəzi mobil brauzer və şəbəkələrdə
+ * (proksi, CDN) düzgün açılmırdı, ünvan adi yol seqmentləri kimi qalmalıdır.
+ */
 function fileUrl(key: string): string {
-  return publicUrl
-    ? `${publicUrl}/${encodeURIComponent(key)}`
-    : `/media/${encodeURIComponent(key)}`;
+  const encoded = key.split("/").map(encodeURIComponent).join("/");
+  return publicUrl ? `${publicUrl}/${encoded}` : `/media/${encoded}`;
 }
 
 let client: S3Client | null = null;
