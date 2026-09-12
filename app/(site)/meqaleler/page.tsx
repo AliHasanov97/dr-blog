@@ -91,29 +91,6 @@ export default async function ArticlesPage({ searchParams }: PageProps) {
                   {featured.excerpt}
                 </p>
 
-                <div className="mt-space-xs flex items-center gap-space-sm rounded-lg bg-surface-container-low p-space-xs">
-                  <span className="w-9 h-9 rounded-full bg-secondary/15 flex items-center justify-center text-secondary shrink-0">
-                    <Icon name="play_arrow" size={20} filled />
-                  </span>
-                  <span className="flex flex-col min-w-0">
-                    <span className="font-label text-label-lg text-on-surface">
-                      Məqaləni dinlə
-                    </span>
-                    <span className="font-label text-label-sm text-outline truncate">
-                      Peşəkar səsli icmal
-                    </span>
-                  </span>
-                  <span className="ml-auto flex items-end gap-0.5 h-6" aria-hidden="true">
-                    {[8, 14, 20, 12, 18, 10, 22, 14, 8, 16].map((h, i) => (
-                      <span
-                        key={i}
-                        style={{ height: h }}
-                        className="w-0.5 rounded-full bg-secondary/50"
-                      />
-                    ))}
-                  </span>
-                </div>
-
                 <div className="pt-space-xs flex items-center gap-space-md font-label text-label-sm text-outline">
                   <span className="inline-flex items-center gap-1">
                     <Icon name="visibility" size={14} />
