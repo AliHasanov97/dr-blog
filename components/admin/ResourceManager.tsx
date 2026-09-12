@@ -21,19 +21,27 @@ import type {
 import type { MediaScope } from "@/lib/admin/storage/scope";
 import { cn } from "@/lib/utils";
 
+/**
+ * `scope`-da bu dəyəri yazsanız, `keyField`-in cari qiyməti ilə əvəz
+ * olunur. Server Component-dən Client Component-ə sadə funksiya keçmək
+ * olmadığı üçün ("use server" tələb olunur) `scope` həmişə düz obyekt
+ * qalır — açar sonradan, müştəridə doldurulur.
+ */
+export const SCOPE_KEY_PLACEHOLDER = "$key";
+
 export interface ResourceManagerProps {
   /**
    * Yüklənən faylların R2-dəki əhatəsi.
-   * Funksiya kimi verilsə, cari forma dəyərlərinə görə hesablanır — hər
-   * qeydin öz qovluğu olsun deyə (bax: `keyField`).
+   * `keyField` verilibsə, bu obyektdəki `SCOPE_KEY_PLACEHOLDER` ("$key")
+   * dəyəri cari qeydin açarı ilə əvəz olunur — hər qeydin öz qovluğu olsun
+   * deyə (məs. `{ kind: "protocol", protocolKey: SCOPE_KEY_PLACEHOLDER }`).
    */
-  scope?: MediaScope | ((values: Record<string, string>) => MediaScope);
+  scope?: MediaScope;
   /**
    * Bu sahə adı verilsə, yeni qeyd açılanda ora təsadüfi açar yazılır (və
-   * redaktədə qeydin öz `id`-si oxunur) — `scope` funksiyası bunu fayl
-   * qovluğunu təyin etmək üçün işlədə bilər. Beləliklə hər qeydin faylları
-   * öz qovluğuna düşür, "Əvvəl yüklənənlər" siyahısı başqa qeydlərin
-   * fayllarını göstərmir.
+   * redaktədə qeydin öz `id`-si oxunur) — `scope`-dakı `SCOPE_KEY_PLACEHOLDER`
+   * bununla əvəz olunur. Beləliklə hər qeydin faylları öz qovluğuna düşür,
+   * "Əvvəl yüklənənlər" siyahısı başqa qeydlərin fayllarını göstərmir.
    */
   keyField?: string;
   /** Sətirlər həm göstərilən, həm də forma sahələrini daşıyır */
@@ -88,7 +96,17 @@ export function ResourceManager({
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
-  const scope = typeof scopeProp === "function" ? scopeProp(values) : scopeProp;
+  const scope: MediaScope = useMemo(() => {
+    if (!keyField) return scopeProp;
+    const key = values[keyField] || "yeni";
+    const patched = Object.fromEntries(
+      Object.entries(scopeProp).map(([k, v]) => [
+        k,
+        v === SCOPE_KEY_PLACEHOLDER ? key : v,
+      ]),
+    );
+    return patched as MediaScope;
+  }, [scopeProp, keyField, values]);
 
   const visible = useMemo(() => {
     const q = query.toLocaleLowerCase("az").trim();

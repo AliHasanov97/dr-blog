@@ -1,4 +1,9 @@
-import { AdminPageHeader, HelpNote, ResourceManager } from "@/components/admin";
+import {
+  AdminPageHeader,
+  HelpNote,
+  ResourceManager,
+  SCOPE_KEY_PLACEHOLDER,
+} from "@/components/admin";
 import { listProtocols } from "@/lib/admin/queries";
 import {
   createResource,
@@ -39,7 +44,7 @@ export default async function AdminProtocolsPage() {
         </p>
       </HelpNote>
       <ResourceManager
-        scope={(values) => ({ kind: "protocol", protocolKey: values.id || "yeni" })}
+        scope={{ kind: "protocol", protocolKey: SCOPE_KEY_PLACEHOLDER }}
         keyField="id"
         items={rows}
         actions={{ create, update, remove }}

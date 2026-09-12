@@ -31,7 +31,7 @@ export { ArticleForm } from "./ArticleForm";
 export type { ArticleFormProps } from "./ArticleForm";
 export { RepeaterField } from "./RepeaterField";
 export type { RepeaterFieldProps } from "./RepeaterField";
-export { ResourceManager } from "./ResourceManager";
+export { ResourceManager, SCOPE_KEY_PLACEHOLDER } from "./ResourceManager";
 export type { ResourceManagerProps } from "./ResourceManager";
 export { ArticleCanvas } from "./canvas/ArticleCanvas";
 export type { ArticleCanvasProps } from "./canvas/ArticleCanvas";
