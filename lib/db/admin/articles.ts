@@ -3,6 +3,7 @@ import type { AdminArticle } from "@/lib/mock/store";
 import type { Author } from "@/lib/types";
 import { prisma } from "@/lib/prisma";
 import { dbGetArticleAuthor } from "@/lib/db/doctor";
+import { articleFolderPrefix, storage } from "@/lib/admin/storage";
 import { slugify } from "./slugify";
 
 /** DoctorProfile hələ yaradılmayıbsa istifadə olunan ehtiyat müəllif */
@@ -270,5 +271,26 @@ export async function dbUpdateArticle(id: string, data: Record<string, any>) {
 }
 
 export async function dbDeleteArticle(id: string) {
-  return prisma.article.delete({ where: { id } });
+  const article = await prisma.article.findUnique({
+    where: { id },
+    select: { slug: true },
+  });
+
+  const deleted = await prisma.article.delete({ where: { id } });
+
+  /*
+   * Fayllar bazadan asılı deyil — R2-də qalırsa yer tutmaqdan başqa zərəri
+   * yoxdur, ona görə bu addım "ən yaxşı cəhd"dir: xəta baş versə də məqalə
+   * silinməsi geri qaytarılmır.
+   */
+  const driver = storage();
+  if (driver && article?.slug) {
+    try {
+      await driver.removePrefix(articleFolderPrefix(article.slug));
+    } catch (error) {
+      console.error("[articles] Məqalənin R2 qovluğu silinə bilmədi:", error);
+    }
+  }
+
+  return deleted;
 }

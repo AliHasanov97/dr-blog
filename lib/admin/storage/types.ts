@@ -26,6 +26,8 @@ export interface StorageDriver {
   list(kind: MediaKind, prefix?: string): Promise<StoredFile[]>;
   put(name: string, body: Buffer, contentType: string): Promise<string>;
   remove(name: string): Promise<boolean>;
+  /** Qovluqdakı bütün faylları (tipindən asılı olmayaraq) silir — silinən say qaytarılır */
+  removePrefix(prefix: string): Promise<number>;
 }
 
 /** Şəkillər — SVG qəsdən yoxdur (skript daşıya bilər) */

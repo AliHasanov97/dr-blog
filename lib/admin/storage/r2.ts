@@ -1,6 +1,7 @@
 import "server-only";
 import {
   DeleteObjectCommand,
+  DeleteObjectsCommand,
   GetObjectCommand,
   HeadObjectCommand,
   ListObjectsV2Command,
@@ -150,6 +151,45 @@ export const r2Driver: StorageDriver = {
       console.error("[r2] Silmə xətası:", error);
       return false;
     }
+  },
+
+  /**
+   * Qovluqdakı bütün faylları silir — məqalə silinəndə onun örtük, mətn
+   * şəkilləri və sənədləri arxada qalmasın deyə. `DeleteObjectsCommand` bir
+   * sorğuda ən çox 1000 açar qəbul edir, ona görə siyahı səhifələnir.
+   */
+  async removePrefix(prefix: string): Promise<number> {
+    let deleted = 0;
+    let token: string | undefined;
+
+    do {
+      const listed = await s3().send(
+        new ListObjectsV2Command({
+          Bucket: bucket,
+          Prefix: `${prefix}/`,
+          ContinuationToken: token,
+          MaxKeys: 1000,
+        }),
+      );
+
+      const keys = (listed.Contents ?? [])
+        .map((object) => object.Key)
+        .filter((key): key is string => Boolean(key));
+
+      if (keys.length) {
+        await s3().send(
+          new DeleteObjectsCommand({
+            Bucket: bucket,
+            Delete: { Objects: keys.map((Key) => ({ Key })) },
+          }),
+        );
+        deleted += keys.length;
+      }
+
+      token = listed.IsTruncated ? listed.NextContinuationToken : undefined;
+    } while (token);
+
+    return deleted;
   },
 };
 

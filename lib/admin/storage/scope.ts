@@ -35,6 +35,15 @@ function safeKey(value: string): string {
   return clean.slice(0, 64) || "adsiz";
 }
 
+/**
+ * Məqalənin bütün fayllarının (örtük, mətn şəkilləri, sənədlər) olduğu kök
+ * qovluq — hissə fərqi olmadan. Məqalə silinəndə bu qovluğun tamamı R2-dən
+ * silinir.
+ */
+export function articleFolderPrefix(articleKey: string): string {
+  return `meqaleler/${safeKey(articleKey)}`;
+}
+
 /** Əhatənin R2-dəki qovluğu (sonda «/» olmadan) */
 export function prefixOf(scope: MediaScope): string {
   switch (scope.kind) {

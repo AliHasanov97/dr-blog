@@ -4,7 +4,7 @@ import type { StorageDriver } from "./types";
 
 export type { MediaKind, StoredFile, StorageDriver } from "./types";
 export type { MediaScope, ArticlePart } from "./scope";
-export { prefixOf, usesPeriod, scopeLabel, articleKeyOfPath } from "./scope";
+export { prefixOf, usesPeriod, scopeLabel, articleKeyOfPath, articleFolderPrefix } from "./scope";
 export { hasPublicUrl, isR2Configured, missingR2Settings } from "./r2";
 
 /**
