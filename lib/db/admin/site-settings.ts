@@ -1,5 +1,6 @@
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
+import { removeStoredFile } from "@/lib/admin/storage";
 import {
   SETTINGS_KEY,
   normalizeSettings,
@@ -30,11 +31,23 @@ export async function dbUpdateSiteSettings(
    * sabit sahəli interfeysdir, ona görə düz JSON obyektinə çevrilir. */
   const payload = { ...clean } as unknown as Prisma.InputJsonObject;
 
+  const previous = await prisma.siteSetting.findUnique({
+    where: { key: SETTINGS_KEY },
+    select: { value: true },
+  });
+  const previousLogo = previous ? normalizeSettings(previous.value).loadingLogo : "";
+
   const row = await prisma.siteSetting.upsert({
     where: { key: SETTINGS_KEY },
     create: { key: SETTINGS_KEY, value: payload },
     update: { value: payload },
     select: { value: true },
   });
+
+  /* Loading ekranı logosu əvəz olunubsa köhnəsi R2-də yetim qalmasın */
+  if (previousLogo && previousLogo !== clean.loadingLogo) {
+    await removeStoredFile(previousLogo);
+  }
+
   return normalizeSettings(row.value);
 }

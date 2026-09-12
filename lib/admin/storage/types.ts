@@ -24,6 +24,8 @@ export interface StorageDriver {
   readonly label: string;
   /** `prefix` verilsə yalnız o qovluq oxunur */
   list(kind: MediaKind, prefix?: string): Promise<StoredFile[]>;
+  /** `list`-dən fərqi: uzantıya görə süzmür — bütün fayl tipləri qayıdır */
+  listAll(prefix?: string): Promise<StoredFile[]>;
   put(name: string, body: Buffer, contentType: string): Promise<string>;
   remove(name: string): Promise<boolean>;
   /** Qovluqdakı bütün faylları (tipindən asılı olmayaraq) silir — silinən say qaytarılır */

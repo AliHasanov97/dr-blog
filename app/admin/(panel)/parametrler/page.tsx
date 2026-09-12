@@ -3,6 +3,7 @@ import { getSiteSettings } from "@/lib/admin/queries";
 import { storageStatus } from "@/lib/admin/media";
 import { Icon } from "@/components/ui";
 import { SettingsForm } from "./SettingsForm";
+import { MediaSweepButton } from "./MediaSweepButton";
 
 export const metadata = { title: "Parametrlər" };
 
@@ -57,6 +58,8 @@ export default async function AdminSettingsPage() {
           </p>
         )}
       </div>
+
+      {storage.ready && <MediaSweepButton />}
     </>
   );
 }

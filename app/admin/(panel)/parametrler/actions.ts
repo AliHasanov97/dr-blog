@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import type { ActionResult } from "@/lib/admin/types";
 import { USE_MOCK } from "@/lib/api/config";
 import { dbUpdateSiteSettings } from "@/lib/db/admin";
+import { sweepOrphanedMedia } from "@/lib/admin/media-sweep";
 import { store } from "@/lib/mock/store";
 import { normalizeSettings, type SiteSettings } from "@/lib/settings";
 
@@ -39,4 +40,35 @@ export async function updateSettings(
   revalidatePath("/admin/parametrler");
 
   return { success: true, message: "Parametrlər yeniləndi." };
+}
+
+/**
+ * R2-də heç bir qeydə bağlı olmayan faylları silir.
+ *
+ * Fayl silinməsi/əvəz olunması adətən dərhal təmizlənir, amma məqalə
+ * məzmunu daxilində tək bir şəklin/sənədin silinməsi bunu ötürə bilər —
+ * bu düymə həmin qalıqları tapıb silir.
+ */
+export async function sweepMedia(): Promise<
+  ActionResult & { scanned?: number; deleted?: number; skippedRecent?: number }
+> {
+  if (USE_MOCK) {
+    return { success: false, message: "Mock rejimdə fayl anbarı yoxdur." };
+  }
+
+  const result = await sweepOrphanedMedia();
+  if (!result.ready) {
+    return { success: false, message: "Fayl anbarı qoşulmayıb." };
+  }
+
+  return {
+    success: true,
+    message:
+      result.deleted > 0
+        ? `${result.deleted} yetim fayl silindi.`
+        : "Yetim fayl tapılmadı.",
+    scanned: result.scanned,
+    deleted: result.deleted,
+    skippedRecent: result.skippedRecent,
+  };
 }

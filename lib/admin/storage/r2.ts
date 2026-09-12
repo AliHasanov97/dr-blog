@@ -66,6 +66,23 @@ function fileUrl(key: string): string {
   return publicUrl ? `${publicUrl}/${encoded}` : `/media/${encoded}`;
 }
 
+/**
+ * `fileUrl`-in tərsi — ünvandan R2 açarını çıxarır.
+ * Bizim idarə etmədiyimiz ünvan (xarici link, statik `/images/...` və s.)
+ * üçün `null` qaytarır — çağıran tərəf onu sadəcə ötürür.
+ */
+export function keyFromUrl(url: string): string | null {
+  let rest: string | null = null;
+  if (publicUrl && url.startsWith(`${publicUrl}/`)) rest = url.slice(publicUrl.length + 1);
+  else if (url.startsWith("/media/")) rest = url.slice("/media/".length);
+  if (rest === null) return null;
+  try {
+    return rest.split("/").map(decodeURIComponent).join("/");
+  } catch {
+    return null;
+  }
+}
+
 let client: S3Client | null = null;
 
 function s3(): S3Client {
@@ -85,6 +102,12 @@ export const r2Driver: StorageDriver = {
   label: "Cloudflare R2",
 
   async list(kind: MediaKind, prefix?: string): Promise<StoredFile[]> {
+    const all = await r2Driver.listAll(prefix);
+    return all.filter((file) => matchesKind(file.name, kind));
+  },
+
+  /** `list`-dən fərqi: uzantıya görə süzmür — bütün fayl tipləri qayıdır */
+  async listAll(prefix?: string): Promise<StoredFile[]> {
     const files: StoredFile[] = [];
     let token: string | undefined;
 
@@ -102,7 +125,7 @@ export const r2Driver: StorageDriver = {
 
       for (const object of result.Contents ?? []) {
         const name = object.Key;
-        if (!name || !matchesKind(name, kind)) continue;
+        if (!name) continue;
         files.push({
           name,
           url: fileUrl(name),

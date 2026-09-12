@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { removeStoredFile } from "@/lib/admin/storage";
 
 /**
  * Admin siyahısı üçün videolar.
@@ -40,7 +41,11 @@ export async function dbCreateVideo(data: {
 }
 
 export async function dbUpdateVideo(id: string, data: Record<string, string>) {
-  return prisma.video.update({
+  const existing =
+    data.thumbnailUrl &&
+    (await prisma.video.findUnique({ where: { id }, select: { thumbnailUrl: true } }));
+
+  const updated = await prisma.video.update({
     where: { id },
     data: {
       ...(data.title && { title: data.title }),
@@ -50,8 +55,18 @@ export async function dbUpdateVideo(id: string, data: Record<string, string>) {
       ...(data.kindLabel && { kindLabel: data.kindLabel }),
     },
   });
+
+  /* Örtük şəkli əvəz olunubsa köhnəsi R2-də yetim qalmasın */
+  if (existing && existing.thumbnailUrl !== data.thumbnailUrl) {
+    await removeStoredFile(existing.thumbnailUrl);
+  }
+
+  return updated;
 }
 
 export async function dbDeleteVideo(id: string) {
-  return prisma.video.delete({ where: { id } });
+  const existing = await prisma.video.findUnique({ where: { id }, select: { thumbnailUrl: true } });
+  const deleted = await prisma.video.delete({ where: { id } });
+  if (existing) await removeStoredFile(existing.thumbnailUrl);
+  return deleted;
 }
