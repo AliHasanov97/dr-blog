@@ -230,6 +230,7 @@ export default async function ArticleDetailPage({ params }: PageProps) {
       <ArticleActionBar
         slug={article.slug}
         articleTitle={article.title}
+        viewCount={article.viewCount ?? 0}
         likeCount={article.likeCount}
         commentCount={article.commentCount}
         showComments={commentsOpen}

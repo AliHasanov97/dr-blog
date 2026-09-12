@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 export interface ArticleActionBarProps {
   slug: string;
   articleTitle: string;
+  viewCount: number;
   likeCount: number;
   commentCount: number;
   /** Şərhlər söndürülübsə düymə göstərilmir */
@@ -20,6 +21,7 @@ export interface ArticleActionBarProps {
 export function ArticleActionBar({
   slug,
   articleTitle,
+  viewCount,
   likeCount,
   commentCount,
   showComments = true,
@@ -62,6 +64,11 @@ export function ArticleActionBar({
   return (
     <div className="lg:hidden fixed bottom-24 inset-x-margin-mobile z-40">
       <div className="flex items-center justify-between gap-space-xs h-14 px-space-sm rounded-full bg-surface-bright/95 backdrop-blur-xl border border-surface-container shadow-level-2">
+        <span className="inline-flex items-center gap-1 h-10 px-space-sm rounded-full text-on-surface-variant">
+          <Icon name="visibility" size={20} />
+          <span className="font-label text-label-sm">{viewCount.toLocaleString("az-AZ")}</span>
+          <span className="sr-only">Baxış sayı</span>
+        </span>
         <ActionButton
           icon={liked ? "favorite" : "favorite_border"}
           filled={liked}
