@@ -106,6 +106,19 @@ export function FilePicker({
     });
   }
 
+  /**
+   * Seçimi təmizləyir — R2-dəki faylı SİLMİR.
+   *
+   * Hazırda istifadədə olan sənədi bura basılan kimi anbardan silmək
+   * təhlükəlidir: forma hələ saxlanmayıb, "Bağla" ilə ləğv etsəniz belə
+   * fayl artıq yox olardı. Faylın özü ancaq qeyd silinəndə (protokol
+   * silinəndə) və ya əvəz olunub saxlananda (`dbUpdateProtocol`)
+   * avtomatik təmizlənir.
+   */
+  function clearSelection() {
+    onSelect({ url: "", title: "", extension: "", sizeLabel: "" });
+  }
+
   function remove(file: PickedFile) {
     /*
      * Anbardakı açar birbaşa götürülür. Əvvəllər ünvandan çıxarılırdı —
@@ -174,9 +187,9 @@ export function FilePicker({
             </span>
             <button
               type="button"
-              onClick={() => remove(selected)}
-              title="Faylı anbardan sil"
-              className="w-7 h-7 shrink-0 flex items-center justify-center rounded-full text-error hover:bg-error-container/60"
+              onClick={clearSelection}
+              title="Seçimi ləğv et (fayl anbarda qalır)"
+              className="w-7 h-7 shrink-0 flex items-center justify-center rounded-full text-on-surface-variant hover:bg-surface-container"
             >
               <Icon name="close" size={14} />
             </button>
