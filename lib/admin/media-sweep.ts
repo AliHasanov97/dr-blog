@@ -104,18 +104,41 @@ function parseArticlePath(name: string): { articleKey: string; partLabel: string
 }
 
 /**
- * Faylın açarından insan üçün izah qurur — hansı məqaləyə, ya da hansı
- * ümumi bölməyə (protokol, video, həkim, sayt) aid olduğunu göstərir.
- * Kriptik `meqaleler/<guid>/ortuk/<random>.jpg` açarı yerinə admin bunu
- * görür: «Məqalə: «Ürək çatışmazlığı» — üz qabığı şəkli».
+ * `protokollar/<protocolId>/...` açarından protokolun id-sini çıxarır.
+ * Köhnə sxemdə (`protokollar/<YYYY-MM>/...`) bu hissə ay qovluğudur, protokol
+ * id-si deyil — `YYYY-MM` görünüşü olanlar filtrlənir ki, yanlış "silinmiş
+ * protokol" izahı çıxmasın.
  */
-function describeContext(name: string, titleBySlug: Map<string, string>): string {
+function parseProtocolPath(name: string): { protocolKey: string } | null {
+  const match = /^protokollar\/([^/]+)\//.exec(name);
+  if (!match || /^\d{4}-\d{2}$/.test(match[1])) return null;
+  return { protocolKey: match[1] };
+}
+
+/**
+ * Faylın açarından insan üçün izah qurur — hansı məqaləyə/protokola, ya da
+ * hansı ümumi bölməyə (video, həkim, sayt) aid olduğunu göstərir. Kriptik
+ * `meqaleler/<guid>/ortuk/<random>.jpg` açarı yerinə admin bunu görür:
+ * «Məqalə: «Ürək çatışmazlığı» — üz qabığı şəkli».
+ */
+function describeContext(
+  name: string,
+  titleBySlug: Map<string, string>,
+  protocolTitleById: Map<string, string>,
+): string {
   const article = parseArticlePath(name);
   if (article) {
     const title = titleBySlug.get(article.articleKey);
     return title
       ? `Məqalə: «${title}» — ${article.partLabel}`
       : `Silinmiş/tapılmayan məqalə (${article.articleKey}) — ${article.partLabel}`;
+  }
+  const protocol = parseProtocolPath(name);
+  if (protocol) {
+    const title = protocolTitleById.get(protocol.protocolKey);
+    return title
+      ? `Protokol: «${title}» — sənəd`
+      : `Silinmiş/tapılmayan protokol (${protocol.protocolKey}) — sənəd`;
   }
   if (name.startsWith("protokollar/")) return "Protokol sənədi";
   if (name.startsWith("videolar/")) return "Video örtüyü";
@@ -148,24 +171,36 @@ export async function findOrphanedMedia(): Promise<OrphanScan> {
     .filter((file) => !referenced.has(file.url))
     .sort((a, b) => b.modified - a.modified);
 
-  /* Hansı məqalələrin adı lazımdır — hamısı bir sorğuda gətirilir */
+  /* Hansı məqalələrin/protokolların adı lazımdır — hamısı bir sorğuda gətirilir */
   const articleKeys = new Set<string>();
+  const protocolKeys = new Set<string>();
   for (const file of candidates) {
-    const parsed = parseArticlePath(file.name);
-    if (parsed) articleKeys.add(parsed.articleKey);
+    const article = parseArticlePath(file.name);
+    if (article) articleKeys.add(article.articleKey);
+    const protocol = parseProtocolPath(file.name);
+    if (protocol) protocolKeys.add(protocol.protocolKey);
   }
-  const titleBySlug = new Map<string, string>();
-  if (articleKeys.size > 0) {
-    const rows = await prisma.article.findMany({
-      where: { slug: { in: [...articleKeys] } },
-      select: { slug: true, title: true },
-    });
-    for (const row of rows) titleBySlug.set(row.slug, row.title);
-  }
+
+  const [articleRows, protocolRows] = await Promise.all([
+    articleKeys.size > 0
+      ? prisma.article.findMany({
+          where: { slug: { in: [...articleKeys] } },
+          select: { slug: true, title: true },
+        })
+      : Promise.resolve([]),
+    protocolKeys.size > 0
+      ? prisma.protocolDocument.findMany({
+          where: { id: { in: [...protocolKeys] } },
+          select: { id: true, title: true },
+        })
+      : Promise.resolve([]),
+  ]);
+  const titleBySlug = new Map(articleRows.map((row) => [row.slug, row.title]));
+  const protocolTitleById = new Map(protocolRows.map((row) => [row.id, row.title]));
 
   const orphans: OrphanFile[] = candidates.map((file) => ({
     ...file,
-    context: describeContext(file.name, titleBySlug),
+    context: describeContext(file.name, titleBySlug, protocolTitleById),
   }));
 
   return {

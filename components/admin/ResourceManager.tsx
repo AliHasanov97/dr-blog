@@ -22,8 +22,20 @@ import type { MediaScope } from "@/lib/admin/storage/scope";
 import { cn } from "@/lib/utils";
 
 export interface ResourceManagerProps {
-  /** Yüklənən faylların R2-dəki əhatəsi */
-  scope?: MediaScope;
+  /**
+   * Yüklənən faylların R2-dəki əhatəsi.
+   * Funksiya kimi verilsə, cari forma dəyərlərinə görə hesablanır — hər
+   * qeydin öz qovluğu olsun deyə (bax: `keyField`).
+   */
+  scope?: MediaScope | ((values: Record<string, string>) => MediaScope);
+  /**
+   * Bu sahə adı verilsə, yeni qeyd açılanda ora təsadüfi açar yazılır (və
+   * redaktədə qeydin öz `id`-si oxunur) — `scope` funksiyası bunu fayl
+   * qovluğunu təyin etmək üçün işlədə bilər. Beləliklə hər qeydin faylları
+   * öz qovluğuna düşür, "Əvvəl yüklənənlər" siyahısı başqa qeydlərin
+   * fayllarını göstərmir.
+   */
+  keyField?: string;
   /** Sətirlər həm göstərilən, həm də forma sahələrini daşıyır */
   items: ResourceRow[];
   columns: ResourceColumn[];
@@ -58,7 +70,8 @@ function text(row: ResourceRow, field?: string): string {
 }
 
 export function ResourceManager({
-  scope = { kind: "site" },
+  scope: scopeProp = { kind: "site" },
+  keyField,
   items,
   columns,
   fields,
@@ -74,6 +87,8 @@ export function ResourceManager({
   const [values, setValues] = useState<Record<string, string>>({});
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+
+  const scope = typeof scopeProp === "function" ? scopeProp(values) : scopeProp;
 
   const visible = useMemo(() => {
     const q = query.toLocaleLowerCase("az").trim();
@@ -92,6 +107,9 @@ export function ResourceManager({
     for (const f of fields) {
       blank[f.name] = f.type === "switch" ? "false" : f.options?.[0]?.value ?? "";
     }
+    /* Fayllar bu qeydin öz qovluğuna düşsün deyə — qeyd hələ yaradılmayıb,
+     * ona görə açar burada, müştəridə düzəldilir (bax: `keyField`). */
+    if (keyField) blank[keyField] = crypto.randomUUID();
     setValues(blank);
     setError(null);
     setMode({ kind: "create" });
@@ -100,6 +118,7 @@ export function ResourceManager({
   function openEdit(row: ResourceRow) {
     const next: Record<string, string> = {};
     for (const f of fields) next[f.name] = text(row, f.name);
+    if (keyField) next[keyField] = text(row, keyField);
     setValues(next);
     setError(null);
     setMode({ kind: "edit", id: row.id });

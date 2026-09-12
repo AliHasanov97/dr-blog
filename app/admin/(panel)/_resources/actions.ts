@@ -96,6 +96,7 @@ export async function createResource(
           break;
         case "protocols":
           await dbCreateProtocol({
+            id: values.id,
             title: values.title,
             description: values.description,
             fileSizeLabel: values.fileSizeLabel,

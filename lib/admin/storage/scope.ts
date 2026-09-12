@@ -16,8 +16,12 @@ export type MediaScope =
   | { kind: "article"; articleKey: string; part: ArticlePart }
   /** Video örtükləri */
   | { kind: "video" }
-  /** Protokol sənədləri */
-  | { kind: "protocol" }
+  /**
+   * Konkret protokol sənədinə aid fayl — məqalə kimi öz qovluğu var, ona
+   * görə fərqli sənədlər "Əvvəl yüklənənlər" siyahısında qarışmır və
+   * protokol silinəndə yalnız onun öz qovluğu R2-dən silinir.
+   */
+  | { kind: "protocol"; protocolKey: string }
   /** Həkimin profil və portret şəkilləri */
   | { kind: "doctor" }
   /** Logo və sayt üzrə ümumi şəkillər */
@@ -52,7 +56,7 @@ export function prefixOf(scope: MediaScope): string {
     case "video":
       return "videolar";
     case "protocol":
-      return "protokollar";
+      return `protokollar/${safeKey(scope.protocolKey)}`;
     case "doctor":
       return "hekim";
     case "site":
@@ -63,11 +67,12 @@ export function prefixOf(scope: MediaScope): string {
 /**
  * Qovluğun içində tarix alt qovluğu olsun.
  *
- * Məqalə qovluqları onsuz da kiçikdir — orada tarix yalnız gözü yorur.
- * Ümumi qovluqlar isə illər ərzində böyüyür, ona görə aylara bölünür.
+ * Məqalə və protokol qovluqları artıq öz açarına görə ayrıdır — kiçikdir,
+ * orada tarix yalnız gözü yorur. Ümumi qovluqlar isə illər ərzində böyüyür,
+ * ona görə aylara bölünür.
  */
 export function usesPeriod(scope: MediaScope): boolean {
-  return scope.kind !== "article";
+  return scope.kind !== "article" && scope.kind !== "protocol";
 }
 
 /** İnsan üçün oxunan ad — admin panelində göstərilir */
@@ -82,7 +87,7 @@ export function scopeLabel(scope: MediaScope): string {
     case "video":
       return "Video örtükləri";
     case "protocol":
-      return "Protokol sənədləri";
+      return "Bu sənədin öz qovluğu";
     case "doctor":
       return "Həkimin şəkilləri";
     case "site":

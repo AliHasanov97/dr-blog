@@ -39,7 +39,8 @@ export default async function AdminProtocolsPage() {
         </p>
       </HelpNote>
       <ResourceManager
-        scope={{ kind: "protocol" }}
+        scope={(values) => ({ kind: "protocol", protocolKey: values.id || "yeni" })}
+        keyField="id"
         items={rows}
         actions={{ create, update, remove }}
         searchFields={["title", "description"]}

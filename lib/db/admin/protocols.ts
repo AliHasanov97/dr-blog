@@ -1,11 +1,17 @@
 import { prisma } from "@/lib/prisma";
-import { removeStoredFile } from "@/lib/admin/storage";
+import { prefixOf, removeStoredFile, storage } from "@/lib/admin/storage";
 
 export async function dbListProtocols() {
   return prisma.protocolDocument.findMany({ orderBy: { sortOrder: "asc" } });
 }
 
 export async function dbCreateProtocol(data: {
+  /**
+   * Müştəridə əvvəlcədən yaradılan id — fayllar qeyd yaranmazdan əvvəl
+   * bu id-nin qovluğuna yüklənir (bax: `ResourceManager`-in `keyField`-i).
+   * Verilməsə Prisma öz cuid-ini yaradır.
+   */
+  id?: string;
   title: string;
   description?: string;
   fileSizeLabel?: string;
@@ -15,6 +21,7 @@ export async function dbCreateProtocol(data: {
   const maxOrder = await prisma.protocolDocument.aggregate({ _max: { sortOrder: true } });
   return prisma.protocolDocument.create({
     data: {
+      ...(data.id && { id: data.id }),
       title: data.title,
       description: data.description,
       fileSizeLabel: data.fileSizeLabel || "—",
@@ -51,6 +58,22 @@ export async function dbUpdateProtocol(id: string, data: Record<string, string>)
 export async function dbDeleteProtocol(id: string) {
   const existing = await prisma.protocolDocument.findUnique({ where: { id }, select: { fileUrl: true } });
   const deleted = await prisma.protocolDocument.delete({ where: { id } });
-  if (existing) await removeStoredFile(existing.fileUrl);
+
+  if (existing) {
+    /* Köhnə qeydlərin faylı hələ ümumi qovluqdadır — birbaşa silinir */
+    await removeStoredFile(existing.fileUrl);
+
+    /* Yeni qeydlərin öz qovluğu var — məqalədə olduğu kimi bütöv silinir.
+     * Qovluq boşdursa/yoxdursa `removePrefix` sadəcə heç nə tapmır. */
+    const driver = storage();
+    if (driver) {
+      try {
+        await driver.removePrefix(prefixOf({ kind: "protocol", protocolKey: id }));
+      } catch (error) {
+        console.error("[protocols] Sənəd qovluğu silinə bilmədi:", error);
+      }
+    }
+  }
+
   return deleted;
 }
