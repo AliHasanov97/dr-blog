@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import type { ActionResult } from "@/lib/admin/types";
 import { USE_MOCK } from "@/lib/api/config";
 import { dbUpdateSiteSettings } from "@/lib/db/admin";
-import { sweepOrphanedMedia } from "@/lib/admin/media-sweep";
+import { deleteOrphanFiles, findOrphanedMedia, type OrphanFile } from "@/lib/admin/media-sweep";
 import { store } from "@/lib/mock/store";
 import { normalizeSettings, type SiteSettings } from "@/lib/settings";
 
@@ -43,20 +43,17 @@ export async function updateSettings(
 }
 
 /**
- * R2-də heç bir qeydə bağlı olmayan faylları silir.
- *
- * Fayl silinməsi/əvəz olunması adətən dərhal təmizlənir, amma məqalə
- * məzmunu daxilində tək bir şəklin/sənədin silinməsi bunu ötürə bilər —
- * bu düymə həmin qalıqları tapıb silir.
+ * R2-də heç bir qeydə bağlı olmayan faylları TAPIR — heç nə silmir.
+ * Admin nəticəni gözdən keçirdikdən sonra `confirmDeleteOrphans`-ı çağırır.
  */
-export async function sweepMedia(): Promise<
-  ActionResult & { scanned?: number; deleted?: number; skippedRecent?: number }
+export async function checkOrphanedMedia(): Promise<
+  ActionResult & { scanned?: number; referenced?: number; skippedRecent?: number; orphans?: OrphanFile[] }
 > {
   if (USE_MOCK) {
     return { success: false, message: "Mock rejimdə fayl anbarı yoxdur." };
   }
 
-  const result = await sweepOrphanedMedia();
+  const result = await findOrphanedMedia();
   if (!result.ready) {
     return { success: false, message: "Fayl anbarı qoşulmayıb." };
   }
@@ -64,11 +61,35 @@ export async function sweepMedia(): Promise<
   return {
     success: true,
     message:
-      result.deleted > 0
-        ? `${result.deleted} yetim fayl silindi.`
+      result.orphans.length > 0
+        ? `${result.orphans.length} yetim fayl tapıldı.`
         : "Yetim fayl tapılmadı.",
     scanned: result.scanned,
-    deleted: result.deleted,
+    referenced: result.referenced,
     skippedRecent: result.skippedRecent,
+    orphans: result.orphans,
+  };
+}
+
+/** Admin gözdən keçirib təsdiqlədiyi faylları silir */
+export async function confirmDeleteOrphans(
+  items: { name: string; url: string }[],
+): Promise<ActionResult & { deleted?: number; kept?: number }> {
+  if (USE_MOCK) {
+    return { success: false, message: "Mock rejimdə fayl anbarı yoxdur." };
+  }
+  if (items.length === 0) {
+    return { success: false, message: "Silinəcək fayl seçilməyib." };
+  }
+
+  const { deleted, kept } = await deleteOrphanFiles(items);
+  return {
+    success: true,
+    message:
+      kept > 0
+        ? `${deleted} fayl silindi, ${kept} fayl artıq istifadə olunduğu üçün saxlanıldı.`
+        : `${deleted} fayl silindi.`,
+    deleted,
+    kept,
   };
 }
