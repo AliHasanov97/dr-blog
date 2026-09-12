@@ -21,6 +21,10 @@ export function useHeightDrag<E extends HTMLElement = HTMLDivElement>(
   const frameRef = useRef<E>(null);
   const [previewRatio, setPreviewRatio] = useState<number | null>(null);
   const [dragging, setDragging] = useState(false);
+  /* `onUp`-da son dəyəri oxumaq üçün — bax `ResizableMedia.tsx`-dəki eyni
+   * qeyd: funksional yeniləyicinin içində `onCommit` kimi yan-effekt
+   * çağırmaq React-in render zamanı state yeniləmə xətasına səbəb olurdu. */
+  const previewRef = useRef<number | null>(null);
 
   function startDrag(event: ReactPointerEvent<HTMLButtonElement>) {
     event.preventDefault();
@@ -39,7 +43,9 @@ export function useHeightDrag<E extends HTMLElement = HTMLDivElement>(
     function onMove(move: PointerEvent) {
       const nextHeight = Math.max(MIN_HEIGHT_PX, startHeight + (move.clientY - startY));
       const ratio = width / nextHeight;
-      setPreviewRatio(Math.min(MAX_ASPECT_RATIO, Math.max(MIN_ASPECT_RATIO, ratio)));
+      const clamped = Math.min(MAX_ASPECT_RATIO, Math.max(MIN_ASPECT_RATIO, ratio));
+      previewRef.current = clamped;
+      setPreviewRatio(clamped);
     }
 
     function onUp() {
@@ -48,10 +54,10 @@ export function useHeightDrag<E extends HTMLElement = HTMLDivElement>(
       handle.removeEventListener("pointerup", onUp);
       handle.removeEventListener("pointercancel", onUp);
       setDragging(false);
-      setPreviewRatio((value) => {
-        if (value !== null) onCommit(formatAspectRatio(value));
-        return null;
-      });
+      const value = previewRef.current;
+      previewRef.current = null;
+      setPreviewRatio(null);
+      if (value !== null) onCommit(formatAspectRatio(value));
     }
 
     handle.addEventListener("pointermove", onMove);

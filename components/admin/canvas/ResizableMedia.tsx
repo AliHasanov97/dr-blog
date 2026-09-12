@@ -61,6 +61,12 @@ export function ResizableMedia({
   const frame = useRef<HTMLDivElement>(null);
   const [dragging, setDragging] = useState(false);
   const [preview, setPreview] = useState<number | null>(null);
+  /* `onUp`-da son dəyəri oxumaq üçün — `preview` state-i funksional
+   * yeniləyicinin İÇİNDƏ oxumaq olmazdı, çünki React onu render zamanı da
+   * çağıra bilər və `onAlignChange`/`onResize` kimi yan-effektlər orada
+   * "Cannot update a component while rendering a different component"
+   * xətası yaradırdı. */
+  const previewRef = useRef<number | null>(null);
 
   const percent = clamp(Math.round(width ?? MEDIA_DEFAULT_WIDTH));
   const shown = preview ?? (align === "full" ? 100 : percent);
@@ -87,7 +93,9 @@ export function ResizableMedia({
       // Sağ kənardan çəkəndə sağa getmək böyüdür, sol kənardan — əksinə
       const direction = edge === "end" ? 1 : -1;
       const next = clamp(startPercent + (direction * delta * 100) / available);
-      setPreview(snap(next));
+      const snapped = snap(next);
+      previewRef.current = snapped;
+      setPreview(snapped);
     }
 
     function onUp() {
@@ -96,13 +104,13 @@ export function ResizableMedia({
       handle.removeEventListener("pointerup", onUp);
       handle.removeEventListener("pointercancel", onUp);
       setDragging(false);
-      setPreview((value) => {
-        if (value !== null) {
-          if (align === "full" && value < 100) onAlignChange("center");
-          onResize(value);
-        }
-        return null;
-      });
+      const value = previewRef.current;
+      previewRef.current = null;
+      setPreview(null);
+      if (value !== null) {
+        if (align === "full" && value < 100) onAlignChange("center");
+        onResize(value);
+      }
     }
 
     handle.addEventListener("pointermove", onMove);
