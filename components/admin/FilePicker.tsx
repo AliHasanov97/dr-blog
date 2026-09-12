@@ -76,6 +76,11 @@ export function FilePicker({
     };
   }, [scope]);
 
+  /* Hazırda seçilmiş fayl ayrıca göstərilir — "Əvvəl yüklənənlər" siyahısında
+   * öz seçiminizi təkrar görmək qarışıqlıq yaradır */
+  const selected = files.find((f) => f.url === value);
+  const otherFiles = files.filter((f) => f.url !== value);
+
   function upload(list: FileList | null) {
     const file = list?.[0];
     if (!file) return;
@@ -148,22 +153,48 @@ export function FilePicker({
         </p>
       )}
 
-      {files.length > 0 && (
+      {selected && (
+        <div className="flex flex-col gap-0.5">
+          <span className="font-label text-label-sm text-outline pt-space-2xs">
+            Seçilmiş sənəd
+          </span>
+          <div className="flex items-center gap-1">
+            <span className="flex-1 flex items-center gap-space-xs px-space-xs h-9 rounded-md min-w-0 bg-secondary/12 text-secondary">
+              <Icon
+                name={ICONS[selected.extension] ?? "attach_file"}
+                size={17}
+                className="shrink-0"
+              />
+              <span className="font-label text-label-md truncate flex-1">
+                {selected.title}
+              </span>
+              <span className="font-label text-label-sm text-outline shrink-0">
+                {selected.sizeLabel}
+              </span>
+            </span>
+            <button
+              type="button"
+              onClick={() => remove(selected)}
+              title="Faylı anbardan sil"
+              className="w-7 h-7 shrink-0 flex items-center justify-center rounded-full text-error hover:bg-error-container/60"
+            >
+              <Icon name="close" size={14} />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {otherFiles.length > 0 && (
         <div className="flex flex-col gap-0.5 max-h-56 overflow-y-auto">
           <span className="font-label text-label-sm text-outline pt-space-2xs">
             Əvvəl yüklənənlər
           </span>
-          {files.map((file) => (
+          {otherFiles.map((file) => (
             <div key={file.url} className="flex items-center gap-1">
               <button
                 type="button"
                 onClick={() => onSelect(file)}
-                className={cn(
-                  "flex-1 flex items-center gap-space-xs px-space-xs h-9 rounded-md text-start transition-colors min-w-0",
-                  file.url === value
-                    ? "bg-secondary/12 text-secondary"
-                    : "text-on-surface hover:bg-surface-container",
-                )}
+                className="flex-1 flex items-center gap-space-xs px-space-xs h-9 rounded-md text-start transition-colors min-w-0 text-on-surface hover:bg-surface-container"
               >
                 <Icon
                   name={ICONS[file.extension] ?? "attach_file"}

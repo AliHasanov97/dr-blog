@@ -96,9 +96,16 @@ export function ResourceManager({
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
+  /*
+   * Yalnız açarın özü dəyişəndə yenidən hesablanır — bütün `values`-a bağlı
+   * olsaydı, formada hər hərf yazılanda (məs. təsvir sahəsində) `scope`
+   * təzə obyekt olardı və `FilePicker`/`ImagePicker` hər dəfə yenidən
+   * `listMedia` çağırardı.
+   */
+  const scopeKeyValue = keyField ? values[keyField] : undefined;
   const scope: MediaScope = useMemo(() => {
     if (!keyField) return scopeProp;
-    const key = values[keyField] || "yeni";
+    const key = scopeKeyValue || "yeni";
     const patched = Object.fromEntries(
       Object.entries(scopeProp).map(([k, v]) => [
         k,
@@ -106,7 +113,7 @@ export function ResourceManager({
       ]),
     );
     return patched as MediaScope;
-  }, [scopeProp, keyField, values]);
+  }, [scopeProp, keyField, scopeKeyValue]);
 
   const visible = useMemo(() => {
     const q = query.toLocaleLowerCase("az").trim();
