@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Newsreader, Plus_Jakarta_Sans } from "next/font/google";
+import Script from "next/script";
 import { siteConfig } from "@/lib/site";
 import { getSiteSettings } from "@/lib/admin/queries";
 import "./globals.css";
@@ -75,7 +76,9 @@ export default function RootLayout({
          * (FOUC). Default HƏMİŞƏ açıqdır, yalnız açıq şəkildə "dark"
          * saxlanılıbsa dəyişir (bax: ThemeToggle.tsx).
          */}
-        <script
+        <Script
+          id="theme-init"
+          strategy="beforeInteractive"
           dangerouslySetInnerHTML={{
             __html: `try{if(localStorage.getItem("theme")==="dark"){document.documentElement.setAttribute("data-theme","dark")}}catch(e){}`,
           }}
