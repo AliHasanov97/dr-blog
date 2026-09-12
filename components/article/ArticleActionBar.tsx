@@ -1,27 +1,63 @@
 "use client";
 
+import { useState } from "react";
 import { Icon } from "@/components/ui";
 import { useArticleLike } from "./useArticleLike";
 import { cn } from "@/lib/utils";
 
 export interface ArticleActionBarProps {
   slug: string;
+  articleTitle: string;
   likeCount: number;
   commentCount: number;
   /** Şərhlər söndürülübsə düymə göstərilmir */
   showComments?: boolean;
+  /** Verilməsə brauzerin öz paylaşma pəncərəsi (və ya link kopyalama) açılır */
   onShare?: () => void;
 }
 
 /** Mobil ekranda alt hissədə üzən əməliyyat paneli */
 export function ArticleActionBar({
   slug,
+  articleTitle,
   likeCount,
   commentCount,
   showComments = true,
   onShare,
 }: ArticleActionBarProps) {
   const { liked, count, toggle } = useArticleLike(slug, likeCount);
+  const [copied, setCopied] = useState(false);
+
+  /*
+   * "Paylaş" düyməsi əvvəllər heç nə etmirdi — `onShare` heç yerdən
+   * verilmirdi. İndi verilməyəndə brauzerin öz paylaşma pəncərəsini
+   * (mobil OS-un share sheet-i) açır, dəstəklənmirsə linki kopyalayır.
+   */
+  async function handleShare() {
+    if (onShare) {
+      onShare();
+      return;
+    }
+
+    const shareData = { title: articleTitle, url: window.location.href };
+
+    if (typeof navigator.share === "function") {
+      try {
+        await navigator.share(shareData);
+      } catch {
+        /* İstifadəçi pəncərəni ləğv edibsə (AbortError) — sükutla keçilir */
+      }
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(shareData.url);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      /* Panoya çıxış bloklanıbsa da heç nə etmək mümkün deyil */
+    }
+  }
 
   return (
     <div className="lg:hidden fixed bottom-24 inset-x-margin-mobile z-40">
@@ -44,11 +80,11 @@ export function ArticleActionBar({
         )}
         <button
           type="button"
-          onClick={onShare}
+          onClick={handleShare}
           className="inline-flex items-center gap-1.5 h-10 px-space-md rounded-full bg-primary-container text-on-primary font-label text-label-lg"
         >
-          <Icon name="share" size={18} />
-          Paylaş
+          <Icon name={copied ? "check_circle" : "share"} size={18} />
+          {copied ? "Kopyalandı" : "Paylaş"}
         </button>
       </div>
     </div>

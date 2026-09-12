@@ -19,6 +19,7 @@ import {
 import { ArticleCard } from "@/components/articles";
 import { Card, Icon, SectionHeader } from "@/components/ui";
 import { getSiteSettings } from "@/lib/admin/queries";
+import { siteUrl } from "@/lib/mail";
 import {
   getArticleBySlug,
   getArticleSlugs,
@@ -165,7 +166,10 @@ export default async function ArticleDetailPage({ params }: PageProps) {
 
               <ReferencesPanel references={article.references} />
 
-              <ShareCard title={article.title} />
+              <ShareCard
+                title={article.title}
+                url={`${siteUrl()}/meqaleler/${article.slug}`}
+              />
 
               <FeedbackBox slug={article.slug} articleTitle={article.title} />
 
@@ -225,6 +229,7 @@ export default async function ArticleDetailPage({ params }: PageProps) {
 
       <ArticleActionBar
         slug={article.slug}
+        articleTitle={article.title}
         likeCount={article.likeCount}
         commentCount={article.commentCount}
         showComments={commentsOpen}

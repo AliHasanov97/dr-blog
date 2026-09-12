@@ -1,12 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 import { Card, Icon } from "@/components/ui";
 import { cn } from "@/lib/utils";
 
 export interface ShareCardProps {
   title: string;
-  /** Boş buraxılsa cari səhifə URL-i istifadə olunur */
+  /**
+   * Boş buraxılsa cari səhifə URL-i istifadə olunur.
+   * Mümkünsə server tərəfdən ötürün (məs. `siteUrl() + pathname`) — əks
+   * halda ilk render `window.location.href`-i bilmir (server-də `window`
+   * yoxdur) və React-in hidratasiya xətası verir.
+   */
   url?: string;
   description?: string;
   className?: string;
@@ -19,6 +24,19 @@ const channels = [
   { id: "linkedin", icon: "work", label: "LinkedIn", href: (u: string) => `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(u)}` },
 ] as const;
 
+/** Heç bir hadisəyə abunə olmur — sadəcə mount zamanı bir dəfə oxunur */
+function noopSubscribe() {
+  return () => {};
+}
+
+function getCurrentUrl() {
+  return window.location.href;
+}
+
+function getServerUrl() {
+  return "";
+}
+
 export function ShareCard({
   title,
   url,
@@ -26,15 +44,19 @@ export function ShareCard({
   className,
 }: ShareCardProps) {
   const [copied, setCopied] = useState(false);
-
-  function resolveUrl() {
-    if (url) return url;
-    return typeof window === "undefined" ? "" : window.location.href;
-  }
+  /*
+   * `url` verilməyibsə cari səhifə ünvanı lazımdır, amma server-də `window`
+   * yoxdur. `useSyncExternalStore` server/client fərqini təhlükəsiz idarə
+   * edir: server "" bilir, hidratasiyadan dərhal sonra həqiqi ünvana keçir
+   * — `window.location.href`-i birbaşa render zamanı oxumaq React-in
+   * hidratasiya xətasına səbəb olardı.
+   */
+  const currentUrl = useSyncExternalStore(noopSubscribe, getCurrentUrl, getServerUrl);
+  const resolvedUrl = url ?? currentUrl;
 
   async function copyLink() {
     try {
-      await navigator.clipboard.writeText(resolveUrl());
+      await navigator.clipboard.writeText(resolvedUrl);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
@@ -58,7 +80,7 @@ export function ShareCard({
         {channels.map((ch) => (
           <a
             key={ch.id}
-            href={ch.href(resolveUrl(), title)}
+            href={ch.href(resolvedUrl, title)}
             target="_blank"
             rel="noopener noreferrer"
             className="flex flex-col items-center justify-center gap-1 h-16 rounded-lg border border-surface-container bg-surface-container-low hover:border-secondary/40 hover:bg-secondary/5 transition-colors"
