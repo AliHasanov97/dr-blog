@@ -325,7 +325,7 @@ export function Toolbar({
                 if (e.key === "Escape") setPopover(null);
               }}
               placeholder="https://..."
-              className="flex-1 rounded-md border border-outline-variant bg-surface px-space-sm py-1.5 font-body text-body-sm outline-none focus:border-primary-container"
+              className="flex-1 rounded-md border border-outline-variant bg-surface px-space-sm py-1.5 font-body text-body-sm outline-none focus:border-primary"
             />
             <button
               type="button"

@@ -23,7 +23,7 @@ export function VideoCard({ video, className }: VideoCardProps) {
           />
           <span className="absolute inset-0 flex items-center justify-center">
             <span className="w-12 h-12 rounded-full bg-surface-container-lowest/90 flex items-center justify-center shadow-level-2">
-              <Icon name="play_arrow" size={26} className="text-primary-container" filled />
+              <Icon name="play_arrow" size={26} className="text-secondary" filled />
             </span>
           </span>
         </div>

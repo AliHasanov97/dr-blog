@@ -28,7 +28,7 @@ export function BottomNav() {
               className={cn(
                 "relative flex flex-col items-center justify-center min-w-[64px] h-14 transition-colors duration-200",
                 active
-                  ? "text-primary-container font-semibold"
+                  ? "text-secondary font-semibold"
                   : "text-on-surface-variant hover:text-on-surface",
               )}
             >

@@ -171,29 +171,39 @@
    rollar hər iki temada eyni qalmaq üçün nəzərdə tutulub.
    ============================================================= */
 :root[data-theme="dark"] {
-  --color-surface: #10141b;
-  --color-surface-dim: #10141b;
-  --color-surface-bright: #363b47;
-  --color-surface-container-lowest: #0b0e14;
-  --color-surface-container-low: #181c24;
-  --color-surface-container: #1c212b;
-  --color-surface-container-high: #262b36;
-  --color-surface-container-highest: #313640;
-  --color-surface-variant: #45464d;
+  /*
+   * Neytral boz yox, brendin öz navisindən (#131b2e — bax primary-container)
+   * götürülmüş mavi-tünd hue. Kartlar (`surface-container-lowest`) səhifə
+   * fonundan (`surface`) AYDIN şəkildə daha açıq olmalıdır ki, seçilsin.
+   */
+  --color-surface: #10141f;
+  --color-surface-dim: #0a0d16;
+  --color-surface-bright: #333a52;
+  --color-surface-container-lowest: #1b2033;
+  --color-surface-container-low: #161a29;
+  --color-surface-container: #232a40;
+  --color-surface-container-high: #2c3449;
+  --color-surface-container-highest: #363f57;
+  --color-surface-variant: #454f6b;
   --color-surface-tint: #bec6e0;
 
-  --color-on-surface: #e2e2e9;
-  --color-on-surface-variant: #c5c6ce;
-  --color-inverse-surface: #e2e2e9;
-  --color-inverse-on-surface: #111c2d;
+  --color-on-surface: #e7e9f5;
+  --color-on-surface-variant: #c3c8dc;
+  --color-inverse-surface: #e7e9f5;
+  --color-inverse-on-surface: #10141f;
 
-  --color-outline: #8f9099;
-  --color-outline-variant: #45464d;
+  --color-outline: #9099b8;
+  --color-outline-variant: #3d4560;
 
+  /*
+   * DİQQƏT: `primary-container` / `on-primary` / `on-primary-container`
+   * BURADA QƏSDƏN YOXDUR — Button "primary" variantı və HomeHero onları
+   * cüt kimi (tünd navi fon + ağ mətn) işlədir, hər iki temada EYNİ
+   * qalmalıdır (öz-özlüyündə tünd "marka zolağı"). Yalnız tək başına
+   * `text-primary` işlədilən yerlər (splash ekranı) üçün `primary`özü
+   * açıq tona keçir.
+   */
   --color-primary: #bec6e0;
-  --color-on-primary: #131b2e;
-  --color-primary-container: #3f465c;
-  --color-on-primary-container: #dae2fd;
   --color-inverse-primary: #000000;
 
   --color-secondary: #8bd6b6;
@@ -211,8 +221,15 @@
   --color-error-container: #93000a;
   --color-on-error-container: #ffdad6;
 
-  --color-background: #10141b;
-  --color-on-background: #e2e2e9;
+  --color-background: #10141f;
+  --color-on-background: #e7e9f5;
+
+  /* Açıq temanın kölgəsi (rgba(15,23,42,...)) tünd fonda demək olar
+   * görünmür — qaranın üstündə qara kölgə. Daha opak versiya işlədilir. */
+  --shadow-level-1: 0 2px 10px -2px rgba(0, 0, 0, 0.35),
+    0 1px 3px -1px rgba(0, 0, 0, 0.25);
+  --shadow-level-2: 0 8px 24px -4px rgba(0, 0, 0, 0.45),
+    0 2px 6px -2px rgba(0, 0, 0, 0.3);
 }
 
 /* =============================================================
@@ -405,7 +422,7 @@
   float: inline-start;
   margin-inline-end: 0.5rem;
   margin-top: 0.25rem;
-  color: var(--color-primary-container);
+  color: var(--color-primary);
 }
 
 .article-canvas h2 {

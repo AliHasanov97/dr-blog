@@ -93,7 +93,7 @@ function ArticleBlockRenderer({
       return (
         <p
           className={cn(
-            "font-body text-on-surface leading-relaxed first-letter:font-display first-letter:text-[42px] first-letter:leading-[38px] first-letter:float-start first-letter:me-2 first-letter:mt-1 first-letter:text-primary-container",
+            "font-body text-on-surface leading-relaxed first-letter:font-display first-letter:text-[42px] first-letter:leading-[38px] first-letter:float-start first-letter:me-2 first-letter:mt-1 first-letter:text-primary",
             TEXT_ALIGN[block.align ?? "left"],
           )}
           style={block.lineHeight ? { lineHeight: block.lineHeight } : undefined}

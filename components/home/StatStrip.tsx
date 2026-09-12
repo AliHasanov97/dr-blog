@@ -17,7 +17,7 @@ export function StatStrip({ stats }: StatStripProps) {
               className="flex flex-col items-center justify-center gap-0.5 py-space-md lg:py-space-lg text-center"
             >
               <dt className="sr-only">{stat.label}</dt>
-              <dd className="font-headline text-headline-md lg:text-headline-lg text-primary-container leading-none">
+              <dd className="font-headline text-headline-md lg:text-headline-lg text-primary leading-none">
                 {stat.value}
               </dd>
               <span className="font-label text-label-sm uppercase tracking-wider text-on-surface-variant">

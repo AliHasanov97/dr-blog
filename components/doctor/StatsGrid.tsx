@@ -14,7 +14,7 @@ export function StatsGrid({ stats, className }: StatsGridProps) {
           key={stat.label}
           className="flex flex-col items-center justify-center text-center gap-0.5 rounded-xl border border-surface-container bg-surface-container-lowest p-space-md shadow-level-1"
         >
-          <span className="font-headline text-headline-md text-primary-container">
+          <span className="font-headline text-headline-md text-primary">
             {stat.value}
           </span>
           <span className="font-label text-label-sm uppercase tracking-wider text-on-surface-variant">

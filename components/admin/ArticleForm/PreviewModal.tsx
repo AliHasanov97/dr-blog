@@ -61,7 +61,7 @@ export function PreviewModal({
               {warnings.map((w) => (
                 <li
                   key={w}
-                  className="flex items-start gap-1 font-body text-body-sm text-on-tertiary-fixed-variant"
+                  className="flex items-start gap-1 font-body text-body-sm text-on-tertiary-container"
                 >
                   <Icon name="radio_button_unchecked" size={13} className="mt-1" />
                   {w}

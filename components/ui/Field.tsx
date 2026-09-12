@@ -63,7 +63,7 @@ const controlClass = (invalid?: boolean) =>
     "border transition-all outline-none",
     invalid
       ? "border-error focus:ring-2 focus:ring-error/25"
-      : "border-outline-variant focus:border-primary-container focus:ring-2 focus:ring-tertiary-fixed-dim/50",
+      : "border-outline-variant focus:border-primary focus:ring-2 focus:ring-tertiary-fixed-dim/50",
   );
 
 /* -------------------------------------------------------------

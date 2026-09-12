@@ -25,7 +25,7 @@ export function SearchBar({
         "flex items-center w-full h-12 px-space-md rounded-xl",
         "bg-surface-container-low text-on-surface shadow-sm transition-all",
         "focus-within:bg-surface-container-lowest focus-within:shadow-level-1",
-        "focus-within:ring-1 focus-within:ring-primary-container/40",
+        "focus-within:ring-1 focus-within:ring-primary/40",
         className,
       )}
     >

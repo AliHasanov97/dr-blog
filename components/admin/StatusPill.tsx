@@ -3,9 +3,14 @@ import { cn } from "@/lib/utils";
 
 export type PillTone = "success" | "warning" | "danger" | "neutral" | "info";
 
+/*
+ * "-fixed" fonlar heç vaxt şəffaf (/NN) işlədilmir — onların "on-...-fixed-
+ * variant" mətn rəngi yalnız TAM opaklıqda kontrast verir. Şəffaf versiya
+ * arxa fonla qarışıb tünd temada mətni oxunmaz edir.
+ */
 const tones: Record<PillTone, string> = {
   success: "bg-secondary/12 text-on-secondary-container",
-  warning: "bg-tertiary-fixed/50 text-on-tertiary-fixed-variant",
+  warning: "bg-tertiary-fixed text-on-tertiary-fixed-variant",
   danger: "bg-error-container text-on-error-container",
   neutral: "bg-surface-container-high text-on-surface-variant",
   info: "bg-primary-fixed text-on-primary-fixed-variant",
