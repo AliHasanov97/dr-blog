@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { AdminShell } from "@/components/admin";
 import type { AdminNavGroup } from "@/components/admin";
-import { logoutAction } from "@/app/admin/login/actions";
+import { logoutAction } from "@/app/(admin)/admin/login/actions";
 import { getSession } from "@/lib/auth";
 import { getDashboardStats, getDoctorProfile } from "@/lib/admin/queries";
 

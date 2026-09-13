@@ -7,7 +7,7 @@ import {
   deleteMedia,
   listMedia,
   uploadMedia,
-} from "@/app/admin/(panel)/_resources/media-actions";
+} from "@/app/(admin)/admin/(panel)/_resources/media-actions";
 import type { MediaScope } from "@/lib/admin/storage/scope";
 import { cn } from "@/lib/utils";
 

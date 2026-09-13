@@ -9,7 +9,7 @@ import { toDateLabel } from "@/lib/admin/format";
 import {
   autosaveArticle,
   type ArticlePayload,
-} from "@/app/admin/(panel)/meqaleler/actions";
+} from "@/app/(admin)/admin/(panel)/meqaleler/actions";
 import type { AdminArticle, ArticleStatus } from "@/lib/mock/store";
 import type { ArticleBlock, ArticleReference, Category } from "@/lib/types";
 import type { MediaScope } from "@/lib/admin/storage/scope";

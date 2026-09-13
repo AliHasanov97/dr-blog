@@ -32,6 +32,13 @@ const nextConfig: NextConfig = {
   },
   experimental: {
     /*
+     * Kök layout ikiyə bölünüb (sayt: `[locale]/layout.tsx`, admin:
+     * `(admin)/layout.tsx`) — ortaq tək layout qalmadığı üçün
+     * `app/not-found.tsx` artıq bütöv tətbiqi əhatə edə bilmir.
+     * `global-not-found.tsx` bunun əvəzinə istifadə olunur.
+     */
+    globalNotFound: true,
+    /*
      * Build zamanı paralel render işçilərinin sayı. Hər işçi bazaya öz
      * bağlantısını açır; standart dəyər (CPU sayı) çoxlu məqalədə
      * PostgreSQL bağlantı limitini aşırdı.
