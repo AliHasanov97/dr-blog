@@ -34,11 +34,18 @@ const jakarta = Plus_Jakarta_Sans({
 export async function generateMetadata(): Promise<Metadata> {
   const [locale, { siteName, tagline, description }] = await Promise.all([
     getLocale(),
-    getSiteSettings().catch(() => ({
-      siteName: siteConfig.name,
-      tagline: siteConfig.title,
-      description: siteConfig.description,
-    })),
+    getSiteSettings().catch((error) => {
+      /* Next.js-in daxili siqnallarını (məs. statik qurulmadan dinamikə
+       * keçid) udmaq olmaz — yalnız həqiqi bazasız hal üçün ehtiyat. */
+      if ((error as { digest?: unknown })?.digest === "DYNAMIC_SERVER_USAGE") {
+        throw error;
+      }
+      return {
+        siteName: siteConfig.name,
+        tagline: siteConfig.title,
+        description: siteConfig.description,
+      };
+    }),
   ]);
 
   return {
