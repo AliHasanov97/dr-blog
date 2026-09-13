@@ -32,6 +32,8 @@ export interface ArticlePayload {
   slug: string;
   excerpt: string;
   categorySlug: string;
+  /** Tərcümə eyni məqalə deyil, AYRI yazıdır — hər yazı bir dili daşıyır */
+  language: "az" | "ru";
   status: ArticleStatus;
   publishedAt: string;
   coverImageUrl: string;
@@ -76,6 +78,7 @@ function applyPayload(
     slug: payload.slug,
     excerpt: payload.excerpt,
     category,
+    language: payload.language,
     status: payload.status,
     publishedAt,
     publishedAtLabel: toDateLabel(publishedAt),
@@ -142,6 +145,7 @@ export async function createArticle(
       title: payload.title,
       excerpt: payload.excerpt,
       categoryId: category.id,
+      language: payload.language,
       status: payload.status,
       publishedAt: payload.publishedAt,
       coverImageUrl: payload.coverImageUrl,
@@ -167,6 +171,7 @@ export async function createArticle(
     title: payload.title,
     excerpt: payload.excerpt,
     category: store.categories[0],
+    language: payload.language,
     publishedAt: payload.publishedAt,
     publishedAtLabel: toDateLabel(payload.publishedAt),
     author: mockAuthor,
@@ -203,6 +208,7 @@ export async function updateArticle(
       title: payload.title,
       excerpt: payload.excerpt,
       categoryId: category.id,
+      language: payload.language,
       status: payload.status,
       publishedAt: payload.publishedAt,
       coverImageUrl: payload.coverImageUrl,
@@ -260,6 +266,7 @@ export async function autosaveArticle(
       title: payload.title,
       excerpt: payload.excerpt,
       categoryId: category.id,
+      language: payload.language,
       status: payload.status,
       publishedAt: payload.publishedAt,
       coverImageUrl: payload.coverImageUrl,

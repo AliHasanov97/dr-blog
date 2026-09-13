@@ -17,7 +17,7 @@ export default async function SiteLayout({ children, params }: SiteLayoutProps) 
    * oxunurdu — baza rejimində admin nə saxlasa da açılış ekranı dəyişmirdi. */
   const [searchSuggestions, settings, doctor] = await Promise.all([
     /* Yalnız bir neçə təklif — bütün indeks deyil */
-    getSearchIndex(undefined, 6),
+    getSearchIndex(undefined, 6, locale),
     getSiteSettings(),
     getDoctorProfile(),
   ]);

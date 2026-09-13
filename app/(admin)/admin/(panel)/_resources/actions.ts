@@ -53,6 +53,7 @@ const mappers: Record<CollectionKey, Mapper> = {
     id: existing?.id ?? nextId("cat"),
     slug: v.slug?.trim() ? slugify(v.slug) : slugify(v.name),
     name: v.name,
+    nameRu: v.nameRu?.trim() || undefined,
     icon: v.icon || "sell",
     articleCount: existing?.articleCount ?? 0,
   }),
@@ -87,7 +88,12 @@ export async function createResource(
     try {
       switch (key) {
         case "categories":
-          await dbCreateCategory({ name: values.name, slug: values.slug, icon: values.icon });
+          await dbCreateCategory({
+            name: values.name,
+            nameRu: values.nameRu,
+            slug: values.slug,
+            icon: values.icon,
+          });
           break;
         case "videos":
           await dbCreateVideo({
@@ -134,7 +140,12 @@ export async function updateResource(
     try {
       switch (key) {
         case "categories":
-          await dbUpdateCategory(id, { name: values.name, slug: values.slug, icon: values.icon });
+          await dbUpdateCategory(id, {
+            name: values.name,
+            nameRu: values.nameRu,
+            slug: values.slug,
+            icon: values.icon,
+          });
           break;
         case "videos":
           await dbUpdateVideo(id, {

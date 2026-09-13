@@ -1,9 +1,10 @@
-import { Button, Icon, TextAreaField, TextField } from "@/components/ui";
+import { Button, FLAGS, Icon, TextAreaField, TextField } from "@/components/ui";
 import { AdminCard } from "../AdminCard";
 import { ChoiceGroup } from "../ChoiceGroup";
 import { ImagePicker } from "../ImagePicker";
 import type { MediaScope } from "@/lib/admin/storage/scope";
 import type { Category } from "@/lib/types";
+import { cn } from "@/lib/utils";
 import { COVER_MODES, type CoverMode } from "./types";
 
 export interface InfoStepProps {
@@ -17,6 +18,8 @@ export interface InfoStepProps {
   categorySlug: string;
   onCategoryChange: (value: string) => void;
   categories: Category[];
+  language: "az" | "ru";
+  onLanguageChange: (value: "az" | "ru") => void;
   coverMode: CoverMode;
   onCoverModeChange: (value: CoverMode) => void;
   coverImageUrl: string;
@@ -36,6 +39,8 @@ export function InfoStep({
   categorySlug,
   onCategoryChange,
   categories,
+  language,
+  onLanguageChange,
   coverMode,
   onCoverModeChange,
   coverImageUrl,
@@ -46,6 +51,60 @@ export function InfoStep({
 }: InfoStepProps) {
   return (
     <div className="flex flex-col gap-space-md">
+      {/*
+        * Dil məqalənin ən önəmli parametridir — bir dəfə seçilir və bütün
+        * saytda (siyahı, filtr, URL) həmin məqaləni müəyyənləşdirir, ona
+        * görə ayrıca, gözə çarpan bir kart kimi ən başda göstərilir.
+        */}
+      <AdminCard title="Dil" description="Tərcümə eyni yazı deyil — hər dil üçün ayrı məqalə yaradılır">
+        <div className="grid gap-space-sm sm:grid-cols-2">
+          {(
+            [
+              {
+                value: "az" as const,
+                label: "Azərbaycan dili",
+                description: "Sayt üçün əsas dil — indiyədək bütün yazılar bu dildədir.",
+              },
+              {
+                value: "ru" as const,
+                label: "Rus dili",
+                description: "Rus dilli oxucular üçün — saytın /ru bölməsində görünür.",
+              },
+            ] as const
+          ).map((opt) => {
+            const active = language === opt.value;
+            const Flag = FLAGS[opt.value];
+            return (
+              <button
+                key={opt.value}
+                type="button"
+                onClick={() => onLanguageChange(opt.value)}
+                aria-pressed={active}
+                className={cn(
+                  "flex items-start gap-space-sm rounded-xl border-2 p-space-md text-start transition-colors",
+                  active
+                    ? "border-secondary bg-secondary/[0.08]"
+                    : "border-outline-variant hover:border-secondary/40",
+                )}
+              >
+                <Flag className="shrink-0 w-14 h-11 rounded-lg object-cover ring-1 ring-outline-variant/60" />
+                <span className="flex flex-col gap-0.5 min-w-0">
+                  <span className="flex items-center gap-space-2xs font-label text-label-lg text-on-surface">
+                    {opt.label}
+                    {active && (
+                      <Icon name="check_circle" size={18} className="text-secondary" />
+                    )}
+                  </span>
+                  <span className="font-body text-body-sm text-on-surface-variant leading-snug">
+                    {opt.description}
+                  </span>
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </AdminCard>
+
       <AdminCard title="Əsas məlumatlar">
         <div className="grid gap-space-md sm:grid-cols-2">
           <div className="sm:col-span-2">

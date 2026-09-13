@@ -13,6 +13,8 @@ export default async function AdminCategoriesPage() {
   const rows = categories.map((c) => ({
     id: c.id,
     name: c.name,
+    nameRu: c.nameRu ?? "",
+    nameRuLabel: c.nameRu ? `RU: ${c.nameRu}` : "",
     slug: c.slug,
     icon: c.icon ?? "sell",
     count: c.articleCount,
@@ -52,10 +54,18 @@ export default async function AdminCategoriesPage() {
         fields={[
           {
             name: "name",
-            label: "Mövzunun adı",
+            label: "Mövzunun adı (Azərbaycan dili)",
             type: "text",
             required: true,
             placeholder: "Kardiologiya",
+            colSpan: 2,
+          },
+          {
+            name: "nameRu",
+            label: "Mövzunun adı (Rus dili)",
+            type: "text",
+            placeholder: "Кардиология",
+            hint: "Boş qalsa RU saytda Azərbaycanca ad göstərilir",
             colSpan: 2,
           },
           {
@@ -72,6 +82,7 @@ export default async function AdminCategoriesPage() {
             header: "Ad",
             type: "primary",
             titleField: "name",
+            subtitleField: "nameRuLabel",
             iconField: "icon",
           },
           { key: "count", header: "Neçə məqalə", type: "badge", field: "count" },

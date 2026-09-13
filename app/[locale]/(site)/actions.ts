@@ -110,11 +110,12 @@ export async function subscribeToNewsletter(
  */
 export async function searchArticles(
   query: string,
+  locale?: string,
 ): Promise<SearchIndexItem[]> {
   const q = query?.trim();
   if (!q || q.length < 2) return [];
   try {
-    return await getSearchIndex(q, 8);
+    return await getSearchIndex(q, 8, locale);
   } catch {
     return [];
   }

@@ -32,6 +32,8 @@ export interface Category {
   id: string;
   slug: string;
   name: string;
+  /** Yalnız admin siyahısında dolur — publik sorğular artıq həll olunmuş `name`-i qaytarır */
+  nameRu?: string;
   /** Material Symbols ikon adı */
   icon?: string;
   articleCount?: number;

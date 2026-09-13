@@ -273,9 +273,10 @@ export async function getProtocols() {
 export async function getSearchIndex(
   query?: string,
   limit = 8,
+  locale?: string,
 ): Promise<SearchIndexItem[]> {
   if (!USE_MOCK) {
-    return safeDb("axtarış indeksi", () => dbGetSearchIndex(query, limit), []);
+    return safeDb("axtarış indeksi", () => dbGetSearchIndex(query, limit, locale), []);
   }
   const q = query?.trim().toLocaleLowerCase("az");
   const all = publishedArticles().map((a) => ({

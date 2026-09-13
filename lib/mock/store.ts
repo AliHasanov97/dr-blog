@@ -45,6 +45,8 @@ export interface ArticleReactions {
 
 export interface AdminArticle extends Article {
   status: ArticleStatus;
+  /** Məqalənin yazıldığı dil — tərcümə eyni məqalə deyil, AYRI yazıdır */
+  language: "az" | "ru";
   updatedAt: string;
   reactions?: ArticleReactions;
   allowComments?: boolean;
@@ -94,6 +96,7 @@ function seedArticles(): AdminArticle[] {
   return mockArticles.map((article, i) => ({
     ...article,
     status: i === 6 ? "draft" : "published",
+    language: "az",
     updatedAt: article.publishedAt,
   }));
 }

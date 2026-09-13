@@ -9,10 +9,11 @@ import {
   DataTable,
   StatusPill,
 } from "@/components/admin";
-import { Button, Chip, Icon, SearchBar } from "@/components/ui";
+import { Button, Chip, FLAGS, Icon, SearchBar } from "@/components/ui";
 import { articleStatusLabels } from "@/lib/admin/format";
 import type { AdminArticle, ArticleStatus } from "@/lib/mock/store";
 import type { AdminArticleListResult, AdminArticleQuery } from "@/lib/db/admin";
+import { cn } from "@/lib/utils";
 import { deleteArticle, fetchAdminArticles, setArticleStatus } from "./actions";
 
 export interface ArticleListClientProps {
@@ -34,6 +35,16 @@ const filters: { slug: ArticleStatus | "all"; name: string; icon: string }[] = [
   { slug: "draft", name: "Qaralama", icon: "edit_note" },
 ];
 
+type Language = "az" | "ru";
+
+const languageFilters: { slug: Language | "all"; name: string }[] = [
+  { slug: "all", name: "Bütün dillər" },
+  { slug: "az", name: "Azərbaycan dili" },
+  { slug: "ru", name: "Rus dili" },
+];
+
+const languageBadge: Record<Language, string> = { az: "AZ", ru: "RU" };
+
 const statusTone = {
   published: "success",
   draft: "neutral",
@@ -41,7 +52,9 @@ const statusTone = {
 
 /** Yeni sütuna keçəndə standart istiqamət — mətn sütunları A→Z, ədədi/tarix sütunları böyükdən kiçiyə */
 function defaultDirFor(key: SortBy): SortDir {
-  return key === "title" || key === "category" || key === "status" ? "asc" : "desc";
+  return key === "title" || key === "category" || key === "status" || key === "language"
+    ? "asc"
+    : "desc";
 }
 
 /** Consistent number formatting to avoid hydration mismatch */
@@ -57,6 +70,7 @@ export function ArticleListClient({
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState<ArticleStatus | "all">("all");
   const [category, setCategory] = useState<string>("all");
+  const [language, setLanguage] = useState<Language | "all">("all");
   /* Standart: ən yeni məqalə başda */
   const [sortBy, setSortBy] = useState<SortBy>("date");
   const [sortDir, setSortDir] = useState<SortDir>("desc");
@@ -65,6 +79,7 @@ export function ArticleListClient({
   const [visible, setVisible] = useState(initial.items);
   const [total, setTotal] = useState(initial.total);
   const [counts, setCounts] = useState(initial.counts);
+  const [languageCounts, setLanguageCounts] = useState(initial.languageCounts);
   const [page, setPage] = useState(initial.page);
   const [totalPages, setTotalPages] = useState(initial.totalPages);
 
@@ -74,6 +89,7 @@ export function ArticleListClient({
       q: string,
       st: ArticleStatus | "all",
       cat: string,
+      lang: Language | "all",
       sBy: SortBy,
       sDir: SortDir,
       append: boolean,
@@ -82,6 +98,7 @@ export function ArticleListClient({
         search: q,
         status: st,
         category: cat === "all" ? undefined : cat,
+        language: lang,
         sortBy: sBy,
         sortDir: sDir,
         page: nextPage,
@@ -90,6 +107,7 @@ export function ArticleListClient({
       setVisible((prev) => (append ? [...prev, ...result.items] : result.items));
       setTotal(result.total);
       setCounts(result.counts);
+      setLanguageCounts(result.languageCounts);
       setPage(result.page);
       setTotalPages(result.totalPages);
     },
@@ -110,12 +128,12 @@ export function ArticleListClient({
     }
     const timer = setTimeout(() => {
       startTransition(async () => {
-        await load(1, query, status, category, sortBy, sortDir, false);
+        await load(1, query, status, category, language, sortBy, sortDir, false);
       });
     }, SEARCH_DELAY);
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- sortBy/sortDir dəyişəndə `handleSortChange` sorğunu dərhal göndərir, bura ikiqat sorğunun qarşısını almaq üçün əlavə edilmir
-  }, [query, status, category, load]);
+  }, [query, status, category, language, load]);
 
   /** Sütun başlığına klikləyəndə sıralanır — eyni sütuna təkrar klik istiqaməti dəyişir */
   function handleSortChange(key: string) {
@@ -125,7 +143,7 @@ export function ArticleListClient({
     setSortBy(nextBy);
     setSortDir(nextDir);
     startTransition(async () => {
-      await load(1, query, status, category, nextBy, nextDir, false);
+      await load(1, query, status, category, language, nextBy, nextDir, false);
     });
   }
 
@@ -136,18 +154,68 @@ export function ArticleListClient({
     startTransition(async () => {
       await setArticleStatus(article.id, next);
       /* Sayğaclar və siyahı serverdəki yeni vəziyyətə uyğunlaşır */
-      await load(1, query, status, category, sortBy, sortDir, false);
+      await load(1, query, status, category, language, sortBy, sortDir, false);
     });
   }
 
   /** Silindikdən sonra siyahı serverdəki yeni vəziyyətə uyğunlaşır */
   async function handleDelete(id: string) {
     await deleteArticle(id);
-    await load(page, query, status, category, sortBy, sortDir, false);
+    await load(page, query, status, category, language, sortBy, sortDir, false);
   }
 
   return (
     <div className="flex flex-col gap-space-md">
+      {/*
+        * Dil — məqalələrin ən önəmli parametri, ona görə status/kateqoriya
+        * süzgəclərindən fərqli, bayraqlı böyük kartlar kimi göstərilir.
+        */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-space-sm">
+        {languageFilters.map((f) => {
+          const active = language === f.slug;
+          const Flag = f.slug !== "all" ? FLAGS[f.slug] : null;
+          return (
+            <button
+              key={f.slug}
+              type="button"
+              onClick={() => setLanguage(f.slug)}
+              aria-pressed={active}
+              className={cn(
+                "flex items-center gap-space-sm rounded-xl border-2 px-space-md py-space-sm text-start transition-colors",
+                active
+                  ? "border-secondary bg-secondary/[0.08] shadow-level-1"
+                  : "border-outline-variant bg-surface-container-lowest hover:border-secondary/40",
+              )}
+            >
+              {Flag ? (
+                <Flag className="w-10 h-8 shrink-0 rounded-md object-cover ring-1 ring-outline-variant/60" />
+              ) : (
+                <span className="flex items-center justify-center w-10 h-8 shrink-0 rounded-md bg-surface-container-high">
+                  <Icon name="public" size={18} className="text-outline" />
+                </span>
+              )}
+              <span className="flex flex-col min-w-0">
+                <span className="font-label text-label-lg font-semibold text-on-surface truncate">
+                  {f.name}
+                </span>
+                {f.slug !== "all" && (
+                  <span className="font-label text-label-sm text-outline tabular-nums">
+                    {languageCounts[f.slug]} məqalə
+                  </span>
+                )}
+              </span>
+              {active && (
+                <Icon
+                  name="check_circle"
+                  size={20}
+                  className="ms-auto shrink-0 text-secondary"
+                />
+              )}
+            </button>
+          );
+        })}
+      </div>
+
       <div className="flex flex-col gap-space-sm lg:flex-row lg:items-center lg:justify-between">
         <div className="flex items-center gap-space-xs overflow-x-auto scrollbar-none">
           {filters.map((f) => (
@@ -200,6 +268,7 @@ export function ArticleListClient({
         <DataTable
           headers={[
             { key: "title", label: "Məqalə", sortable: true },
+            { key: "language", label: "Dil", sortable: true },
             { key: "category", label: "Kateqoriya", sortable: true },
             { key: "status", label: "Vəziyyət", sortable: true },
             { key: "date", label: "Tarix", sortable: true },
@@ -227,6 +296,19 @@ export function ArticleListClient({
                     /{article.slug}
                   </span>
                 </Link>
+              </DataCell>
+              <DataCell>
+                {(() => {
+                  const Flag = FLAGS[article.language];
+                  return (
+                    <span className="inline-flex items-center gap-space-2xs">
+                      <Flag className="w-6 h-[18px] shrink-0 rounded-[3px] object-cover ring-1 ring-outline-variant/60" />
+                      <span className="font-label text-label-sm font-semibold text-on-surface-variant uppercase tracking-wide">
+                        {languageBadge[article.language]}
+                      </span>
+                    </span>
+                  );
+                })()}
               </DataCell>
               <DataCell>
                 <span className="font-body text-body-sm text-on-surface-variant whitespace-nowrap">
@@ -324,7 +406,7 @@ export function ArticleListClient({
               disabled={pending}
               onClick={() =>
                 startTransition(async () => {
-                  await load(page + 1, query, status, category, sortBy, sortDir, true);
+                  await load(page + 1, query, status, category, language, sortBy, sortDir, true);
                 })
               }
             >

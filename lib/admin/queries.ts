@@ -81,6 +81,8 @@ export async function listArticles(
         return dir * a.category.name.localeCompare(b.category.name, "az");
       case "status":
         return dir * a.status.localeCompare(b.status);
+      case "language":
+        return dir * a.language.localeCompare(b.language);
       case "views":
         return dir * ((a.viewCount ?? 0) - (b.viewCount ?? 0));
       case "reactions": {
@@ -101,6 +103,9 @@ export async function listArticles(
   if (query.category) {
     filtered = filtered.filter((a) => a.category.slug === query.category);
   }
+  if (query.language && query.language !== "all") {
+    filtered = filtered.filter((a) => a.language === query.language);
+  }
   if (search) {
     filtered = filtered.filter(
       (a) =>
@@ -118,6 +123,10 @@ export async function listArticles(
       all: sorted.length,
       published: sorted.filter((a) => a.status === "published").length,
       draft: sorted.filter((a) => a.status === "draft").length,
+    },
+    languageCounts: {
+      az: sorted.filter((a) => a.language === "az").length,
+      ru: sorted.filter((a) => a.language === "ru").length,
     },
   };
 }
@@ -165,6 +174,7 @@ export async function listCategories() {
     id: c.id,
     slug: c.slug,
     name: c.name,
+    nameRu: c.nameRu ?? "",
     icon: c.icon ?? "sell",
     articleCount: store.articles.filter((a) => a.category.slug === c.slug).length,
   }));

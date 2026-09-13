@@ -1,45 +1,13 @@
 "use client";
 
 import { useLocale, useTranslations } from "next-intl";
-import { useEffect, useRef, useState, type ReactElement } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { Icon } from "@/components/ui";
+import { FLAGS, Icon } from "@/components/ui";
 import { Link, usePathname } from "@/i18n/navigation";
 import { routing, type AppLocale } from "@/i18n/routing";
 import { ThemeToggle } from "./ThemeToggle";
 import { cn } from "@/lib/utils";
-
-/**
- * Emoji bayraqlar Windows-da (Segoe UI Emoji) dəstəklənmir — ona görə
- * həqiqi SVG istifadə olunur, bütün platformalarda eyni çıxır.
- */
-function AzFlag({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 900 600" className={className} aria-hidden="true">
-      <rect width="900" height="200" fill="#00b5e2" />
-      <rect y="200" width="900" height="200" fill="#e2001a" />
-      <rect y="400" width="900" height="200" fill="#00af66" />
-      <circle cx="430" cy="300" r="90" fill="#fff" />
-      <circle cx="455" cy="300" r="72" fill="#e2001a" />
-      <path fill="#fff" d="M500 300 566 274 528 300 566 326Z" />
-    </svg>
-  );
-}
-
-function RuFlag({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 900 600" className={className} aria-hidden="true">
-      <rect width="900" height="200" fill="#fff" />
-      <rect y="200" width="900" height="200" fill="#0039a6" />
-      <rect y="400" width="900" height="200" fill="#d52b1e" />
-    </svg>
-  );
-}
-
-const FLAGS: Record<AppLocale, (props: { className?: string }) => ReactElement> = {
-  az: AzFlag,
-  ru: RuFlag,
-};
 
 const LOCALE_NAMES: Record<AppLocale, string> = {
   az: "Azərbaycanca",

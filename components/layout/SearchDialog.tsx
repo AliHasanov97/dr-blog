@@ -1,6 +1,6 @@
 "use client";
 
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import {
   useCallback,
   useEffect,
@@ -70,6 +70,7 @@ export function SearchDialog({
   suggestions,
 }: SearchDialogProps) {
   const t = useTranslations("search");
+  const locale = useLocale();
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
@@ -92,7 +93,7 @@ export function SearchDialog({
     if (!open || q.length < 2) return;
     let active = true;
     const timer = setTimeout(() => {
-      searchArticles(q).then((items) => {
+      searchArticles(q, locale).then((items) => {
         if (active) setMatches({ query: q, items });
       });
     }, SEARCH_DELAY);
@@ -100,7 +101,7 @@ export function SearchDialog({
       active = false;
       clearTimeout(timer);
     };
-  }, [open, q]);
+  }, [open, q, locale]);
 
   /* Nəticə hələ gəlməyibsə — sorğu dəyişib, cavab isə köhnədir */
   const loading = q.length >= 2 && matches.query !== q;

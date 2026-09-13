@@ -10,7 +10,7 @@ import type {
   SearchIndexItem,
   TopReadArticle,
 } from "@/lib/types";
-import { ArticleStatus, CommentStatus, Prisma } from "@prisma/client";
+import { ArticleLanguage, ArticleStatus, CommentStatus, Prisma } from "@prisma/client";
 import { buildToc, normalizeHeadings } from "@/lib/article-toc";
 import { dbGetSiteSettings } from "@/lib/db/admin";
 import { dbGetArticleAuthor } from "@/lib/db/doctor";
@@ -36,6 +36,19 @@ export interface ArticleQuery {
   excludeSlug?: string;
   page?: number;
   pageSize?: number;
+}
+
+/**
+ * Sayt dilini Prisma-nın `ArticleLanguage` enum-una çevirir.
+ *
+ * Hər məqalə TƏK dildədir (tərcümə ayrı yazıdır — bax: `prisma/schema.prisma`),
+ * ona görə publik saytda göstərilən hər şey cari sayt dilinə görə süzülür:
+ * RU saytda AZ məqalə (və əksinə) heç görünməməlidir.
+ */
+function toArticleLanguage(locale?: string): ArticleLanguage | undefined {
+  if (locale === "az") return ArticleLanguage.AZ;
+  if (locale === "ru") return ArticleLanguage.RU;
+  return undefined;
 }
 
 /** Sayt dilinə görə dəyişən mətnlər — tarix formatı və hesablanan etiketlər */
@@ -74,7 +87,11 @@ function toSummary(article: any, author: Author, ctx: FormatCtx): ArticleSummary
     category: {
       id: article.category.id,
       slug: article.category.slug,
-      name: article.category.name,
+      /* RU saytda tərcümə edilmiş ad, boşdursa Azərbaycanca geri qayıdır */
+      name:
+        ctx.locale === "ru" && article.category.nameRu
+          ? article.category.nameRu
+          : article.category.name,
       icon: article.category.icon ?? undefined,
     },
     coverImageUrl: article.coverImageUrl ?? undefined,
@@ -142,6 +159,11 @@ export async function dbGetArticles(
     status: ArticleStatus.PUBLISHED,
   };
 
+  const language = toArticleLanguage(locale);
+  if (language) {
+    where.language = language;
+  }
+
   if (categorySlug && categorySlug !== "hamisi") {
     where.category = { slug: categorySlug };
   }
@@ -195,6 +217,7 @@ export async function dbGetFeaturedArticle(locale?: string): Promise<ArticleSumm
       where: {
         status: ArticleStatus.PUBLISHED,
         isFeatured: true,
+        language: toArticleLanguage(locale),
       },
       include: {
         category: true,
@@ -214,6 +237,7 @@ export async function dbGetArticleBySlug(slug: string, locale?: string): Promise
       where: {
         slug,
         status: ArticleStatus.PUBLISHED,
+        language: toArticleLanguage(locale),
       },
       include: {
         category: true,
@@ -266,6 +290,7 @@ export async function dbGetRelatedArticles(
         status: ArticleStatus.PUBLISHED,
         categoryId: current.categoryId,
         slug: { not: slug },
+        language: toArticleLanguage(locale),
       },
       include: {
         category: true,
@@ -429,12 +454,13 @@ export async function dbPostComment(input: NewCommentInput): Promise<Comment> {
 }
 
 export async function dbGetCategories(locale?: string): Promise<Category[]> {
+  const language = toArticleLanguage(locale);
   const [categories, { t }] = await Promise.all([
     prisma.category.findMany({
       include: {
         _count: {
           select: {
-            articles: { where: { status: ArticleStatus.PUBLISHED } },
+            articles: { where: { status: ArticleStatus.PUBLISHED, language } },
           },
         },
       },
@@ -443,21 +469,29 @@ export async function dbGetCategories(locale?: string): Promise<Category[]> {
     formatCtx(locale),
   ]);
 
+  /*
+   * Cari dildə heç bir məqaləsi olmayan kateqoriya siyahıdan çıxarılır —
+   * RU sayt hələ yazılmamış mövzuları göstərməsin (kateqoriya adı tərcümə
+   * olunsa belə, boş kateqoriya oxucu üçün faydasızdır).
+   */
+  const withArticles = categories.filter((c) => c._count.articles > 0);
+
   // Add "All" category at the beginning
   const all: Category = {
     id: "cat-all",
     slug: "hamisi",
     name: t("allCategories"),
     icon: "apps",
-    articleCount: categories.reduce((sum, c) => sum + c._count.articles, 0),
+    articleCount: withArticles.reduce((sum, c) => sum + c._count.articles, 0),
   };
 
   return [
     all,
-    ...categories.map((c) => ({
+    ...withArticles.map((c) => ({
       id: c.id,
       slug: c.slug,
-      name: c.name,
+      /* RU saytda tərcümə edilmiş ad, boşdursa Azərbaycanca geri qayıdır */
+      name: language === ArticleLanguage.RU && c.nameRu ? c.nameRu : c.name,
       icon: c.icon ?? undefined,
       articleCount: c._count.articles,
     })),
@@ -475,9 +509,13 @@ export async function dbGetCategories(locale?: string): Promise<Category[]> {
 export async function dbGetSearchIndex(
   query?: string,
   limit = 8,
+  locale?: string,
 ): Promise<SearchIndexItem[]> {
   const q = query?.trim();
-  const where: Prisma.ArticleWhereInput = { status: ArticleStatus.PUBLISHED };
+  const where: Prisma.ArticleWhereInput = {
+    status: ArticleStatus.PUBLISHED,
+    language: toArticleLanguage(locale),
+  };
 
   if (q) {
     where.OR = [
@@ -495,7 +533,7 @@ export async function dbGetSearchIndex(
       slug: true,
       title: true,
       excerpt: true,
-      category: { select: { name: true } },
+      category: { select: { name: true, nameRu: true } },
     },
   });
 
@@ -503,7 +541,8 @@ export async function dbGetSearchIndex(
     slug: a.slug,
     title: a.title,
     excerpt: a.excerpt,
-    categoryName: a.category.name,
+    categoryName:
+      locale === "ru" && a.category.nameRu ? a.category.nameRu : a.category.name,
   }));
 }
 
@@ -514,7 +553,7 @@ export async function dbGetTopReadArticles(
 ): Promise<TopReadArticle[]> {
   const [articles, { t }] = await Promise.all([
     prisma.article.findMany({
-      where: { status: ArticleStatus.PUBLISHED },
+      where: { status: ArticleStatus.PUBLISHED, language: toArticleLanguage(locale) },
       orderBy: { viewCount: "desc" },
       take: Math.min(10, Math.max(1, limit)),
       select: {

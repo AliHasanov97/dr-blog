@@ -1,4 +1,4 @@
-import { Prisma, ArticleStatus } from "@prisma/client";
+import { Prisma, ArticleStatus, ArticleLanguage } from "@prisma/client";
 import type { AdminArticle } from "@/lib/mock/store";
 import type { Author } from "@/lib/types";
 import { prisma } from "@/lib/prisma";
@@ -30,9 +30,11 @@ export interface AdminArticleQuery {
   status?: "all" | "published" | "draft";
   /** Kateqoriya slug-ı üzrə süzgəc — verilməyəndə hamısı */
   category?: string;
+  /** Məqalənin dili — verilməyəndə hamısı göstərilir */
+  language?: "all" | "az" | "ru";
   page?: number;
   pageSize?: number;
-  sortBy?: "date" | "title" | "category" | "status" | "views" | "reactions";
+  sortBy?: "date" | "title" | "category" | "status" | "language" | "views" | "reactions";
   sortDir?: "asc" | "desc";
 }
 
@@ -43,6 +45,8 @@ export interface AdminArticleListResult {
   totalPages: number;
   /** Vəziyyət süzgəclərinin sayğacları — filtrə görə dəyişmir */
   counts: { all: number; published: number; draft: number };
+  /** Dil tab-larının sayğacları — digər filtrlərdən asılı olmayaraq bütün bazadandır */
+  languageCounts: { az: number; ru: number };
 }
 
 export async function dbListArticles(
@@ -62,6 +66,9 @@ export async function dbListArticles(
   if (query.category) {
     where.category = { slug: query.category };
   }
+  if (query.language && query.language !== "all") {
+    where.language = query.language.toUpperCase() as ArticleLanguage;
+  }
   if (search) {
     where.OR = [
       { title: { contains: search, mode: "insensitive" } },
@@ -74,11 +81,13 @@ export async function dbListArticles(
    * səhifəyə görə deyil. Əks halda «Qaralama (2)» yazısı yalnız cari
    * səhifədəki qaralamaları sayardı.
    */
-  const [total, published, draft, allCount, author] = await Promise.all([
+  const [total, published, draft, allCount, azCount, ruCount, author] = await Promise.all([
     prisma.article.count({ where }),
     prisma.article.count({ where: { status: ArticleStatus.PUBLISHED } }),
     prisma.article.count({ where: { status: ArticleStatus.DRAFT } }),
     prisma.article.count(),
+    prisma.article.count({ where: { language: ArticleLanguage.AZ } }),
+    prisma.article.count({ where: { language: ArticleLanguage.RU } }),
     dbGetArticleAuthor(),
   ]);
   const resolvedAuthor = author ?? FALLBACK_AUTHOR;
@@ -89,6 +98,7 @@ export async function dbListArticles(
     title: true,
     excerpt: true,
     status: true,
+    language: true,
     publishedAt: true,
     updatedAt: true,
     viewCount: true,
@@ -128,11 +138,13 @@ export async function dbListArticles(
         ? { title: sortDir }
         : sortBy === "category"
           ? { category: { name: sortDir } }
-          : sortBy === "status"
-            ? { status: sortDir }
-            : sortBy === "views"
-              ? { viewCount: sortDir }
-              : { publishedAt: { sort: sortDir, nulls: "last" } };
+          : sortBy === "language"
+            ? { language: sortDir }
+            : sortBy === "status"
+              ? { status: sortDir }
+              : sortBy === "views"
+                ? { viewCount: sortDir }
+                : { publishedAt: { sort: sortDir, nulls: "last" } };
 
     articles = await prisma.article.findMany({
       where,
@@ -149,6 +161,7 @@ export async function dbListArticles(
     title: a.title,
     excerpt: a.excerpt,
     status: a.status.toLowerCase() as "published" | "draft",
+    language: a.language.toLowerCase() as "az" | "ru",
     category: {
       id: a.category.id,
       slug: a.category.slug,
@@ -189,6 +202,7 @@ export async function dbListArticles(
     page,
     totalPages: Math.max(1, Math.ceil(total / pageSize)),
     counts: { all: allCount, published, draft },
+    languageCounts: { az: azCount, ru: ruCount },
   };
 }
 
@@ -212,6 +226,7 @@ export async function dbGetArticle(id: string) {
     title: article.title,
     excerpt: article.excerpt,
     status: article.status.toLowerCase() as "published" | "draft",
+    language: article.language.toLowerCase() as "az" | "ru",
     category: {
       id: article.category.id,
       slug: article.category.slug,
@@ -250,6 +265,7 @@ export async function dbCreateArticle(data: {
   title: string;
   excerpt: string;
   categoryId: string;
+  language?: string;
   status?: string;
   publishedAt?: string;
   coverImageUrl?: string;
@@ -268,6 +284,7 @@ export async function dbCreateArticle(data: {
       title: data.title,
       excerpt: data.excerpt,
       categoryId: data.categoryId,
+      language: (data.language?.toUpperCase() as ArticleLanguage) || ArticleLanguage.AZ,
       status: (data.status?.toUpperCase() as ArticleStatus) || ArticleStatus.DRAFT,
       publishedAt: data.publishedAt ? new Date(data.publishedAt) : undefined,
       coverImageUrl: data.coverImageUrl,
@@ -290,6 +307,7 @@ export async function dbUpdateArticle(id: string, data: Record<string, any>) {
   if (data.slug) updateData.slug = slugify(data.slug);
   if (data.excerpt) updateData.excerpt = data.excerpt;
   if (data.categoryId) updateData.categoryId = data.categoryId;
+  if (data.language) updateData.language = data.language.toUpperCase() as ArticleLanguage;
   if (data.status) updateData.status = data.status.toUpperCase() as ArticleStatus;
   if (data.coverImageUrl !== undefined) updateData.coverImageUrl = data.coverImageUrl;
   if (data.heroImageUrl !== undefined) updateData.heroImageUrl = data.heroImageUrl;

@@ -98,6 +98,9 @@ export function ArticleForm({
   const [categorySlug, setCategorySlug] = useState(
     article?.category.slug ?? categories[0]?.slug ?? "",
   );
+  const [language, setLanguage] = useState<"az" | "ru">(
+    article?.language ?? "az",
+  );
   const [publishedAt, setPublishedAt] = useState(
     article?.publishedAt ?? new Date().toISOString().slice(0, 10),
   );
@@ -177,6 +180,7 @@ export function ArticleForm({
       slug: article?.slug ?? articleKey,
       excerpt: excerpt.trim(),
       categorySlug,
+      language,
       status: article?.status ?? "draft",
       publishedAt,
       coverImageUrl: effectiveCover,
@@ -193,6 +197,7 @@ export function ArticleForm({
       title,
       excerpt,
       categorySlug,
+      language,
       article?.slug,
       articleKey,
       article?.status,
@@ -271,6 +276,7 @@ export function ArticleForm({
     setTitle(recovered.title);
     setExcerpt(recovered.excerpt);
     setCategorySlug(recovered.categorySlug);
+    setLanguage(recovered.language ?? "az");
     setCoverImageUrl(recovered.coverImageUrl);
     setCoverMode(
       !recovered.coverImageUrl
@@ -452,6 +458,8 @@ export function ArticleForm({
               categorySlug={categorySlug}
               onCategoryChange={setCategorySlug}
               categories={categories}
+              language={language}
+              onLanguageChange={setLanguage}
               coverMode={coverMode}
               onCoverModeChange={setCoverMode}
               coverImageUrl={coverImageUrl}
