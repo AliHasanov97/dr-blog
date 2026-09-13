@@ -18,7 +18,7 @@ export default async function SiteLayout({ children, params }: SiteLayoutProps) 
   const [searchSuggestions, settings, doctor] = await Promise.all([
     /* Yalnız bir neçə təklif — bütün indeks deyil */
     getSearchIndex(undefined, 6, locale),
-    getSiteSettings(),
+    getSiteSettings(locale),
     getDoctorProfile(locale),
   ]);
   const { loadingText, loadingLogo, loadingShowText, loadingShowLogo } = settings;

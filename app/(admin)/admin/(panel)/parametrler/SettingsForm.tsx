@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition, useRef } from "react";
-import { Button, Icon, TextAreaField, TextField } from "@/components/ui";
+import { Button, FLAGS, Icon, TextAreaField, TextField } from "@/components/ui";
 import type { SiteSettings } from "@/lib/settings";
 import { updateSettings } from "./actions";
 import { uploadMedia } from "../_resources/media-actions";
@@ -14,6 +14,21 @@ const TABS = [
 ] as const;
 
 type TabId = typeof TABS[number]["id"];
+type Lang = "az" | "ru";
+
+/** Rus dilinə tərcümə oluna bilən sahələr — `lib/settings.ts`-dəki siyahı ilə eyni */
+type TranslatableKey =
+  | "siteName"
+  | "tagline"
+  | "description"
+  | "heroEyebrow"
+  | "heroHeadline"
+  | "heroDescription"
+  | "loadingText";
+
+function ruKeyOf(key: TranslatableKey): keyof SiteSettings {
+  return `${key}Ru` as keyof SiteSettings;
+}
 
 export interface SettingsFormProps {
   settings: SiteSettings;
@@ -21,12 +36,22 @@ export interface SettingsFormProps {
 
 export function SettingsForm({ settings }: SettingsFormProps) {
   const [activeTab, setActiveTab] = useState<TabId>("general");
+  const [lang, setLang] = useState<Lang>("az");
   const [values, setValues] = useState(settings);
   const [pending, startTransition] = useTransition();
   const [feedback, setFeedback] = useState<{ tone: "ok" | "error"; text: string } | null>(null);
 
   function set<K extends keyof SiteSettings>(key: K, value: SiteSettings[K]) {
     setValues((prev) => ({ ...prev, [key]: value }));
+    setFeedback(null);
+  }
+
+  /* Tərcümə olunan sahələr üçün: `lang`-a görə AZ və ya RU dəyərini oxuyur/yazır */
+  function tval(key: TranslatableKey): string {
+    return String(values[lang === "ru" ? ruKeyOf(key) : key] ?? "");
+  }
+  function tset(key: TranslatableKey, value: string) {
+    setValues((prev) => ({ ...prev, [lang === "ru" ? ruKeyOf(key) : key]: value }));
     setFeedback(null);
   }
 
@@ -81,6 +106,38 @@ export function SettingsForm({ settings }: SettingsFormProps) {
         </div>
       </div>
 
+      {/* Dil seçimi — yalnız tərcümə oluna bilən sahələr olan tab-larda */}
+      {(activeTab === "general" || activeTab === "appearance") && (
+        <div className="flex flex-col gap-space-xs sm:flex-row sm:items-center sm:justify-between px-space-md py-space-sm bg-secondary/[0.04] border-b border-surface-container">
+          <span className="flex items-center gap-1.5 font-label text-label-sm text-on-surface-variant">
+            <Icon name="translate" size={16} className="text-secondary" />
+            Bu sahələr dilə görə ayrıca doldurulur
+          </span>
+          <div className="inline-flex items-center gap-0.5 p-0.5 rounded-full bg-surface-container-lowest border border-surface-container w-fit">
+            {(["az", "ru"] as const).map((l) => {
+              const Flag = FLAGS[l];
+              const active = lang === l;
+              return (
+                <button
+                  key={l}
+                  type="button"
+                  onClick={() => setLang(l)}
+                  className={cn(
+                    "flex items-center gap-1.5 pl-2 pr-3 py-1.5 rounded-full font-label text-label-sm font-semibold transition-colors",
+                    active
+                      ? "bg-secondary text-on-secondary shadow-level-1"
+                      : "text-on-surface-variant hover:bg-surface-container",
+                  )}
+                >
+                  <Flag className="w-5 h-[14px] shrink-0 rounded-[2px] object-cover" />
+                  {l === "az" ? "Azərbaycan" : "Rus"}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       {/* Tab content */}
       <div className="p-space-lg">
         {/* Ümumi tab */}
@@ -93,22 +150,22 @@ export function SettingsForm({ settings }: SettingsFormProps) {
               <div className="grid gap-space-md sm:grid-cols-2">
                 <TextField
                   label="Sayt adı"
-                  required
-                  value={values.siteName}
-                  onChange={(e) => set("siteName", e.target.value)}
+                  required={lang === "az"}
+                  value={tval("siteName")}
+                  onChange={(e) => tset("siteName", e.target.value)}
                 />
                 <TextField
                   label="Alt başlıq"
                   placeholder="T.e.n., Kardioloq"
-                  value={values.tagline}
-                  onChange={(e) => set("tagline", e.target.value)}
+                  value={tval("tagline")}
+                  onChange={(e) => tset("tagline", e.target.value)}
                 />
                 <TextAreaField
                   label="Meta təsvir"
                   rows={3}
                   placeholder="Axtarış nəticələrində görünən mətn"
-                  value={values.description}
-                  onChange={(e) => set("description", e.target.value)}
+                  value={tval("description")}
+                  onChange={(e) => tset("description", e.target.value)}
                   className="sm:col-span-2"
                 />
               </div>
@@ -124,15 +181,15 @@ export function SettingsForm({ settings }: SettingsFormProps) {
                 <TextField
                   label="Üst yazı"
                   placeholder="Kardiologiya · Elmi Bloq"
-                  value={values.heroEyebrow}
-                  onChange={(e) => set("heroEyebrow", e.target.value)}
+                  value={tval("heroEyebrow")}
+                  onChange={(e) => tset("heroEyebrow", e.target.value)}
                   className="sm:col-span-2"
                 />
                 <TextField
                   label="Əsas başlıq"
                   placeholder="Ürək sağlamlığı haqqında sübuta əsaslanan yazılar"
-                  value={values.heroHeadline}
-                  onChange={(e) => set("heroHeadline", e.target.value)}
+                  value={tval("heroHeadline")}
+                  onChange={(e) => tset("heroHeadline", e.target.value)}
                   className="sm:col-span-2"
                 />
                 <TextAreaField
@@ -140,8 +197,8 @@ export function SettingsForm({ settings }: SettingsFormProps) {
                   hint="Həkimin adı və titulundan sonra gəlir"
                   rows={2}
                   placeholder="Beynəlxalq protokolların sadə dildə izahı, klinik icmallar və pasiyentlər üçün praktik bələdçilər."
-                  value={values.heroDescription}
-                  onChange={(e) => set("heroDescription", e.target.value)}
+                  value={tval("heroDescription")}
+                  onChange={(e) => tset("heroDescription", e.target.value)}
                   className="sm:col-span-2"
                 />
               </div>
@@ -151,7 +208,12 @@ export function SettingsForm({ settings }: SettingsFormProps) {
 
         {/* Görünüş tab */}
         {activeTab === "appearance" && (
-          <AppearanceTab values={values} set={set} />
+          <AppearanceTab
+            values={values}
+            set={set}
+            loadingText={tval("loadingText")}
+            onLoadingTextChange={(v) => tset("loadingText", v)}
+          />
         )}
 
         {/* Məqalələr tab */}
@@ -325,9 +387,14 @@ function LoadingPreview({ text, logoUrl, showText = true, showLogo = false }: { 
 function AppearanceTab({
   values,
   set,
+  loadingText,
+  onLoadingTextChange,
 }: {
   values: SiteSettings;
   set: <K extends keyof SiteSettings>(key: K, value: SiteSettings[K]) => void;
+  /** Cari dilə görə (AZ və ya RU) həll olunmuş dəyər — `SettingsForm`-dakı `tval`/`tset`-dən gəlir */
+  loadingText: string;
+  onLoadingTextChange: (value: string) => void;
 }) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
@@ -375,8 +442,8 @@ function AppearanceTab({
               <TextField
                 label=""
                 placeholder="VAHID.AZ"
-                value={values.loadingText}
-                onChange={(e) => set("loadingText", e.target.value.toUpperCase())}
+                value={loadingText}
+                onChange={(e) => onLoadingTextChange(e.target.value.toUpperCase())}
               />
               <p className="text-xs text-outline mt-2">
                 Hərflər soldan sağa animasiya ilə görünür
@@ -442,7 +509,7 @@ function AppearanceTab({
 
           {/* Önizləmə */}
           <LoadingPreview
-            text={values.loadingText || "LOADING"}
+            text={loadingText || "LOADING"}
             logoUrl={values.loadingLogo || undefined}
             showText={values.loadingShowText}
             showLogo={values.loadingShowLogo}

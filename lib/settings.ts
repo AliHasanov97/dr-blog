@@ -26,7 +26,31 @@ export interface SiteSettings {
   loadingShowText: boolean;
   /** Açılış ekranında logo göstərilsin */
   loadingShowLogo: boolean;
+
+  /**
+   * Rus dilində variantlar — boşdursa RU saytda AZ mətn geri qayıdır.
+   * `getSiteSettings(locale)` bunları həll edib tək dəyər qaytarır; admin
+   * forması isə hər ikisini birlikdə göstərir (bax: `SettingsForm.tsx`).
+   */
+  siteNameRu: string;
+  taglineRu: string;
+  descriptionRu: string;
+  heroEyebrowRu: string;
+  heroHeadlineRu: string;
+  heroDescriptionRu: string;
+  loadingTextRu: string;
 }
+
+/** Rus dilinə tərcümə oluna bilən sahələr — `resolveSettingsForLocale`-də işlədilir */
+const TRANSLATABLE_KEYS = [
+  "siteName",
+  "tagline",
+  "description",
+  "heroEyebrow",
+  "heroHeadline",
+  "heroDescription",
+  "loadingText",
+] as const satisfies readonly (keyof SiteSettings)[];
 
 /** Bazada sətir olmadıqda və ya sahə əskik olduqda işlədilir */
 export const DEFAULT_SETTINGS: SiteSettings = {
@@ -46,7 +70,35 @@ export const DEFAULT_SETTINGS: SiteSettings = {
   loadingLogo: "",
   loadingShowText: true,
   loadingShowLogo: false,
+  siteNameRu: "",
+  taglineRu: "",
+  descriptionRu: "",
+  heroEyebrowRu: "",
+  heroHeadlineRu: "",
+  heroDescriptionRu: "",
+  loadingTextRu: "",
 };
+
+/**
+ * RU saytda göstərilən tək-dilli görünüş — hər sahə üçün `<sahə>Ru`
+ * doludursa onu, boşdursa AZ mətni qaytarır. Admin formasında əvəzinə
+ * xam `SiteSettings` (hər iki dil) işlədilir.
+ */
+export function resolveSettingsForLocale(
+  settings: SiteSettings,
+  locale?: string,
+): SiteSettings {
+  if (locale !== "ru") return settings;
+  const resolved = { ...settings };
+  for (const key of TRANSLATABLE_KEYS) {
+    const ruKey = `${key}Ru` as keyof SiteSettings;
+    const ruValue = settings[ruKey];
+    if (typeof ruValue === "string" && ruValue.trim()) {
+      resolved[key] = ruValue;
+    }
+  }
+  return resolved;
+}
 
 /** Açar/dəyər cədvəlində parametrlərin saxlanıldığı açar */
 export const SETTINGS_KEY = "site";

@@ -29,7 +29,7 @@ export default async function HomePage({ params }: PageProps) {
     getDoctorProfile(locale),
     getArticles({ pageSize: 6 }, locale),
     getHomeFilters(locale),
-    getSiteSettings(),
+    getSiteSettings(locale),
     getTranslations({ locale, namespace: "home" }),
   ]);
 

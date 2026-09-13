@@ -1,7 +1,7 @@
 import "server-only";
 import { store, type AdminArticle, type AdminComment } from "@/lib/mock/store";
 import { USE_MOCK } from "@/lib/api/config";
-import { DEFAULT_SETTINGS, type SiteSettings } from "@/lib/settings";
+import { DEFAULT_SETTINGS, resolveSettingsForLocale, type SiteSettings } from "@/lib/settings";
 import { safeDb } from "@/lib/api/safe";
 import {
   dbGetDashboardStats,
@@ -227,13 +227,19 @@ export async function getContactInfo() {
   };
 }
 
-export async function getSiteSettings(): Promise<SiteSettings> {
+/**
+ * `locale` verilməzsə (admin panelindən çağırılanda) XAM parametrlər
+ * qaytarılır — hər iki dilin sahələri, redaktə forması üçün. `locale`
+ * verilsə (publik saytdan) RU sahələr həll olunub tək dəyər qaytarılır.
+ */
+export async function getSiteSettings(locale?: string): Promise<SiteSettings> {
   if (!USE_MOCK) {
     const { dbGetSiteSettings } = await import("@/lib/db/admin");
     /* Parametrlər hər səhifədə oxunur — baza qopanda sayt dayanmamalıdır */
-    return safeDb("sayt parametrləri", dbGetSiteSettings, {
+    const settings = await safeDb("sayt parametrləri", dbGetSiteSettings, {
       ...DEFAULT_SETTINGS,
     });
+    return resolveSettingsForLocale(settings, locale);
   }
-  return store.settings;
+  return resolveSettingsForLocale(store.settings, locale);
 }

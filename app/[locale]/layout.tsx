@@ -40,7 +40,7 @@ export async function generateMetadata({
   params,
 }: LocaleLayoutProps): Promise<Metadata> {
   const { locale } = await params;
-  const { siteName, tagline, description } = await getSiteSettings().catch(
+  const { siteName, tagline, description } = await getSiteSettings(locale).catch(
     () => ({
       siteName: siteConfig.name,
       tagline: siteConfig.title,
