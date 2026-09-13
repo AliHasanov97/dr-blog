@@ -63,6 +63,7 @@ function paginate<T>(items: T[], page: number, pageSize: number): Paginated<T> {
 /** Məqalə siyahısı — filtr və səhifələmə ilə */
 export async function getArticles(
   query: ArticleQuery = {},
+  locale?: string,
 ): Promise<Paginated<ArticleSummary>> {
   const {
     categorySlug,
@@ -77,14 +78,17 @@ export async function getArticles(
     return safeDb(
       "məqalə siyahısı",
       () =>
-        dbGetArticles({
-          categorySlug,
-          search,
-          featuredOnly,
-          excludeSlug,
-          page,
-          pageSize,
-        }),
+        dbGetArticles(
+          {
+            categorySlug,
+            search,
+            featuredOnly,
+            excludeSlug,
+            page,
+            pageSize,
+          },
+          locale,
+        ),
       { items: [], page, pageSize, total: 0, totalPages: 1 },
     );
   }
@@ -118,18 +122,18 @@ export async function getLatestArticles(limit = 3): Promise<ArticleSummary[]> {
 }
 
 /** Ayın əsas məqaləsi */
-export async function getFeaturedArticle(): Promise<ArticleSummary | null> {
+export async function getFeaturedArticle(locale?: string): Promise<ArticleSummary | null> {
   if (!USE_MOCK) {
-    return safeDb("əsas məqalə", () => dbGetFeaturedArticle(), null);
+    return safeDb("əsas məqalə", () => dbGetFeaturedArticle(locale), null);
   }
   const featured = publishedArticles().find((a) => a.isFeatured);
   return mockResponse(featured ? toSummary(featured) : null);
 }
 
 /** Slug üzrə tam məqalə */
-export async function getArticleBySlug(slug: string): Promise<Article | null> {
+export async function getArticleBySlug(slug: string, locale?: string): Promise<Article | null> {
   if (!USE_MOCK) {
-    return safeDb("məqalə", () => dbGetArticleBySlug(slug), null);
+    return safeDb("məqalə", () => dbGetArticleBySlug(slug, locale), null);
   }
   return mockResponse(publishedArticles().find((a) => a.slug === slug) ?? null);
 }
@@ -146,9 +150,10 @@ export async function getArticleSlugs(): Promise<string[]> {
 export async function getRelatedArticles(
   slug: string,
   limit = 2,
+  locale?: string,
 ): Promise<ArticleSummary[]> {
   if (!USE_MOCK) {
-    return safeDb("oxşar məqalələr", () => dbGetRelatedArticles(slug, limit), []);
+    return safeDb("oxşar məqalələr", () => dbGetRelatedArticles(slug, limit, locale), []);
   }
   const list = publishedArticles();
   const current = list.find((a) => a.slug === slug);
@@ -162,9 +167,9 @@ export async function getRelatedArticles(
 }
 
 /** Məqalənin şərhləri */
-export async function getComments(slug: string): Promise<Comment[]> {
+export async function getComments(slug: string, locale?: string): Promise<Comment[]> {
   if (!USE_MOCK) {
-    return safeDb("şərhlər", () => dbGetComments(slug), []);
+    return safeDb("şərhlər", () => dbGetComments(slug, locale), []);
   }
   // Yalnız təsdiqlənmiş şərhlər göstərilir; cavablar ana şərhin altına yığılır
   const approved = store.comments.filter(
@@ -212,16 +217,18 @@ export async function postComment(
 
 /* --- Taksonomiya və köməkçi kontent --- */
 
-export async function getCategories(): Promise<Category[]> {
+export async function getCategories(locale?: string): Promise<Category[]> {
   if (!USE_MOCK) {
-    return safeDb("kateqoriyalar", () => dbGetCategories(), []);
+    return safeDb("kateqoriyalar", () => dbGetCategories(locale), []);
   }
   return mockResponse(store.categories);
 }
 
 /** Ana səhifədəki qısa tab filtrləri — slug-lar `HomeArticleFeed`-də sabit istinad kimi işlədilir */
-export async function getHomeFilters(): Promise<Category[]> {
-  const t = await getTranslations("home");
+export async function getHomeFilters(locale?: string): Promise<Category[]> {
+  const t = locale
+    ? await getTranslations({ locale, namespace: "home" })
+    : await getTranslations("home");
   return mockResponse([
     { id: "hf-latest", slug: "son-nesrler", name: t("filterLatest"), icon: "grade" },
     { id: "hf-popular", slug: "populyar", name: t("filterPopular"), icon: "trending_up" },
@@ -230,9 +237,9 @@ export async function getHomeFilters(): Promise<Category[]> {
   ]);
 }
 
-export async function getTopReadArticles() {
+export async function getTopReadArticles(locale?: string) {
   if (!USE_MOCK) {
-    return safeDb("ən çox oxunanlar", () => dbGetTopReadArticles(5), []);
+    return safeDb("ən çox oxunanlar", () => dbGetTopReadArticles(5, locale), []);
   }
   return mockResponse(mockTopRead);
 }

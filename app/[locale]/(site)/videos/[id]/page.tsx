@@ -15,7 +15,7 @@ interface PageProps {
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { locale, id } = await params;
   setRequestLocale(locale);
-  const t = await getTranslations("videos");
+  const t = await getTranslations({ locale, namespace: "videos" });
   const video = await getVideoById(id);
   if (!video) return { title: t("metaFallbackTitle") };
   return {
@@ -29,8 +29,8 @@ export default async function VideoPage({ params }: PageProps) {
   setRequestLocale(locale);
 
   const [t, tNav] = await Promise.all([
-    getTranslations("videos"),
-    getTranslations("nav"),
+    getTranslations({ locale, namespace: "videos" }),
+    getTranslations({ locale, namespace: "nav" }),
   ]);
   const video = await getVideoById(id);
   if (!video) notFound();

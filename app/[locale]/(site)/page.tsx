@@ -27,10 +27,10 @@ export default async function HomePage({ params }: PageProps) {
 
   const [doctor, articlesPage, filters, settings, t] = await Promise.all([
     getDoctorProfile(),
-    getArticles({ pageSize: 6 }),
-    getHomeFilters(),
+    getArticles({ pageSize: 6 }, locale),
+    getHomeFilters(locale),
     getSiteSettings(),
-    getTranslations("home"),
+    getTranslations({ locale, namespace: "home" }),
   ]);
 
   const latest = articlesPage.items[0];

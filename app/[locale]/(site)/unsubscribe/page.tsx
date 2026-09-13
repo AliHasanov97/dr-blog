@@ -13,7 +13,7 @@ interface PageProps {
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { locale } = await params;
   setRequestLocale(locale);
-  const t = await getTranslations("unsubscribe");
+  const t = await getTranslations({ locale, namespace: "unsubscribe" });
   return {
     title: t("metaTitle"),
     robots: { index: false, follow: false },
@@ -34,7 +34,7 @@ export default async function UnsubscribePage({ params, searchParams }: PageProp
 
   const [{ token }, t] = await Promise.all([
     searchParams,
-    getTranslations("unsubscribe"),
+    getTranslations({ locale, namespace: "unsubscribe" }),
   ]);
   const clean = (token ?? "").trim();
   const subscriber = clean ? await dbFindSubscriberByToken(clean) : null;

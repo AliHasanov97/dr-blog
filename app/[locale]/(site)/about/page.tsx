@@ -29,7 +29,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   setRequestLocale(locale);
   const [doctor, t] = await Promise.all([
     getDoctorProfile(),
-    getTranslations("about"),
+    getTranslations({ locale, namespace: "about" }),
   ]);
   return {
     title: t("metaTitle"),
@@ -44,7 +44,7 @@ export default async function AboutPage({ params }: PageProps) {
   const [doctor, channels, t] = await Promise.all([
     getDoctorProfile(),
     getContactChannels(),
-    getTranslations("about"),
+    getTranslations({ locale, namespace: "about" }),
   ]);
 
   return (

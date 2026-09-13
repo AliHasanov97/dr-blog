@@ -44,10 +44,25 @@ interface FormatCtx {
   t: Awaited<ReturnType<typeof getTranslations>>;
 }
 
-/** Hər sorğu üçün bir dəfə hazırlanır (locale + tərcümələr) */
-async function formatCtx(): Promise<FormatCtx> {
-  const [locale, t] = await Promise.all([getLocale(), getTranslations("siteData")]);
-  return { locale, t };
+/**
+ * Hər sorğu üçün bir dəfə hazırlanır (locale + tərcümələr).
+ *
+ * `locale` səhifədən (`params.locale`-dan) ötürülməlidir, ötürülməyəndə
+ * ambient `getLocale()`-ə düşür (server action-lar üçün təhlükəsizdir,
+ * çünki orada həmişə real sorğu konteksti var). Açıq `locale` ötürüləndə
+ * next-intl `getTranslations({locale, ...})` `headers()`-ə HEÇ müraciət
+ * etmir — bu, `generateStaticParams`/ISR ilə qurulan səhifələrdə (məqalə
+ * detalı kimi) `DYNAMIC_SERVER_USAGE` bail-out-unun qarşısını təminatlı
+ * şəkildə alır (ambient `setRequestLocale`/keş bəzən kifayət etmirdi —
+ * production-da sınanıb: məqalələr 500/yalan-404 verirdi).
+ */
+async function formatCtx(locale?: string): Promise<FormatCtx> {
+  if (locale) {
+    const t = await getTranslations({ locale, namespace: "siteData" });
+    return { locale, t };
+  }
+  const [resolvedLocale, t] = await Promise.all([getLocale(), getTranslations("siteData")]);
+  return { locale: resolvedLocale, t };
 }
 
 function toSummary(article: any, author: Author, ctx: FormatCtx): ArticleSummary {
@@ -111,7 +126,8 @@ function toFullArticle(article: any, author: Author, ctx: FormatCtx): Article {
 }
 
 export async function dbGetArticles(
-  query: ArticleQuery = {}
+  query: ArticleQuery = {},
+  locale?: string,
 ): Promise<Paginated<ArticleSummary>> {
   const {
     categorySlug,
@@ -161,7 +177,7 @@ export async function dbGetArticles(
     }),
     prisma.article.count({ where }),
     dbGetArticleAuthor(),
-    formatCtx(),
+    formatCtx(locale),
   ]);
 
   return {
@@ -173,7 +189,7 @@ export async function dbGetArticles(
   };
 }
 
-export async function dbGetFeaturedArticle(): Promise<ArticleSummary | null> {
+export async function dbGetFeaturedArticle(locale?: string): Promise<ArticleSummary | null> {
   const [article, author, ctx] = await Promise.all([
     prisma.article.findFirst({
       where: {
@@ -186,13 +202,13 @@ export async function dbGetFeaturedArticle(): Promise<ArticleSummary | null> {
       orderBy: { publishedAt: "desc" },
     }),
     dbGetArticleAuthor(),
-    formatCtx(),
+    formatCtx(locale),
   ]);
 
   return article ? toSummary(article, author ?? FALLBACK_AUTHOR, ctx) : null;
 }
 
-export async function dbGetArticleBySlug(slug: string): Promise<Article | null> {
+export async function dbGetArticleBySlug(slug: string, locale?: string): Promise<Article | null> {
   const [article, author, ctx] = await Promise.all([
     prisma.article.findFirst({
       where: {
@@ -207,7 +223,7 @@ export async function dbGetArticleBySlug(slug: string): Promise<Article | null> 
       },
     }),
     dbGetArticleAuthor(),
-    formatCtx(),
+    formatCtx(locale),
   ]);
 
   return article ? toFullArticle(article, author ?? FALLBACK_AUTHOR, ctx) : null;
@@ -234,7 +250,8 @@ export async function dbGetArticleSlugs(limit = 20): Promise<string[]> {
 
 export async function dbGetRelatedArticles(
   slug: string,
-  limit = 2
+  limit = 2,
+  locale?: string,
 ): Promise<ArticleSummary[]> {
   const current = await prisma.article.findUnique({
     where: { slug },
@@ -257,19 +274,19 @@ export async function dbGetRelatedArticles(
       take: limit,
     }),
     dbGetArticleAuthor(),
-    formatCtx(),
+    formatCtx(locale),
   ]);
 
   return articles.map((a) => toSummary(a, author ?? FALLBACK_AUTHOR, ctx));
 }
 
-export async function dbGetComments(slug: string): Promise<Comment[]> {
-  const [article, { locale }] = await Promise.all([
+export async function dbGetComments(slug: string, locale?: string): Promise<Comment[]> {
+  const [article, ctx] = await Promise.all([
     prisma.article.findUnique({
       where: { slug },
       select: { id: true },
     }),
-    formatCtx(),
+    formatCtx(locale),
   ]);
 
   if (!article) return [];
@@ -300,7 +317,7 @@ export async function dbGetComments(slug: string): Promise<Comment[]> {
     authorAvatarUrl: root.authorAvatarUrl ?? undefined,
     isAuthorVerified: root.isAuthorVerified,
     isDoctorReply: root.isDoctorReply,
-    createdAtLabel: new Intl.DateTimeFormat(locale, {
+    createdAtLabel: new Intl.DateTimeFormat(ctx.locale, {
       day: "numeric",
       month: "long",
       year: "numeric",
@@ -324,7 +341,7 @@ export async function dbGetComments(slug: string): Promise<Comment[]> {
         authorAvatarUrl: reply.authorAvatarUrl ?? undefined,
         isAuthorVerified: reply.isAuthorVerified,
         isDoctorReply: reply.isDoctorReply,
-        createdAtLabel: new Intl.DateTimeFormat(locale, {
+        createdAtLabel: new Intl.DateTimeFormat(ctx.locale, {
           day: "numeric",
           month: "long",
           year: "numeric",
@@ -411,7 +428,7 @@ export async function dbPostComment(input: NewCommentInput): Promise<Comment> {
   };
 }
 
-export async function dbGetCategories(): Promise<Category[]> {
+export async function dbGetCategories(locale?: string): Promise<Category[]> {
   const [categories, { t }] = await Promise.all([
     prisma.category.findMany({
       include: {
@@ -423,7 +440,7 @@ export async function dbGetCategories(): Promise<Category[]> {
       },
       orderBy: { name: "asc" },
     }),
-    formatCtx(),
+    formatCtx(locale),
   ]);
 
   // Add "All" category at the beginning
@@ -493,6 +510,7 @@ export async function dbGetSearchIndex(
 /** Bloq səhifəsinin «Ən Çox Oxunanlar» bölməsi — baxış sayına görə */
 export async function dbGetTopReadArticles(
   limit = 3,
+  locale?: string,
 ): Promise<TopReadArticle[]> {
   const [articles, { t }] = await Promise.all([
     prisma.article.findMany({
@@ -506,7 +524,7 @@ export async function dbGetTopReadArticles(
         viewCount: true,
       },
     }),
-    formatCtx(),
+    formatCtx(locale),
   ]);
 
   return articles.map((a, i) => ({

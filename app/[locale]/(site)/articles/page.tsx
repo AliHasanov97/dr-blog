@@ -30,7 +30,7 @@ interface PageProps {
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { locale } = await params;
   setRequestLocale(locale);
-  const t = await getTranslations("articles");
+  const t = await getTranslations({ locale, namespace: "articles" });
   return {
     title: t("metaTitle"),
     description: t("metaDescription"),
@@ -44,11 +44,11 @@ export default async function ArticlesPage({ params, searchParams }: PageProps) 
   const [{ q }, settings, t] = await Promise.all([
     searchParams,
     getSiteSettings(),
-    getTranslations("articles"),
+    getTranslations({ locale, namespace: "articles" }),
   ]);
 
   /* Əsas məqalə siyahıdan kənarlaşdırılır — əvvəlcə onu tapmaq lazımdır */
-  const featured = await getFeaturedArticle();
+  const featured = await getFeaturedArticle(locale);
 
   const [articlesPage, categories, topRead, videos, protocols] =
     await Promise.all([
@@ -57,9 +57,9 @@ export default async function ArticlesPage({ params, searchParams }: PageProps) 
       getArticles({
         pageSize: settings.articlesPerPage,
         excludeSlug: featured?.slug,
-      }),
-      getCategories(),
-      getTopReadArticles(),
+      }, locale),
+      getCategories(locale),
+      getTopReadArticles(locale),
       getVideos(),
       getProtocols(),
     ]);

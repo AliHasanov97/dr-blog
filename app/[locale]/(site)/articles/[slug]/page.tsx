@@ -54,8 +54,8 @@ export async function generateStaticParams() {
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { locale, slug } = await params;
   setRequestLocale(locale);
-  const t = await getTranslations("article");
-  const article = await getArticleBySlug(slug);
+  const t = await getTranslations({ locale, namespace: "article" });
+  const article = await getArticleBySlug(slug, locale);
   if (!article) return { title: t("metaNotFound") };
 
   return {
@@ -74,15 +74,15 @@ export default async function ArticleDetailPage({ params }: PageProps) {
   const { locale, slug } = await params;
   setRequestLocale(locale);
 
-  const article = await getArticleBySlug(slug);
+  const article = await getArticleBySlug(slug, locale);
 
   if (!article) notFound();
 
   const [comments, related, settings, t] = await Promise.all([
-    getComments(slug),
-    getRelatedArticles(slug),
+    getComments(slug, locale),
+    getRelatedArticles(slug, 2, locale),
     getSiteSettings(),
-    getTranslations("article"),
+    getTranslations({ locale, namespace: "article" }),
   ]);
 
   const commentsOpen =
