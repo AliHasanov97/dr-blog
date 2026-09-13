@@ -244,23 +244,23 @@ export async function getTopReadArticles(locale?: string) {
   return mockResponse(mockTopRead);
 }
 
-export async function getVideos() {
+export async function getVideos(locale?: string) {
   if (!USE_MOCK) {
-    return safeDb("videolar", () => dbGetVideos(), []);
+    return safeDb("videolar", () => dbGetVideos(locale), []);
   }
   return mockResponse(store.videos);
 }
 
-export async function getVideoById(id: string) {
+export async function getVideoById(id: string, locale?: string) {
   if (!USE_MOCK) {
-    return safeDb("video", () => dbGetVideoById(id), null);
+    return safeDb("video", () => dbGetVideoById(id, locale), null);
   }
   return mockResponse(store.videos.find((v) => v.id === id) ?? null);
 }
 
-export async function getProtocols() {
+export async function getProtocols(locale?: string) {
   if (!USE_MOCK) {
-    return safeDb("protokollar", () => dbGetProtocols(), []);
+    return safeDb("protokollar", () => dbGetProtocols(locale), []);
   }
   return mockResponse(store.protocols);
 }

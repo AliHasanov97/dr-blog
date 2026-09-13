@@ -63,6 +63,7 @@ const mappers: Record<CollectionKey, Mapper> = {
     description: v.description,
     thumbnailUrl: v.thumbnailUrl || "/images/video-ekg.svg",
     kindLabel: v.kindLabel || "Klinik Vebinar",
+    language: v.language || "az",
     url: v.url || "#",
   }),
   protocols: (v, existing) => ({
@@ -72,6 +73,7 @@ const mappers: Record<CollectionKey, Mapper> = {
     fileSizeLabel: v.fileSizeLabel || "—",
     fileUrl: v.fileUrl || "#",
     access: v.access || "download",
+    language: v.language || "az",
   }),
   faq: (v, existing) => ({
     id: existing?.id ?? nextId("faq"),
@@ -102,6 +104,7 @@ export async function createResource(
             thumbnailUrl: values.thumbnailUrl,
             videoUrl: values.url || "#",
             kindLabel: values.kindLabel,
+            language: values.language,
           });
           break;
         case "protocols":
@@ -112,6 +115,7 @@ export async function createResource(
             fileSizeLabel: values.fileSizeLabel,
             fileUrl: values.fileUrl || "#",
             access: values.access,
+            language: values.language,
           });
           break;
         case "faq":
@@ -154,6 +158,7 @@ export async function updateResource(
             thumbnailUrl: values.thumbnailUrl,
             videoUrl: values.url,
             kindLabel: values.kindLabel,
+            language: values.language,
           });
           break;
         case "protocols":

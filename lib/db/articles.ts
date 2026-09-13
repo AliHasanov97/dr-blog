@@ -14,6 +14,7 @@ import { ArticleLanguage, ArticleStatus, CommentStatus, Prisma } from "@prisma/c
 import { buildToc, normalizeHeadings } from "@/lib/article-toc";
 import { dbGetSiteSettings } from "@/lib/db/admin";
 import { dbGetArticleAuthor } from "@/lib/db/doctor";
+import { toArticleLanguage } from "@/lib/db/language";
 import { formatCompact } from "@/lib/utils";
 
 /**
@@ -36,19 +37,6 @@ export interface ArticleQuery {
   excludeSlug?: string;
   page?: number;
   pageSize?: number;
-}
-
-/**
- * Sayt dilini Prisma-nın `ArticleLanguage` enum-una çevirir.
- *
- * Hər məqalə TƏK dildədir (tərcümə ayrı yazıdır — bax: `prisma/schema.prisma`),
- * ona görə publik saytda göstərilən hər şey cari sayt dilinə görə süzülür:
- * RU saytda AZ məqalə (və əksinə) heç görünməməlidir.
- */
-function toArticleLanguage(locale?: string): ArticleLanguage | undefined {
-  if (locale === "az") return ArticleLanguage.AZ;
-  if (locale === "ru") return ArticleLanguage.RU;
-  return undefined;
 }
 
 /** Sayt dilinə görə dəyişən mətnlər — tarix formatı və hesablanan etiketlər */

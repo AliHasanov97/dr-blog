@@ -16,7 +16,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const { locale, id } = await params;
   setRequestLocale(locale);
   const t = await getTranslations({ locale, namespace: "videos" });
-  const video = await getVideoById(id);
+  const video = await getVideoById(id, locale);
   if (!video) return { title: t("metaFallbackTitle") };
   return {
     title: video.title,
@@ -32,7 +32,7 @@ export default async function VideoPage({ params }: PageProps) {
     getTranslations({ locale, namespace: "videos" }),
     getTranslations({ locale, namespace: "nav" }),
   ]);
-  const video = await getVideoById(id);
+  const video = await getVideoById(id, locale);
   if (!video) notFound();
 
   const youtubeId = extractYouTubeId(video.url);

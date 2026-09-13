@@ -7,13 +7,14 @@ import {
   DataCell,
   DataRow,
   DataTable,
+  LanguageFilterCards,
   StatusPill,
+  type ContentLanguageFilter,
 } from "@/components/admin";
 import { Button, Chip, FLAGS, Icon, SearchBar } from "@/components/ui";
 import { articleStatusLabels } from "@/lib/admin/format";
 import type { AdminArticle, ArticleStatus } from "@/lib/mock/store";
 import type { AdminArticleListResult, AdminArticleQuery } from "@/lib/db/admin";
-import { cn } from "@/lib/utils";
 import { deleteArticle, fetchAdminArticles, setArticleStatus } from "./actions";
 
 export interface ArticleListClientProps {
@@ -36,12 +37,6 @@ const filters: { slug: ArticleStatus | "all"; name: string; icon: string }[] = [
 ];
 
 type Language = "az" | "ru";
-
-const languageFilters: { slug: Language | "all"; name: string }[] = [
-  { slug: "all", name: "Bütün dillər" },
-  { slug: "az", name: "Azərbaycan dili" },
-  { slug: "ru", name: "Rus dili" },
-];
 
 const languageBadge: Record<Language, string> = { az: "AZ", ru: "RU" };
 
@@ -166,55 +161,11 @@ export function ArticleListClient({
 
   return (
     <div className="flex flex-col gap-space-md">
-      {/*
-        * Dil — məqalələrin ən önəmli parametri, ona görə status/kateqoriya
-        * süzgəclərindən fərqli, bayraqlı böyük kartlar kimi göstərilir.
-        */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-space-sm">
-        {languageFilters.map((f) => {
-          const active = language === f.slug;
-          const Flag = f.slug !== "all" ? FLAGS[f.slug] : null;
-          return (
-            <button
-              key={f.slug}
-              type="button"
-              onClick={() => setLanguage(f.slug)}
-              aria-pressed={active}
-              className={cn(
-                "flex items-center gap-space-sm rounded-xl border-2 px-space-md py-space-sm text-start transition-colors",
-                active
-                  ? "border-secondary bg-secondary/[0.08] shadow-level-1"
-                  : "border-outline-variant bg-surface-container-lowest hover:border-secondary/40",
-              )}
-            >
-              {Flag ? (
-                <Flag className="w-10 h-8 shrink-0 rounded-md object-cover ring-1 ring-outline-variant/60" />
-              ) : (
-                <span className="flex items-center justify-center w-10 h-8 shrink-0 rounded-md bg-surface-container-high">
-                  <Icon name="public" size={18} className="text-outline" />
-                </span>
-              )}
-              <span className="flex flex-col min-w-0">
-                <span className="font-label text-label-lg font-semibold text-on-surface truncate">
-                  {f.name}
-                </span>
-                {f.slug !== "all" && (
-                  <span className="font-label text-label-sm text-outline tabular-nums">
-                    {languageCounts[f.slug]} məqalə
-                  </span>
-                )}
-              </span>
-              {active && (
-                <Icon
-                  name="check_circle"
-                  size={20}
-                  className="ms-auto shrink-0 text-secondary"
-                />
-              )}
-            </button>
-          );
-        })}
-      </div>
+      <LanguageFilterCards
+        value={language}
+        onChange={(v: ContentLanguageFilter) => setLanguage(v)}
+        counts={languageCounts}
+      />
 
       <div className="flex flex-col gap-space-sm lg:flex-row lg:items-center lg:justify-between">
         <div className="flex items-center gap-space-xs overflow-x-auto scrollbar-none">

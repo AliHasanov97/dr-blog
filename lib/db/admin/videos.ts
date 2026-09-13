@@ -1,3 +1,4 @@
+import { ArticleLanguage } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { removeStoredFile } from "@/lib/admin/storage";
 
@@ -16,6 +17,7 @@ export async function dbListVideos() {
     description: v.description ?? "",
     thumbnailUrl: v.thumbnailUrl ?? "",
     kindLabel: v.kindLabel ?? "",
+    language: v.language.toLowerCase() as "az" | "ru",
     url: v.videoUrl,
   }));
 }
@@ -26,6 +28,7 @@ export async function dbCreateVideo(data: {
   thumbnailUrl?: string;
   videoUrl: string;
   kindLabel?: string;
+  language?: string;
 }) {
   const maxOrder = await prisma.video.aggregate({ _max: { sortOrder: true } });
   return prisma.video.create({
@@ -35,6 +38,7 @@ export async function dbCreateVideo(data: {
       thumbnailUrl: data.thumbnailUrl || "/images/video-ekg.svg",
       videoUrl: data.videoUrl,
       kindLabel: data.kindLabel || "Klinik Vebinar",
+      language: (data.language?.toUpperCase() as ArticleLanguage) || ArticleLanguage.AZ,
       sortOrder: (maxOrder._max.sortOrder ?? 0) + 1,
     },
   });
@@ -53,6 +57,7 @@ export async function dbUpdateVideo(id: string, data: Record<string, string>) {
       ...(data.thumbnailUrl && { thumbnailUrl: data.thumbnailUrl }),
       ...(data.videoUrl && { videoUrl: data.videoUrl }),
       ...(data.kindLabel && { kindLabel: data.kindLabel }),
+      ...(data.language && { language: data.language.toUpperCase() as ArticleLanguage }),
     },
   });
 

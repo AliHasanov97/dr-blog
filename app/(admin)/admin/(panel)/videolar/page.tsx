@@ -1,4 +1,8 @@
-import { AdminPageHeader, HelpNote, ResourceManager } from "@/components/admin";
+import {
+  AdminPageHeader,
+  HelpNote,
+  LanguageFilteredResourceManager,
+} from "@/components/admin";
 import { listVideos } from "@/lib/admin/queries";
 import {
   createResource,
@@ -10,8 +14,11 @@ export const metadata = { title: "Videolar" };
 
 export default async function AdminVideosPage() {
   const videos = await listVideos();
-  /* Cədvəldə başlığın altında videonun növü göstərilir */
-  const rows = videos.map((v) => ({ ...v, meta: v.kindLabel || "" }));
+  /* Cədvəldə başlığın altında videonun növü və dili göstərilir */
+  const rows = videos.map((v) => ({
+    ...v,
+    meta: [v.kindLabel, v.language === "ru" ? "RU" : "AZ"].filter(Boolean).join(" · "),
+  }));
 
   async function create(values: Record<string, string>) {
     "use server";
@@ -40,7 +47,7 @@ export default async function AdminVideosPage() {
           seçirsiniz.
         </p>
       </HelpNote>
-      <ResourceManager
+      <LanguageFilteredResourceManager
         scope={{ kind: "video" }}
         items={rows}
         actions={{ create, update, remove }}
@@ -65,6 +72,15 @@ export default async function AdminVideosPage() {
               { value: "Pasiyent İzahı", label: "Pasiyent İzahı" },
               { value: "Konfrans Çıxışı", label: "Konfrans Çıxışı" },
               { value: "Qısa İzah", label: "Qısa İzah" },
+            ],
+          },
+          {
+            name: "language",
+            label: "Dil",
+            type: "select",
+            options: [
+              { value: "az", label: "Azərbaycan dili" },
+              { value: "ru", label: "Rus dili" },
             ],
           },
           { name: "thumbnailUrl", label: "Örtük şəkli", type: "image", colSpan: 2 },

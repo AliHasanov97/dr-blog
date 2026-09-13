@@ -37,3 +37,6 @@ export { ArticleCanvas } from "./canvas/ArticleCanvas";
 export type { ArticleCanvasProps } from "./canvas/ArticleCanvas";
 export { FilePicker } from "./FilePicker";
 export type { FilePickerProps, PickedFile } from "./FilePicker";
+export { LanguageFilterCards } from "./LanguageFilterCards";
+export type { ContentLanguageFilter, LanguageFilterCardsProps } from "./LanguageFilterCards";
+export { LanguageFilteredResourceManager } from "./LanguageFilteredResourceManager";

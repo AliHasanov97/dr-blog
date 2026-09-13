@@ -51,9 +51,10 @@ enum ArticleStatus {
   PUBLISHED
 }
 
-// Meqale dili — her yazi TEK dildedir (terceme ayri meqale kimi yazilir,
-// eyni yazinin ozunde iki dil sahesi yoxdur). Admin siyahisinda filtr,
-// public saytda isə cari sayt dilinə uyğun yazıları süzmək üçün işlədilir.
+// Mezmunun dili — her yazi/video/sened TEK dildedir (terceme ayri qeyd kimi
+// yaradilir, eyni qeydin ozunde iki dil sahesi yoxdur). Meqale, video ve PDF
+// senedleri bunu paylasir — admin siyahisinda filtr, public saytda isə cari
+// sayt dilinə uyğun mezmunu süzmək üçün işlədilir.
 enum ArticleLanguage {
   AZ
   RU
@@ -283,13 +284,14 @@ model NewsletterSubscriber {
 // ---------------------------------------------------------------
 
 model Video {
-  id           String  @id @default(cuid())
+  id           String          @id @default(cuid())
   title        String
   description  String?
   thumbnailUrl String?
   videoUrl     String
   kindLabel    String? // "CardioTalk"
-  sortOrder    Int     @default(0)
+  language     ArticleLanguage @default(AZ)
+  sortOrder    Int             @default(0)
 
   // ARTIQ ISLENMIR — interfeysden cixarilib, sutunlar bazada qalib.
   // Silmek ucun: schema-dan bu iki setri sil + `prisma db push`
@@ -299,24 +301,27 @@ model Video {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  @@index([language])
   @@map("videos")
 }
 
 model ProtocolDocument {
-  id            String  @id @default(cuid())
+  id            String          @id @default(cuid())
   title         String
   description   String?
   fileSizeLabel String?
   fileUrl       String
-  sortOrder     Int     @default(0)
+  language      ArticleLanguage @default(AZ)
+  sortOrder     Int             @default(0)
   /**
    * PDF olduqda: "download" | "read" | "both" — boş qalsa "download" sayılır
    */
-  access        String? @default("download")
+  access        String?         @default("download")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  @@index([language])
   @@map("protocol_documents")
 }
 

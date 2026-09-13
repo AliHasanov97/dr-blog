@@ -1,8 +1,10 @@
 import { prisma } from "@/lib/prisma";
 import type { ProtocolDocument, VideoItem } from "@/lib/types";
+import { toArticleLanguage } from "@/lib/db/language";
 
-export async function dbGetVideos(): Promise<VideoItem[]> {
+export async function dbGetVideos(locale?: string): Promise<VideoItem[]> {
   const videos = await prisma.video.findMany({
+    where: { language: toArticleLanguage(locale) },
     orderBy: { sortOrder: "asc" },
   });
 
@@ -16,8 +18,10 @@ export async function dbGetVideos(): Promise<VideoItem[]> {
   }));
 }
 
-export async function dbGetVideoById(id: string): Promise<VideoItem | null> {
-  const v = await prisma.video.findUnique({ where: { id } });
+export async function dbGetVideoById(id: string, locale?: string): Promise<VideoItem | null> {
+  const v = await prisma.video.findFirst({
+    where: { id, language: toArticleLanguage(locale) },
+  });
   if (!v) return null;
 
   return {
@@ -30,8 +34,9 @@ export async function dbGetVideoById(id: string): Promise<VideoItem | null> {
   };
 }
 
-export async function dbGetProtocols(): Promise<ProtocolDocument[]> {
+export async function dbGetProtocols(locale?: string): Promise<ProtocolDocument[]> {
   const protocols = await prisma.protocolDocument.findMany({
+    where: { language: toArticleLanguage(locale) },
     orderBy: { sortOrder: "asc" },
   });
 

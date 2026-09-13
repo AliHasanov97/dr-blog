@@ -321,6 +321,8 @@ export interface VideoItem {
   thumbnailUrl: string;
   kindLabel: string;
   url: string;
+  /** Yalnız admin siyahısında dolur */
+  language?: "az" | "ru";
 }
 
 export interface ProtocolDocument {
@@ -336,6 +338,8 @@ export interface ProtocolDocument {
    *  - `both`     — endirmə kartı və altında səhifədə oxuma birlikdə
    */
   access?: "download" | "read" | "both";
+  /** Yalnız admin siyahısında dolur */
+  language?: "az" | "ru";
 }
 
 /* ---------------------------------------------------------------

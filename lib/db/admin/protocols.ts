@@ -1,8 +1,13 @@
+import { ArticleLanguage } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { prefixOf, removeStoredFile, storage } from "@/lib/admin/storage";
 
 export async function dbListProtocols() {
-  return prisma.protocolDocument.findMany({ orderBy: { sortOrder: "asc" } });
+  const protocols = await prisma.protocolDocument.findMany({ orderBy: { sortOrder: "asc" } });
+  return protocols.map((p) => ({
+    ...p,
+    language: p.language.toLowerCase() as "az" | "ru",
+  }));
 }
 
 export async function dbCreateProtocol(data: {
@@ -17,6 +22,7 @@ export async function dbCreateProtocol(data: {
   fileSizeLabel?: string;
   fileUrl: string;
   access?: string;
+  language?: string;
 }) {
   const maxOrder = await prisma.protocolDocument.aggregate({ _max: { sortOrder: true } });
   return prisma.protocolDocument.create({
@@ -27,6 +33,7 @@ export async function dbCreateProtocol(data: {
       fileSizeLabel: data.fileSizeLabel || "—",
       fileUrl: data.fileUrl,
       access: data.access || "download",
+      language: (data.language?.toUpperCase() as ArticleLanguage) || ArticleLanguage.AZ,
       sortOrder: (maxOrder._max.sortOrder ?? 0) + 1,
     },
   });
@@ -44,6 +51,7 @@ export async function dbUpdateProtocol(id: string, data: Record<string, string>)
       ...(data.fileSizeLabel && { fileSizeLabel: data.fileSizeLabel }),
       ...(data.fileUrl && { fileUrl: data.fileUrl }),
       ...(data.access && { access: data.access }),
+      ...(data.language && { language: data.language.toUpperCase() as ArticleLanguage }),
     },
   });
 

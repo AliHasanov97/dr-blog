@@ -60,8 +60,8 @@ export default async function ArticlesPage({ params, searchParams }: PageProps) 
       }, locale),
       getCategories(locale),
       getTopReadArticles(locale),
-      getVideos(),
-      getProtocols(),
+      getVideos(locale),
+      getProtocols(locale),
     ]);
 
   return (

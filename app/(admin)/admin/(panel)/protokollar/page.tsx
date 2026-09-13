@@ -1,7 +1,7 @@
 import {
   AdminPageHeader,
   HelpNote,
-  ResourceManager,
+  LanguageFilteredResourceManager,
   SCOPE_KEY_PLACEHOLDER,
 } from "@/components/admin";
 import { listProtocols } from "@/lib/admin/queries";
@@ -15,7 +15,10 @@ export const metadata = { title: "Protokollar" };
 
 export default async function AdminProtocolsPage() {
   const protocols = await listProtocols();
-  const rows = protocols.map((p: any) => ({ ...p }));
+  const rows = protocols.map((p: any) => ({
+    ...p,
+    languageLabel: p.language === "ru" ? "RU" : "AZ",
+  }));
 
   async function create(values: Record<string, string>) {
     "use server";
@@ -43,7 +46,7 @@ export default async function AdminProtocolsPage() {
           birbaşa yükləyin — ünvan və ölçü avtomatik təyin olunur.
         </p>
       </HelpNote>
-      <ResourceManager
+      <LanguageFilteredResourceManager
         scope={{ kind: "protocol", protocolKey: SCOPE_KEY_PLACEHOLDER }}
         keyField="id"
         items={rows}
@@ -71,6 +74,15 @@ export default async function AdminProtocolsPage() {
               { value: "both", label: "Hər ikisi" },
             ],
           },
+          {
+            name: "language",
+            label: "Dil",
+            type: "select",
+            options: [
+              { value: "az", label: "Azərbaycan dili" },
+              { value: "ru", label: "Rus dili" },
+            ],
+          },
         ]}
         columns={[
           {
@@ -81,6 +93,7 @@ export default async function AdminProtocolsPage() {
             subtitleField: "description",
             icon: "picture_as_pdf",
           },
+          { key: "language", header: "Dil", type: "badge", field: "languageLabel" },
           { key: "size", header: "Ölçü", type: "text", field: "fileSizeLabel" },
         ]}
         nameField="title"
