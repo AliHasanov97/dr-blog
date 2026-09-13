@@ -47,7 +47,7 @@ export default async function ContactPage({ params }: PageProps) {
   const [channels, office, faq, doctor, t] = await Promise.all([
     getContactChannels(),
     getOfficeLocation(),
-    getFaq(),
+    getFaq(locale),
     getDoctorProfile(locale),
     getTranslations({ locale, namespace: "contact" }),
   ]);

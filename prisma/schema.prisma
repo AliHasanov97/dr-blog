@@ -244,10 +244,15 @@ model OfficeLocation {
 }
 
 model FaqItem {
-  id        String @id @default(cuid())
-  question  String
-  answer    String
-  sortOrder Int    @default(0)
+  id         String  @id @default(cuid())
+  question   String
+  answer     String
+  /**
+   * Boş qalsa RU saytda AZ mətn geri qayıdır — Category.nameRu ilə eyni qayda
+   */
+  questionRu String?
+  answerRu   String?
+  sortOrder  Int     @default(0)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

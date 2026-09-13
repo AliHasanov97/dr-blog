@@ -79,6 +79,8 @@ const mappers: Record<CollectionKey, Mapper> = {
     id: existing?.id ?? nextId("faq"),
     question: v.question,
     answer: v.answer,
+    questionRu: v.questionRu?.trim() || undefined,
+    answerRu: v.answerRu?.trim() || undefined,
   }),
 };
 
@@ -119,7 +121,12 @@ export async function createResource(
           });
           break;
         case "faq":
-          await dbCreateFaq({ question: values.question, answer: values.answer });
+          await dbCreateFaq({
+            question: values.question,
+            answer: values.answer,
+            questionRu: values.questionRu,
+            answerRu: values.answerRu,
+          });
           break;
       }
       refresh(key);
@@ -165,7 +172,12 @@ export async function updateResource(
           await dbUpdateProtocol(id, values);
           break;
         case "faq":
-          await dbUpdateFaq(id, { question: values.question, answer: values.answer });
+          await dbUpdateFaq(id, {
+            question: values.question,
+            answer: values.answer,
+            questionRu: values.questionRu,
+            answerRu: values.answerRu,
+          });
           break;
       }
       refresh(key);

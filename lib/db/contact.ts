@@ -55,15 +55,18 @@ export async function dbGetOfficeLocation(): Promise<OfficeLocation | null> {
   };
 }
 
-export async function dbGetFaqItems(): Promise<FaqItem[]> {
+export async function dbGetFaqItems(locale?: string): Promise<FaqItem[]> {
   const items = await prisma.faqItem.findMany({
     orderBy: { sortOrder: "asc" },
   });
 
+  const ru = locale === "ru";
+
   return items.map((item) => ({
     id: item.id,
-    question: item.question,
-    answer: item.answer,
+    /* Boş qalsa AZ mətnə geri qayıdır — Category.nameRu ilə eyni qayda */
+    question: ru && item.questionRu?.trim() ? item.questionRu : item.question,
+    answer: ru && item.answerRu?.trim() ? item.answerRu : item.answer,
   }));
 }
 

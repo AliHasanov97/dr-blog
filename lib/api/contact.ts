@@ -31,8 +31,8 @@ export const getOfficeLocation = async (): Promise<OfficeLocation> => {
   return mockResponse(store.office);
 };
 
-export const getFaq = async (): Promise<FaqItem[]> => {
-  if (!USE_MOCK) return safeDb("tez-tez verilən suallar", dbGetFaqItems, []);
+export const getFaq = async (locale?: string): Promise<FaqItem[]> => {
+  if (!USE_MOCK) return safeDb("tez-tez verilən suallar", () => dbGetFaqItems(locale), []);
   return mockResponse(store.faq);
 };
 

@@ -51,13 +51,16 @@ export default async function AdminContactPage() {
           </div>
           <div className="p-space-md">
             <ResourceManager
-              items={faqItems.map((f: any) => ({ ...f }))}
+              items={faqItems.map((f: any) => ({
+                ...f,
+                ruStatus: f.questionRu || f.answerRu ? "RU var" : "RU yoxdur",
+              }))}
               actions={{ create, update, remove }}
               searchFields={["question", "answer"]}
               fields={[
                 {
                   name: "question",
-                  label: "Sual",
+                  label: "Sual (Azərbaycan dili)",
                   type: "text",
                   required: true,
                   placeholder: "Həkimə necə müraciət edə bilərəm?",
@@ -65,10 +68,25 @@ export default async function AdminContactPage() {
                 },
                 {
                   name: "answer",
-                  label: "Cavab",
+                  label: "Cavab (Azərbaycan dili)",
                   type: "textarea",
-                  rows: 5,
+                  rows: 4,
                   required: true,
+                  colSpan: 2,
+                },
+                {
+                  name: "questionRu",
+                  label: "Sual (Rus dili)",
+                  type: "text",
+                  hint: "Boş qalsa RU saytda Azərbaycanca sual göstərilir",
+                  colSpan: 2,
+                },
+                {
+                  name: "answerRu",
+                  label: "Cavab (Rus dili)",
+                  type: "textarea",
+                  rows: 4,
+                  hint: "Boş qalsa RU saytda Azərbaycanca cavab göstərilir",
                   colSpan: 2,
                 },
               ]}
@@ -89,6 +107,7 @@ export default async function AdminContactPage() {
                   subtitleField: "answer",
                   icon: "help",
                 },
+                { key: "ruStatus", header: "Rus dili", type: "badge", field: "ruStatus" },
               ]}
             />
           </div>
