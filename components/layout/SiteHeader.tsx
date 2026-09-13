@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { Icon } from "@/components/ui";
 import { Logo } from "./Logo";
 import { Container } from "./Container";
@@ -108,7 +108,17 @@ export function SiteHeader({ searchSuggestions, doctor }: SiteHeaderProps) {
               <Icon name="search" size={22} />
             </button>
 
-            <PreferencesMenu />
+            {/*
+              `PreferencesMenu` `useSearchParams()` işlədir — Suspense
+              olmadan bu, `generateStaticParams`-lı səhifələrdə (məqalə
+              detalı) statik qurulma cəhdini dayandırıb
+              `DYNAMIC_SERVER_USAGE` atırdı (production-da müşahidə
+              olundu, digər səhifələr bundan təsirlənmirdi, çünki
+              onlarda `generateStaticParams` yoxdur).
+            */}
+            <Suspense fallback={<div className="w-11 h-11 shrink-0" />}>
+              <PreferencesMenu />
+            </Suspense>
           </div>
         </Container>
       </header>
