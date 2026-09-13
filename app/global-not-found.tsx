@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { headers } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { RootHeadAssets } from "@/components/layout";
 import { ButtonLink, EmptyState } from "@/components/ui";
 import { newsreader, jakarta } from "@/lib/fonts";
@@ -22,8 +22,11 @@ import "./globals.css";
  * (məs. `/az/...`-a uyğun gəlməyən fayl-bənzər yollar) — `[locale]`
  * seqmentinə uyğun gələn 404-lər artıq `(site)/not-found.tsx`-ə düşür və
  * orada `next-intl` ilə tam lokallaşdırılıb. Burada `params` yoxdur (Next
- * bunu icazə vermir), ona görə dil marşrut prefiksindən deyil, brauzerin
- * göndərdiyi `Accept-Language` başlığından təxmin edilir.
+ * bunu icazə vermir), ona görə dil marşrut prefiksindən deyil əvvəlcə
+ * next-intl-in özünün qoyduğu `NEXT_LOCALE` cookie-sindən (oxucunun
+ * saytda son seçdiyi dil — middleware hər sorğuda bunu yeniləyir) təyin
+ * olunur; cookie yoxdursa (ilk ziyarət), brauzerin `Accept-Language`
+ * başlığı ehtiyat kimi işlədilir.
  */
 export const metadata: Metadata = {
   title: "Səhifə tapılmadı",
@@ -44,6 +47,10 @@ const COPY: Record<AppLocale, { title: string; description: string; backHome: st
 };
 
 async function detectLocale(): Promise<AppLocale> {
+  const cookieLocale = (await cookies()).get("NEXT_LOCALE")?.value;
+  const fromCookie = routing.locales.find((l) => l === cookieLocale);
+  if (fromCookie) return fromCookie;
+
   const acceptLanguage = (await headers()).get("accept-language") ?? "";
   const preferred = acceptLanguage.toLowerCase().split(",")[0]?.split("-")[0];
   return routing.locales.find((l) => l === preferred) ?? routing.defaultLocale;
