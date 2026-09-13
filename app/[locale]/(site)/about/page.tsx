@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { getTranslations } from "next-intl/server";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { PageShell } from "@/components/layout";
 import {
   DoctorProfileHero,
@@ -20,7 +20,13 @@ import { siteConfig } from "@/lib/site";
  */
 export const revalidate = 60;
 
-export async function generateMetadata(): Promise<Metadata> {
+interface PageProps {
+  params: Promise<{ locale: string }>;
+}
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { locale } = await params;
+  setRequestLocale(locale);
   const [doctor, t] = await Promise.all([
     getDoctorProfile(),
     getTranslations("about"),
@@ -31,7 +37,10 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export default async function AboutPage() {
+export default async function AboutPage({ params }: PageProps) {
+  const { locale } = await params;
+  setRequestLocale(locale);
+
   const [doctor, channels, t] = await Promise.all([
     getDoctorProfile(),
     getContactChannels(),

@@ -1,6 +1,6 @@
 import Image from "next/image";
 import type { Metadata } from "next";
-import { getLocale, getTranslations } from "next-intl/server";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { getSiteSettings } from "@/lib/admin/queries";
 import { PageShell } from "@/components/layout";
 import {
@@ -22,7 +22,14 @@ import {
   getVideos,
 } from "@/lib/api";
 
-export async function generateMetadata(): Promise<Metadata> {
+interface PageProps {
+  params: Promise<{ locale: string }>;
+  searchParams: Promise<{ q?: string }>;
+}
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { locale } = await params;
+  setRequestLocale(locale);
   const t = await getTranslations("articles");
   return {
     title: t("metaTitle"),
@@ -30,16 +37,14 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-interface PageProps {
-  searchParams: Promise<{ q?: string }>;
-}
+export default async function ArticlesPage({ params, searchParams }: PageProps) {
+  const { locale } = await params;
+  setRequestLocale(locale);
 
-export default async function ArticlesPage({ searchParams }: PageProps) {
-  const [{ q }, settings, t, locale] = await Promise.all([
+  const [{ q }, settings, t] = await Promise.all([
     searchParams,
     getSiteSettings(),
     getTranslations("articles"),
-    getLocale(),
   ]);
 
   /* Əsas məqalə siyahıdan kənarlaşdırılır — əvvəlcə onu tapmaq lazımdır */

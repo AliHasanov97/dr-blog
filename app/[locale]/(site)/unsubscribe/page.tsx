@@ -1,20 +1,23 @@
 import type { Metadata } from "next";
-import { getTranslations } from "next-intl/server";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { PageShell } from "@/components/layout";
 import { ButtonLink, Card, Icon } from "@/components/ui";
 import { dbFindSubscriberByToken } from "@/lib/db/contact";
 import { UnsubscribeConfirm } from "./UnsubscribeConfirm";
 
-export async function generateMetadata(): Promise<Metadata> {
+interface PageProps {
+  params: Promise<{ locale: string }>;
+  searchParams: Promise<{ token?: string }>;
+}
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { locale } = await params;
+  setRequestLocale(locale);
   const t = await getTranslations("unsubscribe");
   return {
     title: t("metaTitle"),
     robots: { index: false, follow: false },
   };
-}
-
-interface PageProps {
-  searchParams: Promise<{ token?: string }>;
 }
 
 /**
@@ -25,7 +28,10 @@ interface PageProps {
  * yaratdı: Gmail məktubdakı linkləri təhlükəsizlik üçün avtomatik açır,
  * nəticədə abunəçi heç nə etmədən siyahıdan düşürdü.
  */
-export default async function UnsubscribePage({ searchParams }: PageProps) {
+export default async function UnsubscribePage({ params, searchParams }: PageProps) {
+  const { locale } = await params;
+  setRequestLocale(locale);
+
   const [{ token }, t] = await Promise.all([
     searchParams,
     getTranslations("unsubscribe"),

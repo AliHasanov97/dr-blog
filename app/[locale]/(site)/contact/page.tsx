@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { getTranslations } from "next-intl/server";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { PageShell } from "@/components/layout";
 import {
   ContactChannelCard,
@@ -23,7 +23,13 @@ import {
  */
 export const revalidate = 60;
 
-export async function generateMetadata(): Promise<Metadata> {
+interface PageProps {
+  params: Promise<{ locale: string }>;
+}
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { locale } = await params;
+  setRequestLocale(locale);
   const [doctor, t] = await Promise.all([
     getDoctorProfile(),
     getTranslations("contact"),
@@ -34,7 +40,10 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export default async function ContactPage() {
+export default async function ContactPage({ params }: PageProps) {
+  const { locale } = await params;
+  setRequestLocale(locale);
+
   const [channels, office, faq, doctor, t] = await Promise.all([
     getContactChannels(),
     getOfficeLocation(),

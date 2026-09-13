@@ -1,11 +1,18 @@
+import { setRequestLocale } from "next-intl/server";
 import { SiteHeader, BottomNav, SiteFooter, SplashScreen } from "@/components/layout";
 import { getSearchIndex, getDoctorProfile } from "@/lib/api";
 import { getSiteSettings } from "@/lib/admin/queries";
 
+interface SiteLayoutProps {
+  children: React.ReactNode;
+  params: Promise<{ locale: string }>;
+}
+
 /** Publik saytın bəzəyi: üst panel, altlıq və mobil naviqasiya */
-export default async function SiteLayout({
-  children,
-}: Readonly<{ children: React.ReactNode }>) {
+export default async function SiteLayout({ children, params }: SiteLayoutProps) {
+  const { locale } = await params;
+  setRequestLocale(locale);
+
   /* Parametrlər admin panelindən idarə olunur. Əvvəllər burada mock anbarı
    * oxunurdu — baza rejimində admin nə saxlasa da açılış ekranı dəyişmirdi. */
   const [searchSuggestions, settings, doctor] = await Promise.all([

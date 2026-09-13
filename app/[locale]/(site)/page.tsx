@@ -1,4 +1,4 @@
-import { getTranslations } from "next-intl/server";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { getSiteSettings } from "@/lib/admin/queries";
 import { Container, PageShell } from "@/components/layout";
 import { HomeArticleFeed, HomeHero, StatStrip } from "@/components/home";
@@ -17,7 +17,14 @@ import {
  */
 export const revalidate = 60;
 
-export default async function HomePage() {
+interface PageProps {
+  params: Promise<{ locale: string }>;
+}
+
+export default async function HomePage({ params }: PageProps) {
+  const { locale } = await params;
+  setRequestLocale(locale);
+
   const [doctor, articlesPage, filters, settings, t] = await Promise.all([
     getDoctorProfile(),
     getArticles({ pageSize: 6 }),

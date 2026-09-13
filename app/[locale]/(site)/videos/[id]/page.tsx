@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { getTranslations } from "next-intl/server";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { PageShell } from "@/components/layout";
 import { ArticleVideo } from "@/components/article";
 import { Badge, ButtonLink, Icon } from "@/components/ui";
@@ -9,11 +9,13 @@ import { getVideoById } from "@/lib/api";
 import { extractYouTubeId } from "@/lib/youtube";
 
 interface PageProps {
-  params: Promise<{ id: string }>;
+  params: Promise<{ locale: string; id: string }>;
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const [{ id }, t] = await Promise.all([params, getTranslations("videos")]);
+  const { locale, id } = await params;
+  setRequestLocale(locale);
+  const t = await getTranslations("videos");
   const video = await getVideoById(id);
   if (!video) return { title: t("metaFallbackTitle") };
   return {
@@ -23,8 +25,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 export default async function VideoPage({ params }: PageProps) {
-  const [{ id }, t, tNav] = await Promise.all([
-    params,
+  const { locale, id } = await params;
+  setRequestLocale(locale);
+
+  const [t, tNav] = await Promise.all([
     getTranslations("videos"),
     getTranslations("nav"),
   ]);

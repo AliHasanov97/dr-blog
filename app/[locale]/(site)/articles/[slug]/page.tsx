@@ -1,7 +1,7 @@
 import Image from "next/image";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { getLocale, getTranslations } from "next-intl/server";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Container } from "@/components/layout";
 import { Link } from "@/i18n/navigation";
 import {
@@ -29,7 +29,7 @@ import {
 } from "@/lib/api";
 
 interface PageProps {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ locale: string; slug: string }>;
 }
 
 /* Səhifə statik qurulur, amma baxış/bəyənmə sayğacları dəyişir —
@@ -52,7 +52,9 @@ export async function generateStaticParams() {
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const [{ slug }, t] = await Promise.all([params, getTranslations("article")]);
+  const { locale, slug } = await params;
+  setRequestLocale(locale);
+  const t = await getTranslations("article");
   const article = await getArticleBySlug(slug);
   if (!article) return { title: t("metaNotFound") };
 
@@ -69,17 +71,18 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 export default async function ArticleDetailPage({ params }: PageProps) {
-  const { slug } = await params;
+  const { locale, slug } = await params;
+  setRequestLocale(locale);
+
   const article = await getArticleBySlug(slug);
 
   if (!article) notFound();
 
-  const [comments, related, settings, t, locale] = await Promise.all([
+  const [comments, related, settings, t] = await Promise.all([
     getComments(slug),
     getRelatedArticles(slug),
     getSiteSettings(),
     getTranslations("article"),
-    getLocale(),
   ]);
 
   const commentsOpen =
