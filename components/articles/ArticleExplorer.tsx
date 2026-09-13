@@ -1,6 +1,6 @@
 "use client";
 
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { ArticleCard } from "./ArticleCard";
 import {
@@ -47,6 +47,7 @@ export function ArticleExplorer({
   initialQuery = "",
 }: ArticleExplorerProps) {
   const t = useTranslations("articles");
+  const locale = useLocale();
   const [query, setQuery] = useState(initialQuery);
   const [activeSlug, setActiveSlug] = useState(categories[0]?.slug ?? "hamisi");
   const headingRef = useRef<HTMLDivElement>(null);
@@ -73,6 +74,7 @@ export function ArticleExplorer({
         page: nextPage,
         pageSize,
         excludeSlug: featuredSlug,
+        locale,
       });
       setItems((prev) =>
         append ? [...prev, ...result.items] : result.items,
@@ -81,7 +83,7 @@ export function ArticleExplorer({
       setTotalPages(result.totalPages);
       setPage(result.page);
     },
-    [pageSize, featuredSlug],
+    [pageSize, featuredSlug, locale],
   );
 
   /*

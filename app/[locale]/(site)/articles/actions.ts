@@ -12,6 +12,8 @@ export interface ArticlePageRequest {
   pageSize: number;
   /** Yuxarıda ayrıca göstərilən əsas məqalə — siyahıya düşmür */
   excludeSlug?: string;
+  /** Sayt dili — verilməsə cari dilə görə süzülmür (bax: `getArticles`) */
+  locale?: string;
 }
 
 export interface ArticlePageResult {
@@ -47,13 +49,16 @@ export async function fetchArticlePage(
       : undefined;
 
   try {
-    const result = await getArticles({
-      search,
-      categorySlug,
-      page,
-      pageSize,
-      excludeSlug: request.excludeSlug || undefined,
-    });
+    const result = await getArticles(
+      {
+        search,
+        categorySlug,
+        page,
+        pageSize,
+        excludeSlug: request.excludeSlug || undefined,
+      },
+      request.locale,
+    );
     return {
       items: result.items,
       total: result.total,
