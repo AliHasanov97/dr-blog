@@ -5,7 +5,7 @@ import { getMessages, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
 import Script from "next/script";
 import { routing, type AppLocale } from "@/i18n/routing";
-import { RootHeadAssets } from "@/components/layout";
+import { RootHeadAssets, ThemeSync } from "@/components/layout";
 import { siteConfig } from "@/lib/site";
 import { getSiteSettings } from "@/lib/admin/queries";
 import { newsreader, jakarta } from "@/lib/fonts";
@@ -107,6 +107,7 @@ export default async function LocaleLayout({
         <RootHeadAssets />
       </head>
       <body className="min-h-screen antialiased selection:bg-secondary/20 selection:text-secondary">
+        <ThemeSync />
         <NextIntlClientProvider messages={messages}>
           {children}
         </NextIntlClientProvider>

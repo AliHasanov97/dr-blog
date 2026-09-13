@@ -12,5 +12,6 @@ export type { PageShellProps } from "./PageShell";
 export { SplashScreen } from "./SplashScreen";
 export type { SplashScreenProps } from "./SplashScreen";
 export { ThemeToggle } from "./ThemeToggle";
+export { ThemeSync } from "./ThemeSync";
 export { PreferencesMenu } from "./PreferencesMenu";
 export { RootHeadAssets } from "./RootHeadAssets";
