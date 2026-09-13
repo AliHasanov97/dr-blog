@@ -3,14 +3,43 @@
 import { useState, useTransition } from "react";
 import { ImagePicker, RepeaterField } from "@/components/admin";
 import { Button, Icon, TextAreaField, TextField } from "@/components/ui";
-import type { DoctorProfile } from "@/lib/types";
+import type { Credential, DoctorProfile, DoctorStat, ResearchArea, TimelineEntry } from "@/lib/types";
 import { updateDoctorProfile, type DoctorPayload } from "./actions";
 import { cn } from "@/lib/utils";
 
 const DOCTOR_IMAGE_SCOPE = { kind: "doctor" as const };
 
+/**
+ * Admin sorğusu xam Prisma qeydini qaytarır — `DoctorProfile` (publik tip)
+ * bu sahələri daşımır, ona görə formanın öz tipi var.
+ */
 export interface DoctorProfileFormProps {
-  doctor: DoctorProfile;
+  doctor: DoctorProfile & {
+    shortTitleRu?: string | null;
+    fullTitleRu?: string | null;
+    taglineRu?: string | null;
+    biographyRu?: string | null;
+    quoteRu?: string | null;
+    credentialsRu?: Credential[] | null;
+    statsRu?: DoctorStat[] | null;
+    educationRu?: TimelineEntry[] | null;
+    researchAreasRu?: ResearchArea[] | null;
+  };
+}
+
+type Lang = "az" | "ru";
+
+/** Dilə görə dəyişən sahələr — hər dilin öz nüsxəsi var */
+interface Translatable {
+  shortTitle: string;
+  fullTitle: string;
+  tagline: string;
+  biography: string;
+  quote: string;
+  credentials: Credential[];
+  stats: DoctorStat[];
+  education: TimelineEntry[];
+  researchAreas: ResearchArea[];
 }
 
 const STEPS = [
@@ -43,18 +72,48 @@ export function DoctorProfileForm({ doctor }: DoctorProfileFormProps) {
     { tone: "ok" | "error"; text: string } | null
   >(null);
 
+  /* Ad, şəkillər — dilə görə dəyişmir, bütün saytda eynidir */
   const [fullName, setFullName] = useState(doctor.fullName);
-  const [shortTitle, setShortTitle] = useState(doctor.shortTitle);
-  const [fullTitle, setFullTitle] = useState(doctor.fullTitle);
   const [avatarUrl, setAvatarUrl] = useState(doctor.avatarUrl);
   const [portraitUrl, setPortraitUrl] = useState(doctor.portraitUrl);
-  const [tagline, setTagline] = useState(doctor.tagline);
-  const [biography, setBiography] = useState(doctor.biography);
-  const [quote, setQuote] = useState(doctor.quote);
-  const [credentials, setCredentials] = useState(doctor.credentials);
-  const [stats, setStats] = useState(doctor.stats);
-  const [education, setEducation] = useState(doctor.education);
-  const [researchAreas, setResearchAreas] = useState(doctor.researchAreas);
+
+  /*
+   * Dilə görə dəyişən hər şey — bioqrafiya, titul, sitat, nişanlar,
+   * statistika, təhsil, tədqiqat sahələri — iki ayrı dəstdə saxlanılır.
+   * Redaktor "Rus dili" tab-ına keçəndə eyni sahələr, amma RU məzmunu
+   * göstərilir; "Yadda saxla" HƏR İKİ dili birlikdə göndərir.
+   */
+  const [lang, setLang] = useState<Lang>("az");
+  const [content, setContent] = useState<Record<Lang, Translatable>>({
+    az: {
+      shortTitle: doctor.shortTitle,
+      fullTitle: doctor.fullTitle,
+      tagline: doctor.tagline,
+      biography: doctor.biography,
+      quote: doctor.quote,
+      credentials: doctor.credentials,
+      stats: doctor.stats,
+      education: doctor.education,
+      researchAreas: doctor.researchAreas,
+    },
+    ru: {
+      shortTitle: doctor.shortTitleRu ?? "",
+      fullTitle: doctor.fullTitleRu ?? "",
+      tagline: doctor.taglineRu ?? "",
+      biography: doctor.biographyRu ?? "",
+      quote: doctor.quoteRu ?? "",
+      credentials: doctor.credentialsRu ?? [],
+      stats: doctor.statsRu ?? [],
+      education: doctor.educationRu ?? [],
+      researchAreas: doctor.researchAreasRu ?? [],
+    },
+  });
+
+  const cur = content[lang];
+
+  function update<K extends keyof Translatable>(key: K, value: Translatable[K]) {
+    setContent((prev) => ({ ...prev, [lang]: { ...prev[lang], [key]: value } }));
+  }
 
   function submit() {
     if (!fullName.trim()) {
@@ -65,17 +124,26 @@ export function DoctorProfileForm({ doctor }: DoctorProfileFormProps) {
     }
     const payload: DoctorPayload = {
       fullName,
-      shortTitle,
-      fullTitle,
       avatarUrl,
       portraitUrl,
-      tagline,
-      biography,
-      quote,
-      credentials,
-      stats,
-      education,
-      researchAreas,
+      shortTitle: content.az.shortTitle,
+      shortTitleRu: content.ru.shortTitle,
+      fullTitle: content.az.fullTitle,
+      fullTitleRu: content.ru.fullTitle,
+      tagline: content.az.tagline,
+      taglineRu: content.ru.tagline,
+      biography: content.az.biography,
+      biographyRu: content.ru.biography,
+      quote: content.az.quote,
+      quoteRu: content.ru.quote,
+      credentials: content.az.credentials,
+      credentialsRu: content.ru.credentials,
+      stats: content.az.stats,
+      statsRu: content.ru.stats,
+      education: content.az.education,
+      educationRu: content.ru.education,
+      researchAreas: content.az.researchAreas,
+      researchAreasRu: content.ru.researchAreas,
     };
     startTransition(async () => {
       const result = await updateDoctorProfile(payload);
@@ -93,24 +161,21 @@ export function DoctorProfileForm({ doctor }: DoctorProfileFormProps) {
   // Kredensial əlavə et
   function addCredential(text: string) {
     if (!text.trim()) return;
-    setCredentials([...credentials, { icon: "verified", label: text.trim() }]);
+    update("credentials", [...cur.credentials, { icon: "verified", label: text.trim() }]);
   }
 
   // Stat əlavə et
   function addStat(value: string, label: string) {
     if (!value.trim() || !label.trim()) return;
-    setStats([...stats, { value: value.trim(), label: label.trim() }]);
+    update("stats", [...cur.stats, { value: value.trim(), label: label.trim() }]);
   }
 
   // Tədqiqat sahəsi əlavə et
   function addResearchArea(iconName: string) {
-    const iconData = RESEARCH_ICONS.find(i => i.icon === iconName);
-    setResearchAreas([...researchAreas, {
-      id: crypto.randomUUID(),
-      icon: iconName,
-      title: "",
-      description: "",
-    }]);
+    update("researchAreas", [
+      ...cur.researchAreas,
+      { id: crypto.randomUUID(), icon: iconName, title: "", description: "" },
+    ]);
   }
 
   // Önizləmə komponenti
@@ -127,15 +192,15 @@ export function DoctorProfileForm({ doctor }: DoctorProfileFormProps) {
                 </div>
                 <div>
                   <p className="font-medium text-sm">{fullName || "Ad Soyad"}</p>
-                  <p className="text-xs text-outline">{shortTitle || "Titul"}</p>
+                  <p className="text-xs text-outline">{cur.shortTitle || "Titul"}</p>
                 </div>
               </div>
             </div>
             <div className="p-3 rounded-lg bg-secondary/10 border border-secondary/20">
               <p className="text-xs text-outline mb-2">Ana səhifə Hero</p>
               <h3 className="font-headline text-lg mb-1">{fullName || "Ad Soyad"}</h3>
-              <p className="text-sm text-on-surface-variant mb-1">{fullTitle || "Tam titul"}</p>
-              <p className="text-xs text-outline">{tagline || "Qısa xülasə"}</p>
+              <p className="text-sm text-on-surface-variant mb-1">{cur.fullTitle || "Tam titul"}</p>
+              <p className="text-xs text-outline">{cur.tagline || "Qısa xülasə"}</p>
             </div>
           </div>
         );
@@ -146,13 +211,13 @@ export function DoctorProfileForm({ doctor }: DoctorProfileFormProps) {
             <div className="p-3 rounded-lg bg-secondary/10 border border-secondary/20">
               <p className="text-xs text-outline mb-2">Haqqında səhifəsi</p>
               <p className="text-sm text-on-surface-variant leading-relaxed line-clamp-4">
-                {biography || "Bioqrafiya mətni..."}
+                {cur.biography || "Bioqrafiya mətni..."}
               </p>
             </div>
             <div className="p-3 rounded-lg bg-primary-container/30 border border-primary-container">
               <p className="text-xs text-outline mb-2">Sitat bloku</p>
               <blockquote className="text-sm italic border-l-2 border-secondary pl-3">
-                "{quote || "Sitat..."}"
+                "{cur.quote || "Sitat..."}"
               </blockquote>
             </div>
           </div>
@@ -164,7 +229,7 @@ export function DoctorProfileForm({ doctor }: DoctorProfileFormProps) {
             <div className="p-3 rounded-lg bg-secondary/10 border border-secondary/20">
               <p className="text-xs text-outline mb-2">Nişanlar</p>
               <div className="flex flex-wrap gap-2">
-                {credentials.length > 0 ? credentials.map((c, i) => (
+                {cur.credentials.length > 0 ? cur.credentials.map((c, i) => (
                   <span key={i} className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-surface-container text-xs">
                     <Icon name="verified" size={12} className="text-secondary" />
                     {c.label}
@@ -175,7 +240,7 @@ export function DoctorProfileForm({ doctor }: DoctorProfileFormProps) {
             <div className="p-3 rounded-lg bg-primary-container/30 border border-primary-container">
               <p className="text-xs text-outline mb-2">Statistika</p>
               <div className="grid grid-cols-2 gap-2">
-                {stats.length > 0 ? stats.map((s, i) => (
+                {cur.stats.length > 0 ? cur.stats.map((s, i) => (
                   <div key={i} className="text-center p-2 rounded bg-surface-container/50">
                     <p className="font-bold text-secondary">{s.value}</p>
                     <p className="text-xs text-outline">{s.label}</p>
@@ -191,11 +256,11 @@ export function DoctorProfileForm({ doctor }: DoctorProfileFormProps) {
           <div className="p-3 rounded-lg bg-secondary/10 border border-secondary/20">
             <p className="text-xs text-outline mb-3">Haqqında səhifəsi - Təhsil</p>
             <div className="relative">
-              {education.length > 1 && (
+              {cur.education.length > 1 && (
                 <div className="absolute left-[7px] top-3 bottom-3 w-0.5 bg-secondary/30" />
               )}
               <div className="space-y-3">
-                {education.length > 0 ? education.map((e, i) => (
+                {cur.education.length > 0 ? cur.education.map((e, i) => (
                   <div key={i} className="flex gap-3 text-sm relative">
                     <div className="w-4 h-4 rounded-full bg-secondary shrink-0 mt-0.5 z-10" />
                     <div className="flex-1">
@@ -215,7 +280,7 @@ export function DoctorProfileForm({ doctor }: DoctorProfileFormProps) {
           <div className="p-3 rounded-lg bg-secondary/10 border border-secondary/20">
             <p className="text-xs text-outline mb-3">Tədqiqat sahələri</p>
             <div className="space-y-2">
-              {researchAreas.length > 0 ? researchAreas.map((r, i) => (
+              {cur.researchAreas.length > 0 ? cur.researchAreas.map((r, i) => (
                 <div key={i} className="flex items-start gap-2 p-2 rounded bg-surface-container/50">
                   <Icon name={r.icon || "science"} size={16} className="text-secondary mt-0.5" />
                   <div>
@@ -234,7 +299,30 @@ export function DoctorProfileForm({ doctor }: DoctorProfileFormProps) {
   }
 
   return (
-    <div className="flex flex-col lg:flex-row gap-space-md">
+    <div className="flex flex-col gap-space-sm">
+      {/*
+        * Dil tab-ı — bioqrafiya, titul, nişanlar və s. dilə görə dəyişir.
+        * Ad və şəkillər yuxarıda paylaşılır (bütün dillərdə eynidir).
+        */}
+      <div className="flex items-center gap-space-xs rounded-xl border border-surface-container bg-surface-container-lowest p-space-2xs w-fit">
+        {(["az", "ru"] as const).map((l) => (
+          <button
+            key={l}
+            type="button"
+            onClick={() => setLang(l)}
+            className={cn(
+              "px-space-md py-space-2xs rounded-lg font-label text-label-md font-semibold transition-colors",
+              lang === l
+                ? "bg-secondary text-on-secondary"
+                : "text-on-surface-variant hover:bg-surface-container",
+            )}
+          >
+            {l === "az" ? "Azərbaycan dili" : "Rus dili"}
+          </button>
+        ))}
+      </div>
+
+      <div className="flex flex-col lg:flex-row gap-space-md">
       {/* Sidebar Stepper */}
       <div className="lg:w-48 shrink-0">
         <div className="lg:sticky lg:top-20 rounded-xl border border-surface-container bg-surface-container-lowest p-space-sm">
@@ -332,20 +420,20 @@ export function DoctorProfileForm({ doctor }: DoctorProfileFormProps) {
                     required
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
-                    hint="Saytın hər yerində görünür"
+                    hint="Saytın hər yerində görünür, dildən asılı olmayaraq"
                     error={submitAttempted && !fullName.trim() ? "Ad boş ola bilməz" : undefined}
                   />
-                  <TextField label="Qısa titul" placeholder="Pediatrik kardioloq" value={shortTitle} onChange={(e) => setShortTitle(e.target.value)} hint="Header və altlıqda" />
-                  <TextField label="Tam titul" placeholder="Tibb üzrə fəlsəfə doktoru" value={fullTitle} onChange={(e) => setFullTitle(e.target.value)} hint="Hero və Haqqında səhifəsində" />
-                  <TextField label="Qısa xülasə" placeholder="18+ İl Təcrübə • 48 Elmi Məqalə" value={tagline} onChange={(e) => setTagline(e.target.value)} hint="Hero-da görünür" />
+                  <TextField label="Qısa titul" placeholder="Pediatrik kardioloq" value={cur.shortTitle} onChange={(e) => update("shortTitle", e.target.value)} hint="Header və altlıqda" />
+                  <TextField label="Tam titul" placeholder="Tibb üzrə fəlsəfə doktoru" value={cur.fullTitle} onChange={(e) => update("fullTitle", e.target.value)} hint="Hero və Haqqında səhifəsində" />
+                  <TextField label="Qısa xülasə" placeholder="18+ İl Təcrübə • 48 Elmi Məqalə" value={cur.tagline} onChange={(e) => update("tagline", e.target.value)} hint="Hero-da görünür" />
                 </div>
               )}
 
               {/* Step 1: Bioqrafiya */}
               {step === 1 && (
                 <div className="grid gap-space-md">
-                  <TextAreaField label="Bioqrafiya" rows={6} value={biography} onChange={(e) => setBiography(e.target.value)} hint="Haqqında səhifəsində əsas mətn" />
-                  <TextAreaField label="Sitat" rows={3} placeholder="Həkimlik sadəcə peşə deyil..." value={quote} onChange={(e) => setQuote(e.target.value)} hint="Xüsusi blokda vurğulanır" />
+                  <TextAreaField label="Bioqrafiya" rows={6} value={cur.biography} onChange={(e) => update("biography", e.target.value)} hint="Haqqında səhifəsində əsas mətn" />
+                  <TextAreaField label="Sitat" rows={3} placeholder="Həkimlik sadəcə peşə deyil..." value={cur.quote} onChange={(e) => update("quote", e.target.value)} hint="Xüsusi blokda vurğulanır" />
                 </div>
               )}
 
@@ -359,13 +447,13 @@ export function DoctorProfileForm({ doctor }: DoctorProfileFormProps) {
 
                     {/* Mövcud nişanlar */}
                     <div className="flex flex-wrap gap-2 mb-3">
-                      {credentials.map((c, i) => (
+                      {cur.credentials.map((c, i) => (
                         <span key={i} className="inline-flex items-center gap-1.5 pl-3 pr-1.5 py-1.5 rounded-full bg-secondary/10 text-sm group">
                           <Icon name="verified" size={14} className="text-secondary" />
                           {c.label}
                           <button
                             type="button"
-                            onClick={() => setCredentials(credentials.filter((_, idx) => idx !== i))}
+                            onClick={() => update("credentials", cur.credentials.filter((_, idx) => idx !== i))}
                             className="w-5 h-5 rounded-full hover:bg-error/20 flex items-center justify-center text-outline hover:text-error transition-colors"
                           >
                             <Icon name="close" size={12} />
@@ -411,7 +499,7 @@ export function DoctorProfileForm({ doctor }: DoctorProfileFormProps) {
 
                     {/* Mövcud statistikalar */}
                     <div className="grid gap-2 mb-3">
-                      {stats.map((s, i) => (
+                      {cur.stats.map((s, i) => (
                         <div key={i} className="flex items-center gap-3 p-3 rounded-lg bg-surface-container/50 group">
                           <div className="flex-1 flex items-center gap-3">
                             <span className="font-bold text-secondary text-lg min-w-[60px]">{s.value}</span>
@@ -419,7 +507,7 @@ export function DoctorProfileForm({ doctor }: DoctorProfileFormProps) {
                           </div>
                           <button
                             type="button"
-                            onClick={() => setStats(stats.filter((_, idx) => idx !== i))}
+                            onClick={() => update("stats", cur.stats.filter((_, idx) => idx !== i))}
                             className="w-8 h-8 rounded-full hover:bg-error/20 flex items-center justify-center text-outline hover:text-error transition-colors opacity-0 group-hover:opacity-100"
                           >
                             <Icon name="delete" size={16} />
@@ -479,13 +567,13 @@ export function DoctorProfileForm({ doctor }: DoctorProfileFormProps) {
                   {/* Timeline */}
                   <div className="relative">
                     {/* Vertical line */}
-                    {education.length > 0 && (
+                    {cur.education.length > 0 && (
                       <div className="absolute left-[19px] top-6 bottom-6 w-0.5 bg-surface-container" />
                     )}
 
                     {/* Education items */}
                     <div className="space-y-4 mb-4">
-                      {education.map((e, i) => (
+                      {cur.education.map((e, i) => (
                         <div key={i} className="relative flex gap-4">
                           {/* Timeline dot */}
                           <div className="w-10 h-10 rounded-full bg-secondary/10 border-2 border-secondary flex items-center justify-center shrink-0 z-10">
@@ -500,10 +588,10 @@ export function DoctorProfileForm({ doctor }: DoctorProfileFormProps) {
                                 type="text"
                                 value={e.period.split("–")[0]?.trim() || ""}
                                 onChange={(ev) => {
-                                  const updated = [...education];
+                                  const updated = [...cur.education];
                                   const endYear = e.period.split("–")[1]?.trim() || "";
                                   updated[i] = { ...updated[i], period: `${ev.target.value} – ${endYear}` };
-                                  setEducation(updated);
+                                  update("education", updated);
                                 }}
                                 placeholder="2000"
                                 className="w-20 h-9 px-3 rounded-md border border-outline-variant bg-transparent text-sm text-center font-medium focus:border-secondary focus:outline-none"
@@ -513,10 +601,10 @@ export function DoctorProfileForm({ doctor }: DoctorProfileFormProps) {
                                 type="text"
                                 value={e.period.split("–")[1]?.trim() || ""}
                                 onChange={(ev) => {
-                                  const updated = [...education];
+                                  const updated = [...cur.education];
                                   const startYear = e.period.split("–")[0]?.trim() || "";
                                   updated[i] = { ...updated[i], period: `${startYear} – ${ev.target.value}` };
-                                  setEducation(updated);
+                                  update("education", updated);
                                 }}
                                 placeholder="2006"
                                 className="w-20 h-9 px-3 rounded-md border border-outline-variant bg-transparent text-sm text-center font-medium focus:border-secondary focus:outline-none"
@@ -524,7 +612,7 @@ export function DoctorProfileForm({ doctor }: DoctorProfileFormProps) {
                               <div className="flex-1" />
                               <button
                                 type="button"
-                                onClick={() => setEducation(education.filter((_, idx) => idx !== i))}
+                                onClick={() => update("education", cur.education.filter((_, idx) => idx !== i))}
                                 className="w-8 h-8 rounded-full hover:bg-error/20 flex items-center justify-center text-outline hover:text-error transition-colors"
                               >
                                 <Icon name="delete" size={16} />
@@ -536,9 +624,9 @@ export function DoctorProfileForm({ doctor }: DoctorProfileFormProps) {
                               type="text"
                               value={e.institution}
                               onChange={(ev) => {
-                                const updated = [...education];
+                                const updated = [...cur.education];
                                 updated[i] = { ...updated[i], institution: ev.target.value };
-                                setEducation(updated);
+                                update("education", updated);
                               }}
                               placeholder="Universitet / Qurum adı"
                               className="w-full h-10 px-3 rounded-md border border-outline-variant bg-transparent text-sm font-medium focus:border-secondary focus:outline-none mb-2"
@@ -549,9 +637,9 @@ export function DoctorProfileForm({ doctor }: DoctorProfileFormProps) {
                               type="text"
                               value={e.description}
                               onChange={(ev) => {
-                                const updated = [...education];
+                                const updated = [...cur.education];
                                 updated[i] = { ...updated[i], description: ev.target.value };
-                                setEducation(updated);
+                                update("education", updated);
                               }}
                               placeholder="Dərəcə / İxtisas (məs: Tibb üzrə fəlsəfə doktoru)"
                               className="w-full h-9 px-3 rounded-md border border-outline-variant bg-transparent text-sm text-on-surface-variant focus:border-secondary focus:outline-none"
@@ -564,7 +652,7 @@ export function DoctorProfileForm({ doctor }: DoctorProfileFormProps) {
                     {/* Add new */}
                     <button
                       type="button"
-                      onClick={() => setEducation([...education, { id: crypto.randomUUID(), period: "", institution: "", description: "" }])}
+                      onClick={() => update("education", [...cur.education, { id: crypto.randomUUID(), period: "", institution: "", description: "" }])}
                       className="flex items-center gap-3 w-full p-3 rounded-lg border-2 border-dashed border-outline-variant hover:border-secondary hover:bg-secondary/5 transition-colors group"
                     >
                       <div className="w-10 h-10 rounded-full bg-surface-container group-hover:bg-secondary/10 flex items-center justify-center transition-colors">
@@ -584,7 +672,7 @@ export function DoctorProfileForm({ doctor }: DoctorProfileFormProps) {
 
                   {/* Mövcud sahələr */}
                   <div className="space-y-3 mb-4">
-                    {researchAreas.map((r, i) => (
+                    {cur.researchAreas.map((r, i) => (
                       <div key={i} className="p-4 rounded-lg border border-surface-container bg-surface-container/30">
                         <div className="flex items-start gap-3">
                           <div className="w-10 h-10 rounded-lg bg-secondary/10 flex items-center justify-center shrink-0">
@@ -595,9 +683,9 @@ export function DoctorProfileForm({ doctor }: DoctorProfileFormProps) {
                               type="text"
                               value={r.title}
                               onChange={(e) => {
-                                const updated = [...researchAreas];
+                                const updated = [...cur.researchAreas];
                                 updated[i] = { ...updated[i], title: e.target.value };
-                                setResearchAreas(updated);
+                                update("researchAreas", updated);
                               }}
                               placeholder="Sahə adı"
                               className="w-full h-9 px-3 rounded-md border border-outline-variant bg-transparent text-sm font-medium focus:border-secondary focus:outline-none"
@@ -605,9 +693,9 @@ export function DoctorProfileForm({ doctor }: DoctorProfileFormProps) {
                             <textarea
                               value={r.description}
                               onChange={(e) => {
-                                const updated = [...researchAreas];
+                                const updated = [...cur.researchAreas];
                                 updated[i] = { ...updated[i], description: e.target.value };
-                                setResearchAreas(updated);
+                                update("researchAreas", updated);
                               }}
                               placeholder="Qısa izah (istəyə bağlı)"
                               rows={2}
@@ -616,7 +704,7 @@ export function DoctorProfileForm({ doctor }: DoctorProfileFormProps) {
                           </div>
                           <button
                             type="button"
-                            onClick={() => setResearchAreas(researchAreas.filter((_, idx) => idx !== i))}
+                            onClick={() => update("researchAreas", cur.researchAreas.filter((_, idx) => idx !== i))}
                             className="w-8 h-8 rounded-full hover:bg-error/20 flex items-center justify-center text-outline hover:text-error transition-colors"
                           >
                             <Icon name="delete" size={16} />
@@ -679,6 +767,7 @@ export function DoctorProfileForm({ doctor }: DoctorProfileFormProps) {
             </div>
           </div>
         </div>
+      </div>
       </div>
     </div>
   );

@@ -26,7 +26,7 @@ export default async function HomePage({ params }: PageProps) {
   setRequestLocale(locale);
 
   const [doctor, articlesPage, filters, settings, t] = await Promise.all([
-    getDoctorProfile(),
+    getDoctorProfile(locale),
     getArticles({ pageSize: 6 }, locale),
     getHomeFilters(locale),
     getSiteSettings(),

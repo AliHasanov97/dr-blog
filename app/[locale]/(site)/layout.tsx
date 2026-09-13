@@ -19,7 +19,7 @@ export default async function SiteLayout({ children, params }: SiteLayoutProps) 
     /* Yalnız bir neçə təklif — bütün indeks deyil */
     getSearchIndex(undefined, 6, locale),
     getSiteSettings(),
-    getDoctorProfile(),
+    getDoctorProfile(locale),
   ]);
   const { loadingText, loadingLogo, loadingShowText, loadingShowLogo } = settings;
 

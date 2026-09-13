@@ -6,11 +6,11 @@ import { dbGetDoctorProfile } from "@/lib/db/doctor";
 import { safeDb } from "./safe";
 
 /** Həkimin profil məlumatları */
-export async function getDoctorProfile(): Promise<DoctorProfile> {
+export async function getDoctorProfile(locale?: string): Promise<DoctorProfile> {
   if (!USE_MOCK) {
     /* Baza əlçatan deyilsə sayt açılmağa davam etsin — profil
      * standart məzmunla göstərilir, ISR onu özü yeniləyir. */
-    const profile = await safeDb("həkim profili", dbGetDoctorProfile, null);
+    const profile = await safeDb("həkim profili", () => dbGetDoctorProfile(locale), null);
     return profile ?? store.doctor;
   }
   return mockResponse(store.doctor);

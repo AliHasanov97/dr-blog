@@ -159,6 +159,9 @@ model Comment {
 
 model DoctorProfile {
   id          String  @id @default(cuid())
+  /**
+   * Ad tərcümə olunmur — bütün dillərdə eynidir
+   */
   fullName    String
   shortTitle  String
   fullTitle   String
@@ -169,12 +172,29 @@ model DoctorProfile {
   biography   String?
   quote       String?
 
+  /**
+   * Rus dilində variantlar — boş qalsa RU saytda AZ mətn geri qayıdır.
+   * Profil BİR qeyddir (tək həkim), ona görə hər sahə öz tərcüməsini
+   * daşıyır — məqalə kimi ayrı qeydə bölünmür.
+   */
+  shortTitleRu String?
+  fullTitleRu  String?
+  taglineRu    String?
+  biographyRu  String?
+  quoteRu      String?
+
   // JSON fields for complex nested data
   credentials   Json? // Credential[]
   stats         Json? // DoctorStat[]
   education     Json? // TimelineEntry[]
   researchAreas Json? // ResearchArea[]
   socialLinks   Json? // SocialLink[]
+
+  // Yuxarıdakı JSON sahələrin RU variantları
+  credentialsRu   Json? // Credential[]
+  statsRu         Json? // DoctorStat[]
+  educationRu     Json? // TimelineEntry[]
+  researchAreasRu Json? // ResearchArea[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

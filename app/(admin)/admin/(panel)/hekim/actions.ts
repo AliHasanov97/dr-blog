@@ -14,17 +14,26 @@ import type {
 
 export interface DoctorPayload {
   fullName: string;
-  shortTitle: string;
-  fullTitle: string;
   avatarUrl: string;
   portraitUrl: string;
+  shortTitle: string;
+  shortTitleRu: string;
+  fullTitle: string;
+  fullTitleRu: string;
   tagline: string;
+  taglineRu: string;
   biography: string;
+  biographyRu: string;
   quote: string;
+  quoteRu: string;
   credentials: Credential[];
+  credentialsRu: Credential[];
   stats: DoctorStat[];
+  statsRu: DoctorStat[];
   education: TimelineEntry[];
+  educationRu: TimelineEntry[];
   researchAreas: ResearchArea[];
+  researchAreasRu: ResearchArea[];
 }
 
 export async function updateDoctorProfile(
@@ -42,23 +51,40 @@ export async function updateDoctorProfile(
     ...r,
     id: r.id || nextId("ra"),
   }));
+  const educationRu = payload.educationRu.map((e) => ({
+    ...e,
+    id: e.id || nextId("edu"),
+  }));
+  const researchAreasRu = payload.researchAreasRu.map((r) => ({
+    ...r,
+    id: r.id || nextId("ra"),
+  }));
 
   if (!USE_MOCK) {
     // Database mode
     const { dbUpdateDoctorProfile } = await import("@/lib/db/admin");
     await dbUpdateDoctorProfile({
       fullName: payload.fullName,
-      shortTitle: payload.shortTitle,
-      fullTitle: payload.fullTitle,
       avatarUrl: payload.avatarUrl,
       portraitUrl: payload.portraitUrl,
+      shortTitle: payload.shortTitle,
+      shortTitleRu: payload.shortTitleRu || null,
+      fullTitle: payload.fullTitle,
+      fullTitleRu: payload.fullTitleRu || null,
       tagline: payload.tagline,
+      taglineRu: payload.taglineRu || null,
       biography: payload.biography,
+      biographyRu: payload.biographyRu || null,
       quote: payload.quote,
+      quoteRu: payload.quoteRu || null,
       credentials: payload.credentials,
+      credentialsRu: payload.credentialsRu,
       stats: payload.stats,
+      statsRu: payload.statsRu,
       education,
+      educationRu,
       researchAreas,
+      researchAreasRu,
     });
 
     revalidatePath("/", "layout");

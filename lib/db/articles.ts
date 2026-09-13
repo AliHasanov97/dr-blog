@@ -186,7 +186,7 @@ export async function dbGetArticles(
       take: pageSize,
     }),
     prisma.article.count({ where }),
-    dbGetArticleAuthor(),
+    dbGetArticleAuthor(locale),
     formatCtx(locale),
   ]);
 
@@ -212,7 +212,7 @@ export async function dbGetFeaturedArticle(locale?: string): Promise<ArticleSumm
       },
       orderBy: { publishedAt: "desc" },
     }),
-    dbGetArticleAuthor(),
+    dbGetArticleAuthor(locale),
     formatCtx(locale),
   ]);
 
@@ -234,7 +234,7 @@ export async function dbGetArticleBySlug(slug: string, locale?: string): Promise
         },
       },
     }),
-    dbGetArticleAuthor(),
+    dbGetArticleAuthor(locale),
     formatCtx(locale),
   ]);
 
@@ -286,7 +286,7 @@ export async function dbGetRelatedArticles(
       orderBy: { publishedAt: "desc" },
       take: limit,
     }),
-    dbGetArticleAuthor(),
+    dbGetArticleAuthor(locale),
     formatCtx(locale),
   ]);
 
