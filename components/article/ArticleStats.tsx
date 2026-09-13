@@ -1,5 +1,6 @@
 "use client";
 
+import { useLocale, useTranslations } from "next-intl";
 import { Icon } from "@/components/ui";
 import { useArticleLike } from "./useArticleLike";
 import { cn } from "@/lib/utils";
@@ -22,21 +23,22 @@ export function ArticleStats({
   likeCount,
   commentCount,
 }: ArticleStatsProps) {
+  const t = useTranslations("article");
   const { liked, count, toggle } = useArticleLike(slug, likeCount);
 
   return (
     <div className="grid grid-cols-3 gap-space-xs">
-      <Stat icon="visibility" value={viewCount} label="Baxış" />
+      <Stat icon="visibility" value={viewCount} label={t("statViews")} />
       <Stat
         icon={liked ? "favorite" : "favorite_border"}
         value={count}
-        label={liked ? "Bəyəndiniz" : "Bəyənmə"}
+        label={liked ? t("statLiked") : t("statLike")}
         filled={liked}
         active={liked}
         onClick={toggle}
-        title={liked ? "Bəyənməni geri götür" : "Məqaləni bəyən"}
+        title={liked ? t("unlikeTitle") : t("likeTitle")}
       />
-      <Stat icon="forum" value={commentCount} label="Rəy" href="#serhler" />
+      <Stat icon="forum" value={commentCount} label={t("statComments")} href="#serhler" />
     </div>
   );
 }
@@ -60,6 +62,7 @@ function Stat({
   href?: string;
   title?: string;
 }) {
+  const locale = useLocale();
   const body = (
     <>
       <Icon
@@ -69,7 +72,7 @@ function Stat({
         className={active ? "text-secondary" : "text-secondary"}
       />
       <span className="font-headline text-headline-sm text-on-surface">
-        {value.toLocaleString("az-AZ")}
+        {value.toLocaleString(locale)}
       </span>
       <span className="font-label text-label-sm text-outline">{label}</span>
     </>

@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import { CollapsiblePanel } from "@/components/ui";
 import type { ArticleReference } from "@/lib/types";
 
@@ -8,13 +9,14 @@ export interface ReferencesPanelProps {
 
 export function ReferencesPanel({
   references,
-  title = "İstifadə olunmuş elmi ədəbiyyat",
+  title,
 }: ReferencesPanelProps) {
+  const t = useTranslations("article");
   /* Elmi ədəbiyyat istifadə olunmayan məqalədə boş panel göstərməyə dəyməz */
   if (references.length === 0) return null;
 
   return (
-    <CollapsiblePanel title={title} icon="science">
+    <CollapsiblePanel title={title ?? t("referencesTitle")} icon="science">
       <ol className="flex flex-col gap-space-sm">
         {references.map((ref, index) => (
           <li

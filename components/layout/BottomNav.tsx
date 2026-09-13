@@ -1,18 +1,24 @@
 "use client";
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Icon } from "@/components/ui";
+import { Link, usePathname } from "@/i18n/navigation";
 import { navItems } from "@/lib/site";
 import { cn } from "@/lib/utils";
 
+/** Desktop naviqasiyada qısa etiket lazımdır — yalnız "articles" üçün fərqlidir */
+function shortNavKey(key: (typeof navItems)[number]["key"]) {
+  return key === "articles" ? "articlesShort" : key;
+}
+
 /** Mobil alt naviqasiya — desktopda gizlədilir */
 export function BottomNav() {
+  const t = useTranslations("nav");
   const pathname = usePathname();
 
   return (
     <nav
-      aria-label="Mobil naviqasiya"
+      aria-label={t("mobileAriaLabel")}
       className="lg:hidden fixed bottom-0 inset-x-0 z-50 pb-safe bg-surface-bright/95 backdrop-blur-xl shadow-[0_-4px_24px_rgba(17,28,45,0.06)]"
     >
       <div className="flex justify-around items-center h-20 px-space-xs">
@@ -34,7 +40,7 @@ export function BottomNav() {
             >
               <Icon name={item.icon} size={22} filled={active} className="mb-0.5" />
               <span className="font-label text-label-sm leading-tight text-center">
-                {item.shortLabel}
+                {t(shortNavKey(item.key))}
               </span>
               <span
                 className={cn(

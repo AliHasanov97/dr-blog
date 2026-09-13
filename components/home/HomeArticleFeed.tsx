@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
 import { ArticleCard } from "@/components/articles";
 import { ChipGroup, EmptyState, SearchBar, SectionHeader } from "@/components/ui";
@@ -15,6 +16,7 @@ export interface HomeArticleFeedProps {
  * Axtarış və tab filtrləri klient tərəfində işləyir (mock mərhələsi).
  */
 export function HomeArticleFeed({ articles, filters }: HomeArticleFeedProps) {
+  const t = useTranslations("home");
   const [query, setQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState(filters[0]?.slug ?? "");
 
@@ -46,11 +48,11 @@ export function HomeArticleFeed({ articles, filters }: HomeArticleFeedProps) {
   return (
     <section className="flex flex-col gap-space-lg">
       <SectionHeader
-        kicker="Redaksiya"
-        title="Məqalələr və Elmi İcmallar"
+        kicker={t("editorialKicker")}
+        title={t("articlesSectionTitle")}
         icon="auto_stories"
-        actionLabel="Bütün Məqalələr"
-        actionHref="/meqaleler"
+        actionLabel={t("allArticles")}
+        actionHref="/articles"
       />
 
       <div className="flex flex-col gap-space-sm lg:flex-row lg:items-center lg:justify-between">
@@ -64,15 +66,16 @@ export function HomeArticleFeed({ articles, filters }: HomeArticleFeedProps) {
           <SearchBar
             value={query}
             onChange={setQuery}
-            placeholder="Məqalə və ya simptom axtar..."
+            placeholder={t("searchPlaceholder")}
+            clearLabel={t("clearSearch")}
           />
         </div>
       </div>
 
       {visible.length === 0 ? (
         <EmptyState
-          title="Nəticə tapılmadı"
-          description="Axtarış sözünü dəyişin və ya başqa kateqoriya seçin."
+          title={t("noResultsTitle")}
+          description={t("noResultsHint")}
         />
       ) : (
         <div className="flex flex-col gap-space-lg">

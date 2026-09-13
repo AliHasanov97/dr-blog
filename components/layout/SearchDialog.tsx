@@ -1,7 +1,6 @@
 "use client";
 
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import {
   useCallback,
   useEffect,
@@ -11,7 +10,8 @@ import {
   type KeyboardEvent,
 } from "react";
 import { Icon } from "@/components/ui";
-import { searchArticles } from "@/app/(site)/actions";
+import { Link, useRouter } from "@/i18n/navigation";
+import { searchArticles } from "@/app/[locale]/(site)/actions";
 import type { SearchIndexItem } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -69,6 +69,7 @@ export function SearchDialog({
   onClose,
   suggestions,
 }: SearchDialogProps) {
+  const t = useTranslations("search");
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
@@ -140,14 +141,14 @@ export function SearchDialog({
   const go = useCallback(
     (slug: string) => {
       onClose();
-      router.push(`/meqaleler/${slug}`);
+      router.push(`/articles/${slug}`);
     },
     [onClose, router],
   );
 
   const submitAll = useCallback(() => {
     onClose();
-    router.push(query.trim() ? `/meqaleler?q=${encodeURIComponent(query.trim())}` : "/meqaleler");
+    router.push(query.trim() ? `/articles?q=${encodeURIComponent(query.trim())}` : "/articles");
   }, [onClose, query, router]);
 
   function handleKeyDown(event: KeyboardEvent<HTMLDivElement>) {
@@ -182,14 +183,14 @@ export function SearchDialog({
     <div
       role="dialog"
       aria-modal="true"
-      aria-label="Saytda axtarış"
+      aria-label={t("dialogAriaLabel")}
       onKeyDown={handleKeyDown}
       className="fixed inset-0 z-[60] flex items-start justify-center px-margin-mobile pt-24 lg:pt-32"
     >
       {/* Fon */}
       <button
         type="button"
-        aria-label="Axtarışı bağla"
+        aria-label={t("closeAriaLabel")}
         onClick={onClose}
         className="absolute inset-0 bg-inverse-surface/45 backdrop-blur-sm animate-[fadeIn_.15s_ease-out]"
       />
@@ -206,8 +207,8 @@ export function SearchDialog({
               setQuery(e.target.value);
               setActiveIndex(0);
             }}
-            placeholder="Məqalə, mövzu və ya simptom axtarın..."
-            aria-label="Axtarış sorğusu"
+            placeholder={t("placeholder")}
+            aria-label={t("inputAriaLabel")}
             className="flex-1 bg-transparent border-none outline-none font-body text-body-md text-on-surface placeholder:text-outline"
           />
           {query && (
@@ -218,7 +219,7 @@ export function SearchDialog({
                 setActiveIndex(0);
                 inputRef.current?.focus();
               }}
-              aria-label="Təmizlə"
+              aria-label={t("clearAriaLabel")}
               className="text-outline hover:text-on-surface"
             >
               <Icon name="close" size={18} />
@@ -233,28 +234,28 @@ export function SearchDialog({
         <div className="max-h-[min(60vh,26rem)] overflow-y-auto">
           {loading ? (
             <p className="py-space-2xl text-center font-body text-body-sm text-outline">
-              Axtarılır...
+              {t("loading")}
             </p>
           ) : results.length === 0 ? (
             <div className="flex flex-col items-center gap-space-xs py-space-2xl px-space-md text-center">
               <Icon name="search_off" size={32} className="text-outline" />
               <p className="font-headline text-headline-sm text-on-surface">
-                «{query}» üzrə nəticə tapılmadı
+                {t("noResultsTitle", { query })}
               </p>
               <p className="font-body text-body-sm text-on-surface-variant">
-                Başqa açar söz sınayın və ya bütün məqalələrə baxın.
+                {t("noResultsHint")}
               </p>
             </div>
           ) : (
             <>
               <p className="px-space-md pt-space-sm font-label text-label-sm uppercase tracking-wider text-outline">
-                {q ? `${results.length} nəticə` : "Son məqalələr"}
+                {q ? t("resultsCount", { count: results.length }) : t("recentArticles")}
               </p>
               <ul ref={listRef} className="p-space-xs">
                 {results.map((item, i) => (
                   <li key={item.slug}>
                     <Link
-                      href={`/meqaleler/${item.slug}`}
+                      href={`/articles/${item.slug}`}
                       onClick={onClose}
                       onMouseEnter={() => setActiveIndex(i)}
                       className={cn(
@@ -305,11 +306,11 @@ export function SearchDialog({
             <span className="inline-flex items-center gap-1">
               <kbd className="rounded border border-outline-variant px-1">↑</kbd>
               <kbd className="rounded border border-outline-variant px-1">↓</kbd>
-              naviqasiya
+              {t("navigationHint")}
             </span>
             <span className="inline-flex items-center gap-1">
               <kbd className="rounded border border-outline-variant px-1">↵</kbd>
-              aç
+              {t("openHint")}
             </span>
           </span>
           <button
@@ -317,7 +318,7 @@ export function SearchDialog({
             onClick={submitAll}
             className="ms-auto inline-flex items-center gap-1 font-label text-label-sm font-semibold text-secondary hover:underline"
           >
-            Bütün məqalələrdə axtar
+            {t("searchAllCta")}
             <Icon name="arrow_forward" size={14} />
           </button>
         </div>

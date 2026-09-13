@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useState, type FormEvent } from "react";
 import {
   Alert,
@@ -11,14 +12,20 @@ import {
   TextAreaField,
   TextField,
 } from "@/components/ui";
-import { sendContactMessage } from "@/app/(site)/actions";
-import { inquiryTypeOptions } from "@/lib/mock/contact";
+import { sendContactMessage } from "@/app/[locale]/(site)/actions";
 import type {
   ContactFormErrors,
   ContactFormValues,
   InquiryType,
 } from "@/lib/types";
 import { cn } from "@/lib/utils";
+
+const INQUIRY_TYPES: InquiryType[] = [
+  "scientific",
+  "collaboration",
+  "press",
+  "general",
+];
 
 export interface ContactFormProps {
   title?: string;
@@ -42,41 +49,48 @@ const emptyValues: ContactFormValues = {
 function validate(
   values: ContactFormValues,
   opts: { withConsent: boolean; withSubject: boolean },
+  t: ReturnType<typeof useTranslations>,
 ): ContactFormErrors {
   const errors: ContactFormErrors = {};
 
   if (values.fullName.trim().length < 3) {
-    errors.fullName = "Ad və soyadınızı tam yazın (ən azı 3 simvol).";
+    errors.fullName = t("errorFullName");
   }
 
   const isEmail = /^\S+@\S+\.\S+$/.test(values.contact.trim());
   const isPhone = /^[+\d][\d\s()-]{8,}$/.test(values.contact.trim());
   if (!isEmail && !isPhone) {
-    errors.contact = "Düzgün e-poçt və ya telefon nömrəsi daxil edin.";
+    errors.contact = t("errorContact");
   }
 
   if (opts.withSubject && values.subject.trim().length < 3) {
-    errors.subject = "Müraciətin mövzusunu qeyd edin.";
+    errors.subject = t("errorSubject");
   }
 
   if (values.message.trim().length < 10) {
-    errors.message = "Mesajınız ən azı 10 simvoldan ibarət olmalıdır.";
+    errors.message = t("errorMessage");
   }
 
   if (opts.withConsent && !values.consent) {
-    errors.consent = "Davam etmək üçün şərtlərlə razılaşmalısınız.";
+    errors.consent = t("errorConsent");
   }
 
   return errors;
 }
 
 export function ContactForm({
-  title = "Müraciət Forması",
-  description = "Məqalə təhlilləri, akademik çıxış təklifləri və ya mətbuat suallarınızı təqdim edin.",
+  title,
+  description,
   withConsent = true,
   withSubject = true,
   className,
 }: ContactFormProps) {
+  const t = useTranslations("contact.form");
+  const tTypes = useTranslations("contact.inquiryTypes");
+  const inquiryTypeOptions = INQUIRY_TYPES.map((value) => ({
+    value,
+    label: tTypes(value),
+  }));
   const [values, setValues] = useState<ContactFormValues>(emptyValues);
   const [errors, setErrors] = useState<ContactFormErrors>({});
   const [status, setStatus] = useState<
@@ -95,7 +109,7 @@ export function ContactForm({
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
-    const nextErrors = validate(values, { withConsent, withSubject });
+    const nextErrors = validate(values, { withConsent, withSubject }, t);
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length > 0) return;
 
@@ -109,7 +123,7 @@ export function ContactForm({
       if (result.success) setValues(emptyValues);
     } catch {
       setStatus("failed");
-      setFeedback("Müraciət göndərilmədi. Bir azdan yenidən cəhd edin.");
+      setFeedback(t("submitFailedRetry"));
     }
   }
 
@@ -117,16 +131,16 @@ export function ContactForm({
     <Card className={cn("flex flex-col gap-space-md", className)}>
       <div className="flex flex-col gap-0.5">
         <span className="font-headline text-headline-md text-on-surface">
-          {title}
+          {title ?? t("defaultTitle")}
         </span>
         <p className="font-body text-body-sm text-on-surface-variant leading-relaxed">
-          {description}
+          {description ?? t("defaultDescription")}
         </p>
       </div>
 
       <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-space-md">
         <SelectField
-          label="Müraciət Növü"
+          label={t("inquiryTypeLabel")}
           options={inquiryTypeOptions}
           value={values.inquiryType}
           onChange={(e) => update("inquiryType", e.target.value as InquiryType)}
@@ -134,20 +148,20 @@ export function ContactForm({
 
         <div className="grid gap-space-md sm:grid-cols-2">
           <TextField
-            label="Adınız və Soyadınız"
+            label={t("fullNameLabel")}
             required
             icon="person"
             autoComplete="name"
-            placeholder="Məs. Aygün Məmmədova"
+            placeholder={t("fullNamePlaceholder")}
             value={values.fullName}
             error={errors.fullName}
             onChange={(e) => update("fullName", e.target.value)}
           />
           <TextField
-            label="Əlaqə Vasitəsi (Telefon / E-poçt)"
+            label={t("contactLabel")}
             required
             icon="contact_mail"
-            placeholder="poct@unvan.az və ya +994 ..."
+            placeholder={t("contactPlaceholder")}
             value={values.contact}
             error={errors.contact}
             onChange={(e) => update("contact", e.target.value)}
@@ -156,9 +170,9 @@ export function ContactForm({
 
         {withSubject && (
           <TextField
-            label="Müraciətin Mövzusu"
+            label={t("subjectLabel")}
             required
-            placeholder="Qısa başlıq"
+            placeholder={t("subjectPlaceholder")}
             value={values.subject}
             error={errors.subject}
             onChange={(e) => update("subject", e.target.value)}
@@ -166,10 +180,10 @@ export function ContactForm({
         )}
 
         <TextAreaField
-          label="Mesajınız və ya Şərhiniz"
+          label={t("messageLabel")}
           required
           rows={5}
-          placeholder="Müraciətinizin mətnini yazın..."
+          placeholder={t("messagePlaceholder")}
           value={values.message}
           error={errors.message}
           onChange={(e) => update("message", e.target.value)}
@@ -177,7 +191,7 @@ export function ContactForm({
 
         {withConsent && (
           <CheckboxField
-            label="Fərdi məlumatların qorunması, elmi etik prinsiplər və konfidensiallıq şərtləri ilə razıyam."
+            label={t("consentLabel")}
             checked={values.consent}
             error={errors.consent}
             onChange={(checked) => update("consent", checked)}
@@ -191,7 +205,7 @@ export function ContactForm({
           size="lg"
           disabled={status === "sending"}
         >
-          {status === "sending" ? "Göndərilir..." : "Mesajı Göndər"}
+          {status === "sending" ? t("sending") : t("submitCta")}
         </Button>
 
         {status === "sent" && (
@@ -208,8 +222,7 @@ export function ContactForm({
 
         <p className="flex items-start gap-1 font-label text-label-sm text-outline leading-relaxed">
           <Icon name="schedule" size={14} className="mt-0.5" />
-          Müraciətiniz həkim və ya assistenti tərəfindən 24-48 saat ərzində
-          cavablandırılacaqdır.
+          {t("responseTimeHint")}
         </p>
       </form>
     </Card>

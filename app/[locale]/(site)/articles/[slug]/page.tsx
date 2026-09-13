@@ -1,8 +1,9 @@
 import Image from "next/image";
-import Link from "next/link";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { getLocale, getTranslations } from "next-intl/server";
 import { Container } from "@/components/layout";
+import { Link } from "@/i18n/navigation";
 import {
   ArticleActionBar,
   ArticleBody,
@@ -51,9 +52,9 @@ export async function generateStaticParams() {
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const { slug } = await params;
+  const [{ slug }, t] = await Promise.all([params, getTranslations("article")]);
   const article = await getArticleBySlug(slug);
-  if (!article) return { title: "Məqalə tapılmadı" };
+  if (!article) return { title: t("metaNotFound") };
 
   return {
     title: article.title,
@@ -73,10 +74,12 @@ export default async function ArticleDetailPage({ params }: PageProps) {
 
   if (!article) notFound();
 
-  const [comments, related, settings] = await Promise.all([
+  const [comments, related, settings, t, locale] = await Promise.all([
     getComments(slug),
     getRelatedArticles(slug),
     getSiteSettings(),
+    getTranslations("article"),
+    getLocale(),
   ]);
 
   const commentsOpen =
@@ -92,11 +95,11 @@ export default async function ArticleDetailPage({ params }: PageProps) {
           {/* Üst idarə lenti */}
           <div className="flex items-center justify-between gap-space-sm mb-space-md">
             <Link
-              href="/meqaleler"
+              href="/articles"
               className="inline-flex items-center gap-1 font-label text-label-lg text-on-surface-variant hover:text-secondary transition-colors"
             >
               <Icon name="arrow_back" size={18} />
-              Məqalələr
+              {t("backToArticles")}
             </Link>
             <ReaderControls />
           </div>
@@ -129,7 +132,7 @@ export default async function ArticleDetailPage({ params }: PageProps) {
                   <div className="flex flex-col gap-0.5 min-w-0">
                     <span className="flex items-center gap-1">
                       <span className="font-label text-label-lg text-on-surface truncate">
-                        Müəllif {article.author.fullName}
+                        {t("authorPrefix")} {article.author.fullName}
                       </span>
                       {article.author.isVerified && (
                         <Icon name="verified" size={15} className="text-secondary" filled />
@@ -168,7 +171,7 @@ export default async function ArticleDetailPage({ params }: PageProps) {
 
               <ShareCard
                 title={article.title}
-                url={`${siteUrl()}/meqaleler/${article.slug}`}
+                url={`${siteUrl()}/${locale}/articles/${article.slug}`}
               />
 
               <FeedbackBox slug={article.slug} articleTitle={article.title} />
@@ -179,7 +182,7 @@ export default async function ArticleDetailPage({ params }: PageProps) {
                 <CommentsSection
                   slug={article.slug}
                   initialComments={comments}
-                  totalLabel={`${article.commentCount} rəy`}
+                  totalLabel={t("commentCount", { count: article.commentCount })}
                 />
               )}
             </article>
@@ -193,7 +196,7 @@ export default async function ArticleDetailPage({ params }: PageProps) {
 
                 <Card className="flex flex-col gap-space-xs">
                   <span className="font-label text-label-md uppercase tracking-wider text-outline">
-                    Statistika
+                    {t("statistics")}
                   </span>
                   <ArticleStats
                     slug={article.slug}
@@ -205,7 +208,7 @@ export default async function ArticleDetailPage({ params }: PageProps) {
 
                 {related.length > 0 && (
                   <div className="flex flex-col gap-space-sm">
-                    <SectionHeader title="Oxşar məqalələr" icon="auto_stories" size="sm" />
+                    <SectionHeader title={t("relatedArticles")} icon="auto_stories" size="sm" />
                     {related.map((item) => (
                       <ArticleCard key={item.id} article={item} variant="compact" />
                     ))}
@@ -218,7 +221,7 @@ export default async function ArticleDetailPage({ params }: PageProps) {
           {/* Mobil oxşar məqalələr */}
           {related.length > 0 && (
             <section className="lg:hidden mt-space-xl flex flex-col gap-space-sm">
-              <SectionHeader title="Oxşar məqalələr" icon="auto_stories" size="sm" />
+              <SectionHeader title={t("relatedArticles")} icon="auto_stories" size="sm" />
               {related.map((item) => (
                 <ArticleCard key={item.id} article={item} variant="compact" />
               ))}

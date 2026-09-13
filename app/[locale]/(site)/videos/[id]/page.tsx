@@ -1,9 +1,10 @@
-import Link from "next/link";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 import { PageShell } from "@/components/layout";
 import { ArticleVideo } from "@/components/article";
 import { Badge, ButtonLink, Icon } from "@/components/ui";
+import { Link } from "@/i18n/navigation";
 import { getVideoById } from "@/lib/api";
 import { extractYouTubeId } from "@/lib/youtube";
 
@@ -12,9 +13,9 @@ interface PageProps {
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const { id } = await params;
+  const [{ id }, t] = await Promise.all([params, getTranslations("videos")]);
   const video = await getVideoById(id);
-  if (!video) return { title: "Video" };
+  if (!video) return { title: t("metaFallbackTitle") };
   return {
     title: video.title,
     description: video.description || undefined,
@@ -22,7 +23,11 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 export default async function VideoPage({ params }: PageProps) {
-  const { id } = await params;
+  const [{ id }, t, tNav] = await Promise.all([
+    params,
+    getTranslations("videos"),
+    getTranslations("nav"),
+  ]);
   const video = await getVideoById(id);
   if (!video) notFound();
 
@@ -31,11 +36,11 @@ export default async function VideoPage({ params }: PageProps) {
   return (
     <PageShell className="flex flex-col gap-space-lg max-w-3xl">
       <Link
-        href="/meqaleler"
+        href="/articles"
         className="inline-flex items-center gap-1 font-label text-label-lg text-on-surface-variant hover:text-secondary transition-colors"
       >
         <Icon name="arrow_back" size={18} />
-        Məqalələr
+        {tNav("articlesShort")}
       </Link>
 
       <div className="flex flex-col gap-space-sm">
@@ -51,7 +56,7 @@ export default async function VideoPage({ params }: PageProps) {
         <div className="rounded-xl border border-dashed border-outline-variant p-space-lg flex flex-col items-center gap-space-sm text-center">
           <Icon name="videocam_off" size={28} className="text-outline" />
           <p className="font-body text-body-sm text-on-surface-variant">
-            Bu video hələ əlavə olunmayıb.
+            {t("notAddedYet")}
           </p>
         </div>
       )}
@@ -69,7 +74,7 @@ export default async function VideoPage({ params }: PageProps) {
           variant="secondary"
           icon="open_in_new"
         >
-          YouTube-da aç
+          {t("openOnYoutube")}
         </ButtonLink>
       )}
     </PageShell>

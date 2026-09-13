@@ -23,7 +23,7 @@ function escapeHtml(value: string): string {
 
 /** Abunəlikdən çıxma linki — hər abunəçinin öz gizli tokeni ilə */
 export function unsubscribeUrl(token: string): string {
-  return `${siteUrl()}/abunelik/cixis?token=${encodeURIComponent(token)}`;
+  return `${siteUrl()}/unsubscribe?token=${encodeURIComponent(token)}`;
 }
 
 function layout(options: {
@@ -77,7 +77,7 @@ export function welcomeEmail(unsubscribeToken: string, brandName: string) {
         <p style="margin:0 0 24px;font-size:15px;line-height:24px">
           Bu arada saytdakı son məqalələrə baxa bilərsiniz:
         </p>
-        <a href="${url}/meqaleler"
+        <a href="${url}/articles"
            style="display:inline-block;background:${ACCENT};color:#ffffff;text-decoration:none;padding:12px 20px;border-radius:8px;font-size:15px;font-weight:600">
           Məqalələrə bax
         </a>`,
@@ -88,7 +88,7 @@ export function welcomeEmail(unsubscribeToken: string, brandName: string) {
       "Həftəlik Tibbi Bülletenə abunə olduğunuz üçün təşəkkür edirik.",
       "Elmi yenilikləri və kardiologiya təhlillərini birbaşa poçtunuzda alacaqsınız.",
       "",
-      `Məqalələr: ${url}/meqaleler`,
+      `Məqalələr: ${url}/articles`,
       "",
       `Abunəlikdən çıxmaq: ${unsubscribeUrl(unsubscribeToken)}`,
     ].join("\n"),

@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { Button, ButtonLink, Card, Icon } from "@/components/ui";
 import { confirmUnsubscribe } from "./actions";
@@ -30,9 +31,10 @@ export function UnsubscribeConfirm({
   email,
   alreadyInactive,
 }: UnsubscribeConfirmProps) {
+  const t = useTranslations("unsubscribe");
   const [state, setState] = useState<State>(
     alreadyInactive
-      ? { step: "done", message: "Bu ünvan artıq abunə siyahısında deyil." }
+      ? { step: "done", message: t("alreadyInactive") }
       : { step: "confirm" },
   );
   const [pending, setPending] = useState(false);
@@ -48,7 +50,7 @@ export function UnsubscribeConfirm({
     } catch {
       setState({
         step: "failed",
-        message: "Xəta baş verdi. Bir azdan yenidən cəhd edin.",
+        message: t("genericError"),
       });
     } finally {
       setPending(false);
@@ -81,16 +83,16 @@ export function UnsubscribeConfirm({
 
         <h1 className="font-headline text-headline-md text-on-surface">
           {state.step === "confirm"
-            ? "Abunəlikdən çıxmaq istəyirsiniz?"
+            ? t("confirmTitle")
             : done
-              ? "Abunəlik dayandırıldı"
-              : "Əməliyyat alınmadı"}
+              ? t("doneTitle")
+              : t("failedTitle")}
         </h1>
 
         {state.step === "confirm" ? (
           <>
             <p className="font-body text-body-md text-on-surface-variant leading-relaxed max-w-md">
-              Təsdiqləsəniz, bu ünvana bundan sonra bülleten göndərilməyəcək.
+              {t("confirmDescription")}
             </p>
             <p className="font-label text-label-sm text-outline">{email}</p>
             <Button
@@ -99,7 +101,7 @@ export function UnsubscribeConfirm({
               onClick={submit}
               className="mt-space-xs"
             >
-              {pending ? "Gözləyin..." : "Bəli, abunəlikdən çıxar"}
+              {pending ? t("pending") : t("confirmCta")}
             </Button>
           </>
         ) : (
@@ -112,16 +114,15 @@ export function UnsubscribeConfirm({
             )}
             {done && (
               <p className="font-body text-body-sm text-outline leading-relaxed max-w-md">
-                Fikrinizi dəyişsəniz, istənilən vaxt saytdakı bülleten
-                kartından yenidən abunə ola bilərsiniz.
+                {t("resubscribeHint")}
               </p>
             )}
           </>
         )}
       </Card>
 
-      <ButtonLink href="/" icon="home">
-        Ana səhifəyə qayıt
+      <ButtonLink href="/" localized icon="home">
+        {t("backHome")}
       </ButtonLink>
     </>
   );

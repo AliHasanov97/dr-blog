@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { Link as LocaleLink } from "@/i18n/navigation";
 import type { ButtonHTMLAttributes, ReactNode } from "react";
 import { Icon } from "./Icon";
 import { cn } from "@/lib/utils";
@@ -44,6 +45,12 @@ export interface ButtonProps
 export interface ButtonLinkProps extends CommonProps {
   href: string;
   external?: boolean;
+  /**
+   * Sayt daxilində (`/az`, `/ru` prefiksli) keçid — admin bu propu VERMİR,
+   * çünki admin heç bir prefiksdən istifadə etmir. Yalnız publik sayt
+   * komponentləri (`app/[locale]/(site)/**`) bunu `true` verməlidir.
+   */
+  localized?: boolean;
 }
 
 function baseClass({
@@ -87,6 +94,7 @@ export function Button({
 export function ButtonLink({
   href,
   external,
+  localized,
   variant = "primary",
   size = "md",
   icon,
@@ -107,11 +115,13 @@ export function ButtonLink({
     );
   }
 
+  const LinkComponent = localized ? LocaleLink : Link;
+
   return (
-    <Link href={href} className={cls}>
+    <LinkComponent href={href} className={cls}>
       {icon && iconPosition === "start" && <Icon name={icon} size={18} />}
       {children}
       {icon && iconPosition === "end" && <Icon name={icon} size={18} />}
-    </Link>
+    </LinkComponent>
   );
 }

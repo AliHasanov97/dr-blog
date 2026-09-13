@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useEffect } from "react";
 import { READING_SIZES as SIZES, useReadingSize } from "@/lib/reader-store";
 import { cn } from "@/lib/utils";
@@ -13,6 +14,7 @@ export interface ReaderControlsProps {
  * Ölçü `<html data-reading-size>` atributu ilə CSS-ə ötürülür.
  */
 export function ReaderControls({ className }: ReaderControlsProps) {
+  const t = useTranslations("article");
   /* Ölçü brauzerdə qalır — oxucu hər məqalədə tərcihini yenidən
    * seçməsin deyə. */
   const { size, setSize } = useReadingSize();
@@ -33,7 +35,7 @@ export function ReaderControls({ className }: ReaderControlsProps) {
           type="button"
           onClick={() => setSize(SIZES[Math.max(0, sizeIndex - 1)])}
           disabled={sizeIndex === 0}
-          aria-label="Şrifti kiçilt"
+          aria-label={t("decreaseFontSize")}
           className="w-9 h-9 flex items-center justify-center font-label text-label-lg text-on-surface-variant hover:bg-surface-container-low disabled:opacity-40"
         >
           A-
@@ -43,7 +45,7 @@ export function ReaderControls({ className }: ReaderControlsProps) {
           type="button"
           onClick={() => setSize(SIZES[Math.min(SIZES.length - 1, sizeIndex + 1)])}
           disabled={sizeIndex === SIZES.length - 1}
-          aria-label="Şrifti böyüt"
+          aria-label={t("increaseFontSize")}
           className="w-9 h-9 flex items-center justify-center font-label text-label-lg text-on-surface-variant hover:bg-surface-container-low disabled:opacity-40"
         >
           A+

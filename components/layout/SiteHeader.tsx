@@ -1,16 +1,21 @@
 "use client";
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import { Icon } from "@/components/ui";
 import { Logo } from "./Logo";
 import { Container } from "./Container";
+import { PreferencesMenu } from "./PreferencesMenu";
 import { SearchDialog } from "./SearchDialog";
-import { ThemeToggle } from "./ThemeToggle";
+import { Link, usePathname } from "@/i18n/navigation";
 import { navItems } from "@/lib/site";
 import type { DoctorProfile, SearchIndexItem } from "@/lib/types";
 import { cn } from "@/lib/utils";
+
+/** Desktop naviqasiyada qısa etiket lazımdır — yalnız "articles" üçün fərqlidir */
+function shortNavKey(key: (typeof navItems)[number]["key"]) {
+  return key === "articles" ? "articlesShort" : key;
+}
 
 export interface SiteHeaderProps {
   /** Axtarış qutusu boş olanda göstərilən təkliflər */
@@ -23,6 +28,7 @@ export interface SiteHeaderProps {
  * Mobil: loqo + axtarış. Desktop: əlavə olaraq üfüqi naviqasiya və ⌘K göstəricisi.
  */
 export function SiteHeader({ searchSuggestions, doctor }: SiteHeaderProps) {
+  const t = useTranslations("nav");
   const pathname = usePathname();
   const [searchOpen, setSearchOpen] = useState(false);
 
@@ -48,11 +54,11 @@ export function SiteHeader({ searchSuggestions, doctor }: SiteHeaderProps) {
     <>
       <header className="fixed top-0 inset-x-0 z-50 pt-safe bg-surface-bright/90 backdrop-blur-xl shadow-[0_1px_12px_rgba(17,28,45,0.05)]">
         <Container className="h-20 flex items-center justify-between gap-space-md">
-          <Logo doctor={doctor} contextLabel={current?.label} />
+          <Logo doctor={doctor} contextLabel={current ? t(current.key) : undefined} />
 
           <nav
             className="hidden lg:flex items-center gap-space-2xs"
-            aria-label="Əsas naviqasiya"
+            aria-label={t("ariaLabel")}
           >
             {navItems.map((item) => {
               const active =
@@ -72,7 +78,7 @@ export function SiteHeader({ searchSuggestions, doctor }: SiteHeaderProps) {
                   )}
                 >
                   <Icon name={item.icon} size={18} />
-                  {item.shortLabel}
+                  {t(shortNavKey(item.key))}
                 </Link>
               );
             })}
@@ -86,7 +92,7 @@ export function SiteHeader({ searchSuggestions, doctor }: SiteHeaderProps) {
               className="hidden md:flex items-center gap-space-xs h-10 w-56 lg:w-64 px-space-sm rounded-md border border-outline-variant bg-surface-container-low/70 text-outline hover:border-secondary/40 hover:bg-surface-container-low transition-colors"
             >
               <Icon name="search" size={18} />
-              <span className="font-body text-body-sm">Axtarış...</span>
+              <span className="font-body text-body-sm">{t("searchPlaceholder")}</span>
               <kbd className="ms-auto rounded border border-outline-variant px-1.5 py-0.5 font-label text-label-sm">
                 ⌘K
               </kbd>
@@ -96,13 +102,13 @@ export function SiteHeader({ searchSuggestions, doctor }: SiteHeaderProps) {
             <button
               type="button"
               onClick={() => setSearchOpen(true)}
-              aria-label="Axtarış"
+              aria-label={t("search")}
               className="md:hidden w-11 h-11 flex items-center justify-center rounded-full text-on-surface hover:bg-surface-container-low transition-colors"
             >
               <Icon name="search" size={22} />
             </button>
 
-            <ThemeToggle />
+            <PreferencesMenu />
           </div>
         </Container>
       </header>

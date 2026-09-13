@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { ArticleCard } from "./ArticleCard";
 import {
@@ -9,7 +10,7 @@ import {
   SearchBar,
   SectionHeader,
 } from "@/components/ui";
-import { fetchArticlePage } from "@/app/(site)/meqaleler/actions";
+import { fetchArticlePage } from "@/app/[locale]/(site)/articles/actions";
 import type { ArticleSummary, Category } from "@/lib/types";
 
 export interface ArticleExplorerProps {
@@ -45,6 +46,7 @@ export function ArticleExplorer({
   featuredSlug,
   initialQuery = "",
 }: ArticleExplorerProps) {
+  const t = useTranslations("articles");
   const [query, setQuery] = useState(initialQuery);
   const [activeSlug, setActiveSlug] = useState(categories[0]?.slug ?? "hamisi");
   const headingRef = useRef<HTMLDivElement>(null);
@@ -117,7 +119,8 @@ export function ArticleExplorer({
       <SearchBar
         value={query}
         onChange={setQuery}
-        placeholder="Məqalə, mövzu və ya termin axtarın..."
+        placeholder={t("explorerSearchPlaceholder")}
+        clearLabel={t("clearSearch")}
       />
 
       <ChipGroup
@@ -128,24 +131,24 @@ export function ArticleExplorer({
       />
 
       <SectionHeader
-        title="Klinik Məqalələr və İcmallar"
+        title={t("explorerTitle")}
         icon="library_books"
         hint={
           pending && visible.length === 0
-            ? "Axtarılır..."
-            : `${matchCount} nəticə`
+            ? t("searching")
+            : t("resultsCount", { count: matchCount })
         }
       />
 
       {visible.length === 0 ? (
         pending ? (
           <p className="py-space-xl text-center font-body text-body-md text-outline">
-            Yüklənir...
+            {t("loadingEllipsis")}
           </p>
         ) : (
           <EmptyState
-            title="Bu kateqoriyada məqalə yoxdur"
-            description="Filtri sıfırlayın və ya başqa açar söz sınayın."
+            title={t("emptyCategoryTitle")}
+            description={t("emptyCategoryHint")}
           />
         )
       ) : (
@@ -164,7 +167,7 @@ export function ArticleExplorer({
             disabled={pending}
             onClick={loadMore}
           >
-            {pending ? "Yüklənir..." : "Daha çox məqalə"}
+            {pending ? t("loadingEllipsis") : t("loadMore")}
           </Button>
           <span className="font-label text-label-sm text-outline">
             {visible.length} / {matchCount}

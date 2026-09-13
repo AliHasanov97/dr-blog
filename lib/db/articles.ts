@@ -1,3 +1,4 @@
+import { getLocale, getTranslations } from "next-intl/server";
 import { prisma } from "@/lib/prisma";
 import type {
   Article,
@@ -37,7 +38,19 @@ export interface ArticleQuery {
   pageSize?: number;
 }
 
-function toSummary(article: any, author: Author): ArticleSummary {
+/** Sayt dilinə görə dəyişən mətnlər — tarix formatı və hesablanan etiketlər */
+interface FormatCtx {
+  locale: string;
+  t: Awaited<ReturnType<typeof getTranslations>>;
+}
+
+/** Hər sorğu üçün bir dəfə hazırlanır (locale + tərcümələr) */
+async function formatCtx(): Promise<FormatCtx> {
+  const [locale, t] = await Promise.all([getLocale(), getTranslations("siteData")]);
+  return { locale, t };
+}
+
+function toSummary(article: any, author: Author, ctx: FormatCtx): ArticleSummary {
   return {
     id: article.id,
     slug: article.slug,
@@ -52,7 +65,7 @@ function toSummary(article: any, author: Author): ArticleSummary {
     coverImageUrl: article.coverImageUrl ?? undefined,
     publishedAt: article.publishedAt?.toISOString().split("T")[0] ?? "",
     publishedAtLabel: article.publishedAt
-      ? new Intl.DateTimeFormat("az", {
+      ? new Intl.DateTimeFormat(ctx.locale, {
           day: "numeric",
           month: "long",
           year: "numeric"
@@ -61,7 +74,7 @@ function toSummary(article: any, author: Author): ArticleSummary {
     referenceCount: Array.isArray(article.references) ? article.references.length : 0,
     referenceLabel:
       Array.isArray(article.references) && article.references.length > 0
-        ? `${article.references.length} istinad`
+        ? ctx.t("referencesCount", { count: article.references.length })
         : undefined,
     viewCount: article.viewCount,
     isFeatured: article.isFeatured,
@@ -72,8 +85,8 @@ function toSummary(article: any, author: Author): ArticleSummary {
   };
 }
 
-function toFullArticle(article: any, author: Author): Article {
-  const summary = toSummary(article, author);
+function toFullArticle(article: any, author: Author, ctx: FormatCtx): Article {
+  const summary = toSummary(article, author, ctx);
   /*
    * Məzmun siyahısı bazadakı `tableOfContents` sahəsindən deyil, bloklardan
    * hesablanır. Səbəb: o sahə yalnız admin panelindən yadda saxlayanda
@@ -136,7 +149,7 @@ export async function dbGetArticles(
     ];
   }
 
-  const [articles, total, author] = await Promise.all([
+  const [articles, total, author, ctx] = await Promise.all([
     prisma.article.findMany({
       where,
       include: {
@@ -148,10 +161,11 @@ export async function dbGetArticles(
     }),
     prisma.article.count({ where }),
     dbGetArticleAuthor(),
+    formatCtx(),
   ]);
 
   return {
-    items: articles.map((a) => toSummary(a, author ?? FALLBACK_AUTHOR)),
+    items: articles.map((a) => toSummary(a, author ?? FALLBACK_AUTHOR, ctx)),
     page,
     pageSize,
     total,
@@ -160,7 +174,7 @@ export async function dbGetArticles(
 }
 
 export async function dbGetFeaturedArticle(): Promise<ArticleSummary | null> {
-  const [article, author] = await Promise.all([
+  const [article, author, ctx] = await Promise.all([
     prisma.article.findFirst({
       where: {
         status: ArticleStatus.PUBLISHED,
@@ -172,13 +186,14 @@ export async function dbGetFeaturedArticle(): Promise<ArticleSummary | null> {
       orderBy: { publishedAt: "desc" },
     }),
     dbGetArticleAuthor(),
+    formatCtx(),
   ]);
 
-  return article ? toSummary(article, author ?? FALLBACK_AUTHOR) : null;
+  return article ? toSummary(article, author ?? FALLBACK_AUTHOR, ctx) : null;
 }
 
 export async function dbGetArticleBySlug(slug: string): Promise<Article | null> {
-  const [article, author] = await Promise.all([
+  const [article, author, ctx] = await Promise.all([
     prisma.article.findFirst({
       where: {
         slug,
@@ -192,9 +207,10 @@ export async function dbGetArticleBySlug(slug: string): Promise<Article | null> 
       },
     }),
     dbGetArticleAuthor(),
+    formatCtx(),
   ]);
 
-  return article ? toFullArticle(article, author ?? FALLBACK_AUTHOR) : null;
+  return article ? toFullArticle(article, author ?? FALLBACK_AUTHOR, ctx) : null;
 }
 
 /**
@@ -227,7 +243,7 @@ export async function dbGetRelatedArticles(
 
   if (!current) return [];
 
-  const [articles, author] = await Promise.all([
+  const [articles, author, ctx] = await Promise.all([
     prisma.article.findMany({
       where: {
         status: ArticleStatus.PUBLISHED,
@@ -241,16 +257,20 @@ export async function dbGetRelatedArticles(
       take: limit,
     }),
     dbGetArticleAuthor(),
+    formatCtx(),
   ]);
 
-  return articles.map((a) => toSummary(a, author ?? FALLBACK_AUTHOR));
+  return articles.map((a) => toSummary(a, author ?? FALLBACK_AUTHOR, ctx));
 }
 
 export async function dbGetComments(slug: string): Promise<Comment[]> {
-  const article = await prisma.article.findUnique({
-    where: { slug },
-    select: { id: true },
-  });
+  const [article, { locale }] = await Promise.all([
+    prisma.article.findUnique({
+      where: { slug },
+      select: { id: true },
+    }),
+    formatCtx(),
+  ]);
 
   if (!article) return [];
 
@@ -280,7 +300,7 @@ export async function dbGetComments(slug: string): Promise<Comment[]> {
     authorAvatarUrl: root.authorAvatarUrl ?? undefined,
     isAuthorVerified: root.isAuthorVerified,
     isDoctorReply: root.isDoctorReply,
-    createdAtLabel: new Intl.DateTimeFormat("az", {
+    createdAtLabel: new Intl.DateTimeFormat(locale, {
       day: "numeric",
       month: "long",
       year: "numeric",
@@ -304,7 +324,7 @@ export async function dbGetComments(slug: string): Promise<Comment[]> {
         authorAvatarUrl: reply.authorAvatarUrl ?? undefined,
         isAuthorVerified: reply.isAuthorVerified,
         isDoctorReply: reply.isDoctorReply,
-        createdAtLabel: new Intl.DateTimeFormat("az", {
+        createdAtLabel: new Intl.DateTimeFormat(locale, {
           day: "numeric",
           month: "long",
           year: "numeric",
@@ -328,6 +348,7 @@ export interface NewCommentInput {
 
 export async function dbPostComment(input: NewCommentInput): Promise<Comment> {
   const { slug, body, authorName, authorEmail, parentId } = input;
+  const { t } = await formatCtx();
 
   const article = await prisma.article.findUnique({
     where: { slug },
@@ -367,7 +388,7 @@ export async function dbPostComment(input: NewCommentInput): Promise<Comment> {
       body,
       authorName,
       authorEmail: authorEmail || null,
-      authorRole: "Oxucu",
+      authorRole: t("readerRole"),
       status,
       articleId: article.id,
       parentId: validParentId,
@@ -384,29 +405,32 @@ export async function dbPostComment(input: NewCommentInput): Promise<Comment> {
       .toUpperCase()
       .slice(0, 2),
     authorRole: comment.authorRole,
-    createdAtLabel: "İndicə",
+    createdAtLabel: t("justNow"),
     body: comment.body,
     likeCount: 0,
   };
 }
 
 export async function dbGetCategories(): Promise<Category[]> {
-  const categories = await prisma.category.findMany({
-    include: {
-      _count: {
-        select: {
-          articles: { where: { status: ArticleStatus.PUBLISHED } },
+  const [categories, { t }] = await Promise.all([
+    prisma.category.findMany({
+      include: {
+        _count: {
+          select: {
+            articles: { where: { status: ArticleStatus.PUBLISHED } },
+          },
         },
       },
-    },
-    orderBy: { name: "asc" },
-  });
+      orderBy: { name: "asc" },
+    }),
+    formatCtx(),
+  ]);
 
   // Add "All" category at the beginning
   const all: Category = {
     id: "cat-all",
     slug: "hamisi",
-    name: "Bütün Məqalələr",
+    name: t("allCategories"),
     icon: "apps",
     articleCount: categories.reduce((sum, c) => sum + c._count.articles, 0),
   };
@@ -470,24 +494,27 @@ export async function dbGetSearchIndex(
 export async function dbGetTopReadArticles(
   limit = 3,
 ): Promise<TopReadArticle[]> {
-  const articles = await prisma.article.findMany({
-    where: { status: ArticleStatus.PUBLISHED },
-    orderBy: { viewCount: "desc" },
-    take: Math.min(10, Math.max(1, limit)),
-    select: {
-      slug: true,
-      title: true,
-      excerpt: true,
-      viewCount: true,
-    },
-  });
+  const [articles, { t }] = await Promise.all([
+    prisma.article.findMany({
+      where: { status: ArticleStatus.PUBLISHED },
+      orderBy: { viewCount: "desc" },
+      take: Math.min(10, Math.max(1, limit)),
+      select: {
+        slug: true,
+        title: true,
+        excerpt: true,
+        viewCount: true,
+      },
+    }),
+    formatCtx(),
+  ]);
 
   return articles.map((a, i) => ({
     rank: `#${String(i + 1).padStart(2, "0")}`,
     slug: a.slug,
     title: a.title,
     excerpt: a.excerpt,
-    readCountLabel: `${formatCompact(a.viewCount)} oxu`,
+    readCountLabel: t("readsCount", { count: formatCompact(a.viewCount) }),
   }));
 }
 

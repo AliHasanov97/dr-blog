@@ -1,9 +1,10 @@
 "use client";
 
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { Button, Card, Icon, TextAreaField, TextField } from "@/components/ui";
-import { submitComment } from "@/app/(site)/meqaleler/[slug]/actions";
+import { submitComment } from "@/app/[locale]/(site)/articles/[slug]/actions";
 import { useCommentLike } from "./useCommentLike";
 import type { Comment } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -23,6 +24,7 @@ export function CommentsSection({
   totalLabel,
   className,
 }: CommentsSectionProps) {
+  const t = useTranslations("comments");
   /* Hansı şərhə cavab yazılır (null — yeni şərh) */
   const [replyTo, setReplyTo] = useState<Comment | null>(null);
 
@@ -35,11 +37,11 @@ export function CommentsSection({
         <span className="flex items-center gap-space-xs">
           <Icon name="forum" size={22} className="text-secondary" />
           <h2 className="font-headline text-headline-md text-on-surface">
-            Oxucu Rəyləri və Şərhlər
+            {t("sectionTitle")}
           </h2>
         </span>
         <span className="font-label text-label-sm text-outline shrink-0">
-          {totalLabel ?? `${initialComments.length} rəy`}
+          {totalLabel ?? t("count", { count: initialComments.length })}
         </span>
       </div>
 
@@ -75,6 +77,7 @@ function CommentForm({
   replyTo: Comment | null;
   onCancelReply: () => void;
 }) {
+  const t = useTranslations("comments");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [draft, setDraft] = useState("");
@@ -93,19 +96,19 @@ function CommentForm({
     /* Serverdəki eyni qaydalar — sahə göndərilmədən əvvəl birbaşa qırmızılaşır */
     const trimmedName = name.trim();
     if (trimmedName.length < 3) {
-      setNameError("Ən azı 3 simvol olmalıdır");
+      setNameError(t("errorNameShort"));
       return;
     }
     if (trimmedName.length > 80) {
-      setNameError("Ad çox uzundur");
+      setNameError(t("errorNameLong"));
       return;
     }
     if (draft.trim().length < 10) {
-      setDraftError("Ən azı 10 simvol olmalıdır");
+      setDraftError(t("errorBodyShort"));
       return;
     }
     if (email.trim() && !/^\S+@\S+\.\S+$/.test(email.trim())) {
-      setEmailError("E-poçt ünvanı düzgün deyil");
+      setEmailError(t("errorEmail"));
       return;
     }
 
@@ -131,7 +134,7 @@ function CommentForm({
     } catch {
       setFeedback({
         tone: "error",
-        text: "Şərh göndərilmədi. İnternet bağlantınızı yoxlayın.",
+        text: t("submitNetworkError"),
       });
     } finally {
       setSending(false);
@@ -145,7 +148,7 @@ function CommentForm({
           <span className="flex items-center gap-1 font-label text-label-sm text-secondary min-w-0">
             <Icon name="reply" size={15} className="shrink-0" />
             <span className="truncate">
-              {replyTo.authorName} adlı oxucuya cavab
+              {t("replyingTo", { name: replyTo.authorName })}
             </span>
           </span>
           <button
@@ -154,25 +157,25 @@ function CommentForm({
             className="shrink-0 inline-flex items-center font-label text-label-sm text-outline hover:text-on-surface transition-colors"
           >
             <Icon name="close" size={16} />
-            <span className="sr-only">Cavabı ləğv et</span>
+            <span className="sr-only">{t("cancelReply")}</span>
           </button>
         </div>
       )}
 
       <div className="grid gap-space-xs sm:grid-cols-2">
         <TextField
-          label="Adınız"
+          label={t("nameLabel")}
           value={name}
           onChange={(e) => setName(e.target.value)}
-          placeholder="Adınız və soyadınız"
+          placeholder={t("namePlaceholder")}
           autoComplete="name"
           error={nameError}
         />
         <TextField
-          label="E-poçt"
+          label={t("emailLabel")}
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          placeholder="E-poçt (istəyə bağlı, dərc olunmur)"
+          placeholder={t("emailPlaceholder")}
           type="email"
           autoComplete="email"
           error={emailError}
@@ -180,7 +183,7 @@ function CommentForm({
       </div>
 
       <TextAreaField
-        label="Şərhiniz"
+        label={t("bodyLabel")}
         value={draft}
         onChange={(e) => {
           setDraft(e.target.value);
@@ -188,11 +191,7 @@ function CommentForm({
         }}
         rows={3}
         maxLength={2000}
-        placeholder={
-          replyTo
-            ? "Cavabınızı yazın"
-            : "Fikrinizi bölüşün və ya müzakirəyə qoşulun"
-        }
+        placeholder={replyTo ? t("replyPlaceholder") : t("bodyPlaceholder")}
         error={draftError}
       />
 
@@ -216,7 +215,7 @@ function CommentForm({
       <div className="flex items-center justify-between gap-space-sm flex-wrap">
         <span className="flex items-center gap-1 font-label text-label-sm text-outline">
           <Icon name="security" size={14} />
-          Şərhlər dərc olunmazdan əvvəl yoxlanılır
+          {t("moderationNotice")}
         </span>
         <Button
           type="button"
@@ -225,7 +224,7 @@ function CommentForm({
           disabled={sending}
           onClick={handleSubmit}
         >
-          {sending ? "Göndərilir..." : replyTo ? "Cavab yaz" : "Rəy bildir"}
+          {sending ? t("sending") : replyTo ? t("submitReply") : t("submitComment")}
         </Button>
       </div>
     </Card>
@@ -245,6 +244,7 @@ function CommentItem({
   isReply?: boolean;
   onReply?: (comment: Comment) => void;
 }) {
+  const t = useTranslations("comments");
   const { liked, count, toggle } = useCommentLike(comment.id, comment.likeCount);
 
   return (
@@ -323,7 +323,7 @@ function CommentItem({
               className="inline-flex items-center gap-1 font-label text-label-sm text-outline hover:text-on-surface transition-colors"
             >
               <Icon name="reply" size={15} />
-              Cavabla
+              {t("replyCta")}
             </button>
           )}
         </div>

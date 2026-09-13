@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { Icon } from "@/components/ui";
 import { cn } from "@/lib/utils";
@@ -22,6 +23,7 @@ export function ArticleVideo({
   className,
   style,
 }: ArticleVideoProps) {
+  const t = useTranslations("article");
   const [playing, setPlaying] = useState(false);
 
   return (
@@ -33,7 +35,7 @@ export function ArticleVideo({
         {playing ? (
           <iframe
             src={`https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&rel=0`}
-            title="Video"
+            title={t("videoIframeTitle")}
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             allowFullScreen
             className="absolute inset-0 w-full h-full"
@@ -42,7 +44,7 @@ export function ArticleVideo({
           <button
             type="button"
             onClick={() => setPlaying(true)}
-            aria-label="Videonu oynat"
+            aria-label={t("playVideo")}
             className="group absolute inset-0 w-full h-full"
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}

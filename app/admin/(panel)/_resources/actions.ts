@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { revalidateSitePath } from "@/lib/revalidate-site";
 import type { ActionResult } from "@/lib/admin/types";
 import { nextId, slugify, store } from "@/lib/mock/store";
 import { USE_MOCK } from "@/lib/api/config";
@@ -30,14 +31,17 @@ type CollectionKey =
 type Mapper = (values: Record<string, string>, existing?: Row) => Row;
 
 const paths: Record<CollectionKey, string[]> = {
-  categories: ["/admin/kateqoriyalar", "/meqaleler"],
-  videos: ["/admin/videolar", "/meqaleler"],
-  protocols: ["/admin/protokollar", "/meqaleler"],
-  faq: ["/admin/elaqe", "/elaqe"],
+  categories: ["/admin/kateqoriyalar", "/articles"],
+  videos: ["/admin/videolar", "/articles"],
+  protocols: ["/admin/protokollar", "/articles"],
+  faq: ["/admin/elaqe", "/contact"],
 };
 
 function refresh(key: CollectionKey) {
-  for (const path of paths[key]) revalidatePath(path);
+  for (const path of paths[key]) {
+    if (path.startsWith("/admin")) revalidatePath(path);
+    else revalidateSitePath(path);
+  }
 }
 
 function collection(key: CollectionKey): Row[] {

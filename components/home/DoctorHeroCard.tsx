@@ -61,7 +61,7 @@ export function DoctorHeroCard({ doctor, className }: DoctorHeroCardProps) {
         </div>
 
         <Link
-          href="/haqqinda"
+          href="/about"
           className="hidden sm:inline-flex shrink-0 items-center gap-0.5 h-10 px-space-md rounded-md border border-tertiary-fixed-dim/40 font-label text-label-lg text-on-primary hover:bg-white/10 transition-colors"
         >
           Profil

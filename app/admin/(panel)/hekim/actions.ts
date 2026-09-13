@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { revalidateSitePath } from "@/lib/revalidate-site";
 import type { ActionResult } from "@/lib/admin/types";
 import { USE_MOCK } from "@/lib/api/config";
 import { nextId, store } from "@/lib/mock/store";
@@ -61,7 +62,7 @@ export async function updateDoctorProfile(
     });
 
     revalidatePath("/", "layout");
-    revalidatePath("/haqqinda");
+    revalidateSitePath("/about");
     revalidatePath("/admin/hekim");
     return { success: true, message: "Profil yeniləndi." };
   }
@@ -75,7 +76,7 @@ export async function updateDoctorProfile(
   };
 
   revalidatePath("/", "layout");
-  revalidatePath("/haqqinda");
+  revalidateSitePath("/about");
   revalidatePath("/admin/hekim");
   return { success: true, message: "Profil yeniləndi." };
 }

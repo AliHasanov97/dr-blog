@@ -1,17 +1,18 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useCallback, useState, useSyncExternalStore } from "react";
 import { Button, Card, Icon, TextAreaField, TextField } from "@/components/ui";
 import {
   submitArticleQuestion,
   submitArticleReaction,
-} from "@/app/(site)/meqaleler/[slug]/actions";
+} from "@/app/[locale]/(site)/articles/[slug]/actions";
 import { cn } from "@/lib/utils";
 
 const reactions = [
-  { id: "clear", emoji: "👍", label: "Çox aydın və faydalı" },
-  { id: "learned", emoji: "💡", label: "Yeni məlumat öyrəndim" },
-  { id: "question", emoji: "❓", label: "Həkimə sualım var" },
+  { id: "clear", emoji: "👍", labelKey: "reactionClear" },
+  { id: "learned", emoji: "💡", labelKey: "reactionLearned" },
+  { id: "question", emoji: "❓", labelKey: "reactionQuestion" },
 ] as const;
 
 export interface FeedbackBoxProps {
@@ -72,6 +73,7 @@ function ReactionPicker({ slug }: { slug: string }) {
     /* Serverdə oxucunun nə seçdiyi bilinmir */
     () => null,
   );
+  const t = useTranslations("feedback");
   const [failed, setFailed] = useState(false);
 
   async function choose(id: string) {
@@ -96,12 +98,11 @@ function ReactionPicker({ slug }: { slug: string }) {
       <span className="flex items-center gap-space-xs">
         <Icon name="thumb_up" size={20} className="text-secondary" />
         <span className="font-headline text-headline-sm text-on-surface">
-          Bu məqalə sizin üçün faydalı oldu?
+          {t("reactionTitle")}
         </span>
       </span>
       <p className="font-body text-body-sm text-on-surface-variant">
-        Sizin rəyiniz kliniki materiallarımızın tərtibatında mühüm əhəmiyyət
-        daşıyır:
+        {t("reactionSubtitle")}
       </p>
 
       <div className="flex flex-wrap gap-space-xs">
@@ -119,7 +120,7 @@ function ReactionPicker({ slug }: { slug: string }) {
             )}
           >
             <span aria-hidden="true">{r.emoji}</span>
-            {r.label}
+            {t(r.labelKey)}
           </button>
         ))}
       </div>
@@ -127,13 +128,13 @@ function ReactionPicker({ slug }: { slug: string }) {
       {failed ? (
         <p className="flex items-center gap-1 font-label text-label-sm text-error">
           <Icon name="error" size={14} />
-          Rəyiniz qeydə alınmadı. Bir azdan yenidən cəhd edin.
+          {t("reactionFailed")}
         </p>
       ) : (
         selected && (
           <p className="flex items-center gap-1 font-label text-label-sm text-secondary">
             <Icon name="check_circle" size={14} />
-            Təşəkkür edirik! Rəyiniz qeydə alındı.
+            {t("reactionThanks")}
           </p>
         )
       )}
@@ -152,6 +153,7 @@ function QuestionForm({
   slug: string;
   articleTitle: string;
 }) {
+  const t = useTranslations("feedback");
   const [name, setName] = useState("");
   const [contact, setContact] = useState("");
   const [question, setQuestion] = useState("");
@@ -169,18 +171,18 @@ function QuestionForm({
 
     /* Serverdəki eyni qaydalar — sahə göndərilmədən əvvəl birbaşa qırmızılaşır */
     if (name.trim().length < 3) {
-      setNameError("Ən azı 3 simvol olmalıdır");
+      setNameError(t("errorNameShort"));
       return;
     }
     if (
       !/^\S+@\S+\.\S+$/.test(contact.trim()) &&
       !/^[+\d][\d\s()-]{8,}$/.test(contact.trim())
     ) {
-      setContactError("Düzgün e-poçt və ya telefon yazın");
+      setContactError(t("errorContact"));
       return;
     }
     if (question.trim().length < 10) {
-      setQuestionError("Ən azı 10 simvol olmalıdır");
+      setQuestionError(t("errorQuestionShort"));
       return;
     }
 
@@ -202,7 +204,7 @@ function QuestionForm({
     } catch {
       setFeedback({
         tone: "error",
-        text: "Sual göndərilmədi. İnternet bağlantınızı yoxlayın.",
+        text: t("submitNetworkError"),
       });
     } finally {
       setSending(false);
@@ -212,30 +214,30 @@ function QuestionForm({
   return (
     <div className="pt-space-sm border-t border-surface-container flex flex-col gap-space-xs">
       <span className="font-label text-label-lg text-on-surface">
-        Həkimə birbaşa sual və ya rəy göndərin
+        {t("questionTitle")}
       </span>
 
       <div className="grid gap-space-xs sm:grid-cols-2">
         <TextField
-          label="Adınız"
+          label={t("nameLabel")}
           value={name}
           onChange={(e) => setName(e.target.value)}
-          placeholder="Adınız və soyadınız"
+          placeholder={t("namePlaceholder")}
           autoComplete="name"
           error={nameError}
         />
         <TextField
-          label="Əlaqə vasitəsi"
+          label={t("contactLabel")}
           value={contact}
           onChange={(e) => setContact(e.target.value)}
-          placeholder="E-poçt və ya telefon"
+          placeholder={t("contactPlaceholder")}
           autoComplete="email"
           error={contactError}
         />
       </div>
 
       <TextAreaField
-        label="Sualınız"
+        label={t("questionLabel")}
         rows={3}
         value={question}
         onChange={(e) => {
@@ -243,7 +245,7 @@ function QuestionForm({
           setFeedback(null);
           setQuestionError(undefined);
         }}
-        placeholder="Sualınızı buraya yazın..."
+        placeholder={t("questionPlaceholder")}
         error={questionError}
       />
 
@@ -267,7 +269,7 @@ function QuestionForm({
       <div className="flex items-center justify-between gap-space-sm flex-wrap">
         <span className="flex items-center gap-1 font-label text-label-sm text-outline">
           <Icon name="help_outline" size={14} />
-          Cavablar 24-48 saat ərzində verilir.
+          {t("responseTimeHint")}
         </span>
         <Button
           type="button"
@@ -276,7 +278,7 @@ function QuestionForm({
           disabled={sending}
           onClick={handleSend}
         >
-          {sending ? "Göndərilir..." : "Göndər"}
+          {sending ? t("sending") : t("send")}
         </Button>
       </div>
     </div>

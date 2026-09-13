@@ -1,9 +1,11 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 
 /** Səhifənin yuxarısında oxunma faizini göstərən nazik zolaq */
 export function ReadingProgress() {
+  const t = useTranslations("article");
   const [progress, setProgress] = useState(0);
 
   useEffect(() => {
@@ -24,7 +26,7 @@ export function ReadingProgress() {
   return (
     <div
       role="progressbar"
-      aria-label="Oxunma tərəqqisi"
+      aria-label={t("readingProgress")}
       aria-valuenow={Math.round(progress)}
       aria-valuemin={0}
       aria-valuemax={100}

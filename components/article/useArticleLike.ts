@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback } from "react";
-import { setArticleLike } from "@/app/(site)/meqaleler/[slug]/actions";
+import { setArticleLike } from "@/app/[locale]/(site)/articles/[slug]/actions";
 import { useLikeCounter } from "./useLikeCounter";
 
 /** Məqalənin bəyənilməsi */

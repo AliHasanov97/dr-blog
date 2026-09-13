@@ -1,8 +1,9 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useState, type FormEvent } from "react";
 import { Button, Icon } from "@/components/ui";
-import { subscribeToNewsletter } from "@/app/(site)/actions";
+import { subscribeToNewsletter } from "@/app/[locale]/(site)/actions";
 import { cn } from "@/lib/utils";
 
 export interface NewsletterCardProps {
@@ -14,11 +15,12 @@ export interface NewsletterCardProps {
 
 /** Tibbi bülleten abunə kartı — tünd «primary-container» fonlu */
 export function NewsletterCard({
-  title = "Həftəlik Tibbi Bülleten",
-  subtitle = "Elmi yeniliklər və kardiologiya təhlilləri poçtunuzda",
-  description = "Həkimin rəhbərliyi ilə hazırlanan sübutlu tibb xülasələri və sağlam həyat bələdçisi.",
+  title,
+  subtitle,
+  description,
   className,
 }: NewsletterCardProps) {
+  const t = useTranslations("newsletter");
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "done" | "error">("idle");
   const [message, setMessage] = useState("");
@@ -27,7 +29,7 @@ export function NewsletterCard({
     event.preventDefault();
     if (!/^\S+@\S+\.\S+$/.test(email)) {
       setStatus("error");
-      setMessage("Zəhmət olmasa düzgün e-poçt ünvanı daxil edin.");
+      setMessage(t("form.errorEmail"));
       return;
     }
     setStatus("loading");
@@ -38,7 +40,7 @@ export function NewsletterCard({
       if (result.success) setEmail("");
     } catch {
       setStatus("error");
-      setMessage("Abunə qeydə alınmadı. Bir azdan yenidən cəhd edin.");
+      setMessage(t("form.subscribeFailedRetry"));
     }
   }
 
@@ -59,14 +61,14 @@ export function NewsletterCard({
           <span className="flex items-center gap-space-xs">
             <Icon name="mail" size={20} className="text-secondary-fixed" />
             <span className="font-headline text-headline-md text-on-primary">
-              {title}
+              {title ?? t("defaultTitle")}
             </span>
           </span>
           <p className="font-body text-body-sm text-on-primary-container">
-            {subtitle}
+            {subtitle ?? t("defaultSubtitle")}
           </p>
           <p className="font-body text-body-sm text-on-primary-container/80 leading-relaxed">
-            {description}
+            {description ?? t("defaultDescription")}
           </p>
         </div>
 
@@ -79,8 +81,8 @@ export function NewsletterCard({
                 setEmail(e.target.value);
                 if (status === "error") setStatus("idle");
               }}
-              placeholder="poct@unvan.az"
-              aria-label="E-poçt ünvanınız"
+              placeholder={t("emailPlaceholder")}
+              aria-label={t("emailAriaLabel")}
               aria-invalid={status === "error"}
               className={cn(
                 "flex-1 h-11 px-space-sm rounded-md bg-white/10 font-body text-body-sm text-white placeholder:text-white/50 outline-none border",
@@ -96,7 +98,7 @@ export function NewsletterCard({
               disabled={status === "loading"}
               className="shrink-0"
             >
-              {status === "loading" ? "..." : "Abunə ol"}
+              {status === "loading" ? "..." : t("subscribeCta")}
             </Button>
           </div>
 
@@ -113,7 +115,7 @@ export function NewsletterCard({
           ) : (
             <p className="flex items-center gap-1 font-label text-label-sm text-on-primary-container/70">
               <Icon name="lock" size={13} />
-              Spam göndərilmir. İstənilən vaxt çıxa bilərsiniz.
+              {t("privacyHint")}
             </p>
           )}
         </form>

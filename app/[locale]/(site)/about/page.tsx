@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import { PageShell } from "@/components/layout";
 import {
   DoctorProfileHero,
@@ -20,17 +21,21 @@ import { siteConfig } from "@/lib/site";
 export const revalidate = 60;
 
 export async function generateMetadata(): Promise<Metadata> {
-  const doctor = await getDoctorProfile();
+  const [doctor, t] = await Promise.all([
+    getDoctorProfile(),
+    getTranslations("about"),
+  ]);
   return {
-    title: "Haqqında",
-    description: `${doctor.fullName} — bioqrafiya, elmi dərəcələr, təhsil, tədqiqat sahələri və rəsmi kanallar.`,
+    title: t("metaTitle"),
+    description: t("metaDescription", { name: doctor.fullName }),
   };
 }
 
 export default async function AboutPage() {
-  const [doctor, channels] = await Promise.all([
+  const [doctor, channels, t] = await Promise.all([
     getDoctorProfile(),
     getContactChannels(),
+    getTranslations("about"),
   ]);
 
   return (
@@ -41,7 +46,7 @@ export default async function AboutPage() {
 
       {/* Bioqrafiya */}
       <section className="flex flex-col gap-space-sm">
-        <SectionHeader title="Bioqrafiya & Elmi Yolum" icon="history_edu" />
+        <SectionHeader title={t("biographyTitle")} icon="history_edu" />
         <Card className="flex flex-col gap-space-md">
           <p className="font-body text-body-lg text-on-surface-variant leading-relaxed">
             {doctor.biography}
@@ -57,7 +62,7 @@ export default async function AboutPage() {
 
       {/* Təhsil */}
       <section className="flex flex-col gap-space-sm">
-        <SectionHeader title="Təhsil və İxtisaslaşma" icon="school" />
+        <SectionHeader title={t("educationTitle")} icon="school" />
         <Card>
           <Timeline entries={doctor.education} />
         </Card>
@@ -65,34 +70,30 @@ export default async function AboutPage() {
 
       {/* Tədqiqat sahələri */}
       <section className="flex flex-col gap-space-sm">
-        <SectionHeader title="Əsas Fəaliyyət və Maraq Dairəsi" icon="vital_signs" />
+        <SectionHeader title={t("researchTitle")} icon="vital_signs" />
         <ResearchAreaList areas={doctor.researchAreas} />
       </section>
 
       {/* Sosial kanallar */}
       <section className="flex flex-col gap-space-sm">
         <SectionHeader
-          title="Sosial Şəbəkələr & Kanallar"
+          title={t("socialTitle")}
           icon="public"
           size="sm"
-          hint="Rəqəmsal Maarifləndirmə"
+          hint={t("socialHint")}
         />
         <p className="font-body text-body-sm text-on-surface-variant">
-          Kardioloji maarifləndirici videolar, elmi xülasələr və beynəlxalq
-          tədqiqatları təqib etmək üçün rəsmi platformalar:
+          {t("socialDescription")}
         </p>
         <SocialLinkList links={doctor.socialLinks} />
       </section>
 
       {/* Birbaşa əlaqə */}
       <section className="flex flex-col gap-space-md">
-        <SectionHeader title="Birbaşa Əlaqə" icon="mail" />
+        <SectionHeader title={t("directContactTitle")} icon="mail" />
 
-        <Alert title="Vacib Qeyd" icon="info">
-          Bu forma yalnız elmi əməkdaşlıq, mətbuat/müsahibə təklifləri və bloq
-          məqalələrinə dair suallar üçündür. Qəbula yazılış həyata keçirilmir.
-          Təcili vəziyyətlərdə dərhal {siteConfig.emergencyNumber} xidmətinə
-          müraciət edin.
+        <Alert title={t("importantNoteTitle")} icon="info">
+          {t("importantNoteBody", { number: siteConfig.emergencyNumber })}
         </Alert>
 
         <div className="grid gap-space-sm sm:grid-cols-3">
@@ -113,11 +114,7 @@ export default async function AboutPage() {
           ))}
         </div>
 
-        <ContactForm
-          title="Müraciət Forması"
-          withConsent={false}
-          withSubject={false}
-        />
+        <ContactForm withConsent={false} withSubject={false} />
       </section>
     </PageShell>
   );

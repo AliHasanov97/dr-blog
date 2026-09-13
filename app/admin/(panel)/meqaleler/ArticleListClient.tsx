@@ -284,7 +284,7 @@ export function ArticleListClient({
               <DataCell className="text-end whitespace-nowrap">
                 <span className="inline-flex items-center gap-1">
                   <Link
-                    href={`/meqaleler/${article.slug}`}
+                    href={`/articles/${article.slug}`}
                     target="_blank"
                     title="Saytda necə göründüyünə bax"
                     className="inline-flex items-center justify-center w-8 h-8 rounded-md text-on-surface-variant hover:bg-surface-container-low"

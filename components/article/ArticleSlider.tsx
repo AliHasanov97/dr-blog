@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
 import { Icon } from "@/components/ui";
 import type { SlideItem } from "@/lib/types";
@@ -26,6 +27,7 @@ export function ArticleSlider({
   className,
   style,
 }: ArticleSliderProps) {
+  const t = useTranslations("article");
   const track = useRef<HTMLDivElement>(null);
   const [active, setActive] = useState(0);
 
@@ -72,8 +74,8 @@ export function ArticleSlider({
           ref={track}
           tabIndex={0}
           role="group"
-          aria-roledescription="slayd"
-          aria-label={`Şəkil qalereyası — ${items.length} slayd`}
+          aria-roledescription={t("slideRole")}
+          aria-label={t("gallery", { count: items.length })}
           onKeyDown={(e) => {
             if (e.key === "ArrowRight") {
               e.preventDefault();
@@ -108,14 +110,14 @@ export function ArticleSlider({
             <SliderButton
               side="start"
               icon="chevron_left"
-              label="Əvvəlki şəkil"
+              label={t("previousImage")}
               disabled={active === 0}
               onClick={() => goTo(active - 1)}
             />
             <SliderButton
               side="end"
               icon="chevron_right"
-              label="Növbəti şəkil"
+              label={t("nextImage")}
               disabled={active === items.length - 1}
               onClick={() => goTo(active + 1)}
             />
@@ -133,7 +135,7 @@ export function ArticleSlider({
               key={`dot-${item.src}-${index}`}
               type="button"
               onClick={() => goTo(index)}
-              aria-label={`${index + 1}-ci şəkil`}
+              aria-label={t("imageNumber", { number: index + 1 })}
               aria-current={index === active}
               className={cn(
                 "h-1.5 rounded-full transition-all",

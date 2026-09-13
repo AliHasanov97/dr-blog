@@ -1,4 +1,4 @@
-import { homeFilters } from "@/lib/mock/categories";
+import { getTranslations } from "next-intl/server";
 import { store } from "@/lib/mock/store";
 import { mockTopRead } from "@/lib/mock/content";
 import type {
@@ -192,6 +192,7 @@ export async function postComment(
   if (!USE_MOCK) {
     return dbPostComment(input);
   }
+  const t = await getTranslations("siteData");
   const initials = input.authorName
     .split(" ")
     .map((n) => n[0])
@@ -202,8 +203,8 @@ export async function postComment(
     id: `cm-local-${Date.now()}`,
     authorName: input.authorName,
     authorInitials: initials || "S",
-    authorRole: "Oxucu",
-    createdAtLabel: "İndicə",
+    authorRole: t("readerRole"),
+    createdAtLabel: t("justNow"),
     body: input.body,
     likeCount: 0,
   });
@@ -218,8 +219,15 @@ export async function getCategories(): Promise<Category[]> {
   return mockResponse(store.categories);
 }
 
+/** Ana səhifədəki qısa tab filtrləri — slug-lar `HomeArticleFeed`-də sabit istinad kimi işlədilir */
 export async function getHomeFilters(): Promise<Category[]> {
-  return mockResponse(homeFilters);
+  const t = await getTranslations("home");
+  return mockResponse([
+    { id: "hf-latest", slug: "son-nesrler", name: t("filterLatest"), icon: "grade" },
+    { id: "hf-popular", slug: "populyar", name: t("filterPopular"), icon: "trending_up" },
+    { id: "hf-clinical", slug: "klinik-icmallar", name: t("filterClinical"), icon: "clinical_notes" },
+    { id: "hf-prevention", slug: "profilaktika", name: t("filterPrevention"), icon: "favorite" },
+  ]);
 }
 
 export async function getTopReadArticles() {

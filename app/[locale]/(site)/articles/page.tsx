@@ -1,6 +1,6 @@
 import Image from "next/image";
-import Link from "next/link";
 import type { Metadata } from "next";
+import { getLocale, getTranslations } from "next-intl/server";
 import { getSiteSettings } from "@/lib/admin/queries";
 import { PageShell } from "@/components/layout";
 import {
@@ -12,6 +12,7 @@ import {
   VideoCard,
 } from "@/components/articles";
 import { Badge, Card, Icon, SectionHeader } from "@/components/ui";
+import { Link } from "@/i18n/navigation";
 import {
   getArticles,
   getCategories,
@@ -21,20 +22,25 @@ import {
   getVideos,
 } from "@/lib/api";
 
-export const metadata: Metadata = {
-  title: "Bloq və Elmi Məqalələr",
-  description:
-    "Kardiologiya üzrə klinik icmallar, meta-təhlillər və pasiyentlər üçün sübuta əsaslanan bələdçilər.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("articles");
+  return {
+    title: t("metaTitle"),
+    description: t("metaDescription"),
+  };
+}
 
 interface PageProps {
   searchParams: Promise<{ q?: string }>;
 }
 
 export default async function ArticlesPage({ searchParams }: PageProps) {
-  const { q } = await searchParams;
-
-  const settings = await getSiteSettings();
+  const [{ q }, settings, t, locale] = await Promise.all([
+    searchParams,
+    getSiteSettings(),
+    getTranslations("articles"),
+    getLocale(),
+  ]);
 
   /* Əsas məqalə siyahıdan kənarlaşdırılır — əvvəlcə onu tapmaq lazımdır */
   const featured = await getFeaturedArticle();
@@ -58,9 +64,9 @@ export default async function ArticlesPage({ searchParams }: PageProps) {
       {/* Ayın əsas məqaləsi */}
       {featured && (
         <section className="flex flex-col gap-space-sm">
-          <SectionHeader title="Ayın Təhlili" icon="stars" />
+          <SectionHeader title={t("monthlyAnalysis")} icon="stars" />
           <Card padded={false} interactive className="overflow-hidden">
-            <Link href={`/meqaleler/${featured.slug}`} className="lg:flex">
+            <Link href={`/articles/${featured.slug}`} className="lg:flex">
               <div className="relative w-full h-52 lg:h-auto lg:w-1/2 shrink-0 overflow-hidden">
                 {featured.coverImageUrl && (
                   <Image
@@ -75,14 +81,14 @@ export default async function ArticlesPage({ searchParams }: PageProps) {
                 <div className="absolute inset-0 bg-gradient-to-t from-primary-container/45 via-transparent to-primary-container/25" />
                 <div className="absolute top-space-sm inset-x-space-sm flex items-start">
                   <Badge tone="solid" icon="verified">
-                    Rəy verilib
+                    {t("reviewed")}
                   </Badge>
                 </div>
               </div>
 
               <div className="p-card-padding lg:p-space-xl flex flex-col gap-space-xs justify-center">
                 <Badge tone="tertiary" icon="auto_awesome">
-                  Ekspert Təhlili
+                  {t("expertAnalysis")}
                 </Badge>
                 <h2 className="font-headline text-headline-lg-mobile lg:text-headline-lg text-on-surface leading-snug">
                   {featured.title}
@@ -94,7 +100,7 @@ export default async function ArticlesPage({ searchParams }: PageProps) {
                 <div className="pt-space-xs flex items-center gap-space-md font-label text-label-sm text-outline">
                   <span className="inline-flex items-center gap-1">
                     <Icon name="visibility" size={14} />
-                    {featured.viewCount?.toLocaleString("az-AZ")}
+                    {featured.viewCount?.toLocaleString(locale)}
                   </span>
                   <span className="inline-flex items-center gap-1">
                     <Icon name="menu_book" size={14} />
@@ -110,10 +116,10 @@ export default async function ArticlesPage({ searchParams }: PageProps) {
       {/* Ən çox oxunanlar */}
       <section className="flex flex-col gap-space-sm">
         <SectionHeader
-          title="Ən Çox Oxunanlar"
+          title={t("mostRead")}
           icon="trending_up"
           size="sm"
-          hint="Top 5 İcmal"
+          hint={t("top5Review")}
         />
         <TopReadList items={topRead} />
       </section>
@@ -121,10 +127,10 @@ export default async function ArticlesPage({ searchParams }: PageProps) {
       {/* Video bölməsi */}
       <section className="flex flex-col gap-space-sm">
         <SectionHeader
-          title="CardioTalk: Video İzahlar & Vebinarlar"
+          title={t("videoSectionTitle")}
           icon="smart_display"
           size="sm"
-          hint={`${videos.length} Video İzah`}
+          hint={t("videoCountHint", { count: videos.length })}
         />
         <HorizontalScroller desktopGridCols={2}>
           {videos.map((video) => (
@@ -151,10 +157,10 @@ export default async function ArticlesPage({ searchParams }: PageProps) {
       {/* Protokollar */}
       <section className="flex flex-col gap-space-sm">
         <SectionHeader
-          title="Klinik Protokollar & Təlimatlar"
+          title={t("protocolsTitle")}
           icon="verified"
           size="sm"
-          hint="Həkimlər üçün PDF"
+          hint={t("protocolsHint")}
         />
         <ProtocolList documents={protocols} />
       </section>

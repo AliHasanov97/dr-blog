@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import { Icon } from "@/components/ui";
 import { cn } from "@/lib/utils";
 
@@ -47,6 +48,7 @@ export function ArticleFile({
   className,
   access = "download",
 }: ArticleFileProps) {
+  const t = useTranslations("article");
   const badge = badgeFor(extension);
   const isPdf = extension.toUpperCase() === "PDF";
   const canRead = isPdf && (access === "read" || access === "both");
@@ -97,7 +99,7 @@ export function ArticleFile({
           {info}
           <span className="shrink-0 inline-flex items-center gap-0.5 font-label text-label-sm font-semibold text-secondary">
             <Icon name="download" size={16} />
-            Endir
+            {t("download")}
           </span>
         </a>
       ) : (

@@ -1,5 +1,5 @@
 import Image from "next/image";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { Badge, Card, Icon } from "@/components/ui";
 import type { VideoItem } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -12,7 +12,7 @@ export interface VideoCardProps {
 export function VideoCard({ video, className }: VideoCardProps) {
   return (
     <Card padded={false} interactive className={cn("overflow-hidden", className)}>
-      <Link href={`/videolar/${video.id}`} className="flex flex-col h-full">
+      <Link href={`/videos/${video.id}`} className="flex flex-col h-full">
         <div className="relative w-full aspect-video overflow-hidden">
           <Image
             src={video.thumbnailUrl}

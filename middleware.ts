@@ -1,5 +1,9 @@
 import { NextResponse, type NextRequest } from "next/server";
+import createIntlMiddleware from "next-intl/middleware";
+import { routing } from "@/i18n/routing";
 import { SESSION_COOKIE } from "@/lib/auth/session-cookie";
+
+const intlMiddleware = createIntlMiddleware(routing);
 
 /**
  * /admin altındakı bütün route-ları qoruyur.
@@ -32,29 +36,44 @@ const PUBLIC_ADMIN_PATHS = [
   "/admin/sifre-sifirla",
 ];
 
+/**
+ * Admin (`/admin/*`) və publik sayt (`[locale]/(site)`) eyni middleware
+ * faylını paylaşır — hər sorğu üçün yalnız biri işə düşür:
+ *   - `/admin/*` → köhnə sessiya yoxlaması (dəyişməyib)
+ *   - qalanı     → next-intl-in dil middleware-i (`/az`, `/ru` prefiksi)
+ * `/media` və statik fayllar aşağıdakı `matcher`-də tamamilə xaric edilir —
+ * heç birinə toxunulmur.
+ */
 export function middleware(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
-  const valid = isSessionValid(request.cookies.get(SESSION_COOKIE)?.value);
-  const isPublicPage = PUBLIC_ADMIN_PATHS.includes(pathname);
-  const isLoginPage = pathname === "/admin/login";
 
-  if (!valid && !isPublicPage) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/admin/login";
-    url.search = `?next=${encodeURIComponent(pathname + search)}`;
-    return NextResponse.redirect(url);
+  if (pathname.startsWith("/admin")) {
+    const valid = isSessionValid(request.cookies.get(SESSION_COOKIE)?.value);
+    const isPublicPage = PUBLIC_ADMIN_PATHS.includes(pathname);
+    const isLoginPage = pathname === "/admin/login";
+
+    if (!valid && !isPublicPage) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/admin/login";
+      url.search = `?next=${encodeURIComponent(pathname + search)}`;
+      return NextResponse.redirect(url);
+    }
+
+    if (valid && isLoginPage) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/admin";
+      url.search = "";
+      return NextResponse.redirect(url);
+    }
+
+    return NextResponse.next();
   }
 
-  if (valid && isLoginPage) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/admin";
-    url.search = "";
-    return NextResponse.redirect(url);
-  }
-
-  return NextResponse.next();
+  return intlMiddleware(request);
 }
 
 export const config = {
-  matcher: ["/admin/:path*"],
+  matcher: [
+    "/((?!api|_next/static|_next/image|media|favicon.ico|.*\\..*).*)",
+  ],
 };

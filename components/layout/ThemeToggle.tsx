@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useSyncExternalStore } from "react";
 import { Icon } from "@/components/ui";
 import { cn } from "@/lib/utils";
@@ -42,14 +43,16 @@ function applyTheme(dark: boolean) {
  * əvvəl `<html>`-ə `data-theme` qoyur ki, görünüş "atlamasın").
  */
 export function ThemeToggle({ className }: { className?: string }) {
+  const t = useTranslations("common");
   const dark = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+  const label = dark ? t("themeToLight") : t("themeToDark");
 
   return (
     <button
       type="button"
       onClick={() => applyTheme(!dark)}
-      aria-label={dark ? "Açıq temaya keç" : "Tünd temaya keç"}
-      title={dark ? "Açıq temaya keç" : "Tünd temaya keç"}
+      aria-label={label}
+      title={label}
       className={cn(
         "w-11 h-11 flex items-center justify-center rounded-full text-on-surface hover:bg-surface-container-low transition-colors",
         className,

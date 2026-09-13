@@ -132,7 +132,7 @@ export function CommentModerationClient({ comments }: CommentModerationClientPro
             <section key={group.articleSlug} className="flex flex-col gap-space-sm">
               <div className="flex items-center gap-space-xs px-space-2xs">
                 <Link
-                  href={`/meqaleler/${group.articleSlug}`}
+                  href={`/articles/${group.articleSlug}`}
                   target="_blank"
                   className="inline-flex items-center gap-1 min-w-0 font-label text-label-lg text-on-surface hover:text-secondary"
                 >

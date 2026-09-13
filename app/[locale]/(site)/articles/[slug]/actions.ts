@@ -1,6 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { getTranslations } from "next-intl/server";
+import { revalidateSitePath } from "@/lib/revalidate-site";
 import {
   dbIncrementArticleView,
   dbSetArticleLike,
@@ -95,30 +97,25 @@ const MAX_BODY = 2000;
 export async function submitComment(
   input: CommentSubmission,
 ): Promise<CommentResult> {
+  const t = await getTranslations("comments");
   const authorName = input.authorName?.trim() ?? "";
   const body = input.body?.trim() ?? "";
   const authorEmail = input.authorEmail?.trim() ?? "";
 
   if (authorName.length < 3) {
-    return { success: false, message: "Adınızı yazın (ən azı 3 simvol)." };
+    return { success: false, message: t("serverErrorName") };
   }
   if (authorName.length > 80) {
-    return { success: false, message: "Ad çox uzundur." };
+    return { success: false, message: t("errorNameLong") };
   }
   if (body.length < 10) {
-    return {
-      success: false,
-      message: "Şərhiniz ən azı 10 simvoldan ibarət olmalıdır.",
-    };
+    return { success: false, message: t("serverErrorBodyShort") };
   }
   if (body.length > MAX_BODY) {
-    return {
-      success: false,
-      message: `Şərh ${MAX_BODY} simvoldan uzun ola bilməz.`,
-    };
+    return { success: false, message: t("serverErrorBodyLong", { max: MAX_BODY }) };
   }
   if (authorEmail && !/^\S+@\S+\.\S+$/.test(authorEmail)) {
-    return { success: false, message: "E-poçt ünvanı düzgün deyil." };
+    return { success: false, message: t("serverErrorEmail") };
   }
 
   /*
@@ -127,18 +124,15 @@ export async function submitComment(
    */
   const settings = await getSiteSettings();
   if (!settings.commentsEnabled) {
-    return { success: false, message: "Şərhlər hazırda bağlıdır." };
+    return { success: false, message: t("commentsDisabled") };
   }
 
   const article = await getArticleBySlug(input.slug);
   if (!article) {
-    return { success: false, message: "Məqalə tapılmadı." };
+    return { success: false, message: t("articleNotFound") };
   }
   if (article.allowComments === false) {
-    return {
-      success: false,
-      message: "Bu məqaləyə şərh yazılması bağlanıb.",
-    };
+    return { success: false, message: t("commentsDisabledForArticle") };
   }
 
   /* Moderasiya söndürülübsə şərh dərhal görünür — mesaj da fərqli olmalıdır */
@@ -153,21 +147,16 @@ export async function submitComment(
       parentId: input.parentId,
     });
   } catch {
-    return {
-      success: false,
-      message: "Şərh göndərilmədi. Bir azdan yenidən cəhd edin.",
-    };
+    return { success: false, message: t("submitFailed") };
   }
 
   revalidatePath("/admin/serhler");
   revalidatePath("/admin");
-  if (!moderated) revalidatePath(`/meqaleler/${input.slug}`);
+  if (!moderated) revalidateSitePath(`/articles/${input.slug}`);
 
   return {
     success: true,
-    message: moderated
-      ? "Təşəkkürlər! Şərhiniz moderasiyaya göndərildi — yoxlanıldıqdan sonra dərc olunacaq."
-      : "Təşəkkürlər! Şərhiniz dərc olundu — səhifəni yeniləyəndə görünəcək.",
+    message: moderated ? t("moderatedSuccess") : t("publishedSuccess"),
   };
 }
 
@@ -224,36 +213,34 @@ export interface ArticleQuestion {
 export async function submitArticleQuestion(
   input: ArticleQuestion,
 ): Promise<CommentResult> {
+  const t = await getTranslations("feedback");
   const fullName = input.fullName?.trim() ?? "";
   const contact = input.contact?.trim() ?? "";
   const question = input.question?.trim() ?? "";
 
   if (fullName.length < 3) {
-    return { success: false, message: "Adınızı yazın (ən azı 3 simvol)." };
+    return { success: false, message: t("serverErrorName") };
   }
   if (
     !/^\S+@\S+\.\S+$/.test(contact) &&
     !/^[+\d][\d\s()-]{8,}$/.test(contact)
   ) {
-    return {
-      success: false,
-      message: "Cavab ala bilməyiniz üçün düzgün e-poçt və ya telefon yazın.",
-    };
+    return { success: false, message: t("serverErrorContact") };
   }
   if (question.length < 10) {
-    return {
-      success: false,
-      message: "Sualınız ən azı 10 simvoldan ibarət olmalıdır.",
-    };
+    return { success: false, message: t("serverErrorQuestionShort") };
   }
   if (question.length > MAX_BODY) {
     return {
       success: false,
-      message: `Sual ${MAX_BODY} simvoldan uzun ola bilməz.`,
+      message: t("serverErrorQuestionLong", { max: MAX_BODY }),
     };
   }
 
   try {
+    /* Müraciət admin-in gələnlər qutusuna düşür — admin panel tək dildə
+     * (Azərbaycanca) işlədiyi üçün mövzu/mətn həmişə Azərbaycanca qurulur,
+     * oxucunun sayt dilindən asılı olmayaraq. */
     const result = await submitContactForm({
       inquiryType: "scientific",
       fullName,
@@ -261,28 +248,18 @@ export async function submitArticleQuestion(
       subject: `Məqalə sualı: ${input.articleTitle}`.slice(0, 200),
       message: `${question}
 
-— /meqaleler/${input.slug}`,
+— /articles/${input.slug}`,
       consent: true,
     });
     if (!result.success) {
-      return {
-        success: false,
-        message: result.message ?? "Sual göndərilmədi.",
-      };
+      return { success: false, message: t("submitFailed") };
     }
   } catch {
-    return {
-      success: false,
-      message: "Sual göndərilmədi. Bir azdan yenidən cəhd edin.",
-    };
+    return { success: false, message: t("serverSubmitNetworkError") };
   }
 
   revalidatePath("/admin/muracietler");
   revalidatePath("/admin");
 
-  return {
-    success: true,
-    message:
-      "Sualınız həkimin müraciət qutusuna göndərildi. Cavab qeyd etdiyiniz ünvana gələcək.",
-  };
+  return { success: true, message: t("submitSuccess") };
 }

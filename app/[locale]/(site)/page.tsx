@@ -1,3 +1,4 @@
+import { getTranslations } from "next-intl/server";
 import { getSiteSettings } from "@/lib/admin/queries";
 import { Container, PageShell } from "@/components/layout";
 import { HomeArticleFeed, HomeHero, StatStrip } from "@/components/home";
@@ -17,11 +18,12 @@ import {
 export const revalidate = 60;
 
 export default async function HomePage() {
-  const [doctor, articlesPage, filters, settings] = await Promise.all([
+  const [doctor, articlesPage, filters, settings, t] = await Promise.all([
     getDoctorProfile(),
     getArticles({ pageSize: 6 }),
     getHomeFilters(),
     getSiteSettings(),
+    getTranslations("home"),
   ]);
 
   const latest = articlesPage.items[0];
@@ -34,7 +36,7 @@ export default async function HomePage() {
         heroHeadline={settings.heroHeadline}
         heroDescription={settings.heroDescription}
         latestTitle={latest?.title}
-        latestHref={latest ? `/meqaleler/${latest.slug}` : undefined}
+        latestHref={latest ? `/articles/${latest.slug}` : undefined}
       />
 
       <StatStrip stats={doctor.stats} />
@@ -48,7 +50,7 @@ export default async function HomePage() {
             <span className="flex items-center gap-space-xs">
               <span className="h-px w-6 bg-tertiary-fixed-dim" aria-hidden="true" />
               <span className="font-label text-label-sm uppercase tracking-[0.16em] text-on-tertiary-container">
-                Tədqiqat sahələri
+                {t("researchAreas")}
               </span>
             </span>
             <ul className="flex flex-col gap-space-sm">
@@ -64,13 +66,14 @@ export default async function HomePage() {
               ))}
             </ul>
             <ButtonLink
-              href="/haqqinda"
+              href="/about"
+              localized
               variant="secondary"
               icon="arrow_forward"
               iconPosition="end"
               fullWidth
             >
-              Tam profilə bax
+              {t("viewFullProfile")}
             </ButtonLink>
           </Card>
         </section>

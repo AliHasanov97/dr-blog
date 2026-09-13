@@ -10,14 +10,6 @@ export const mockCategories: Category[] = [
   { id: "cat-research", slug: "elmi-nesrler", name: "Elmi Nəşrlər (AHA/ESC)", icon: "science", articleCount: 6 },
 ];
 
-/** Ana səhifədəki qısa tab filtrləri */
-export const homeFilters: Category[] = [
-  { id: "hf-latest", slug: "son-nesrler", name: "Son Nəşrlər", icon: "grade" },
-  { id: "hf-popular", slug: "populyar", name: "Populyar Məsləhətlər", icon: "trending_up" },
-  { id: "hf-clinical", slug: "klinik-icmallar", name: "Klinik İcmallar", icon: "clinical_notes" },
-  { id: "hf-prevention", slug: "profilaktika", name: "Profilaktika", icon: "favorite" },
-];
-
 export function findCategoryBySlug(slug: string): Category | undefined {
   return mockCategories.find((c) => c.slug === slug);
 }

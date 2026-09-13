@@ -1,5 +1,6 @@
 "use client";
 
+import { useLocale, useTranslations } from "next-intl";
 import { useState } from "react";
 import { Icon } from "@/components/ui";
 import { useArticleLike } from "./useArticleLike";
@@ -27,6 +28,8 @@ export function ArticleActionBar({
   showComments = true,
   onShare,
 }: ArticleActionBarProps) {
+  const t = useTranslations("article");
+  const locale = useLocale();
   const { liked, count, toggle } = useArticleLike(slug, likeCount);
   const [copied, setCopied] = useState(false);
 
@@ -66,8 +69,8 @@ export function ArticleActionBar({
       <div className="flex items-center justify-between gap-space-xs h-14 px-space-sm rounded-full bg-surface-bright/95 backdrop-blur-xl border border-surface-container shadow-level-2">
         <span className="inline-flex items-center gap-1 h-10 px-space-sm rounded-full text-on-surface-variant">
           <Icon name="visibility" size={20} />
-          <span className="font-label text-label-sm">{viewCount.toLocaleString("az-AZ")}</span>
-          <span className="sr-only">Baxış sayı</span>
+          <span className="font-label text-label-sm">{viewCount.toLocaleString(locale)}</span>
+          <span className="sr-only">{t("viewCountSr")}</span>
         </span>
         <ActionButton
           icon={liked ? "favorite" : "favorite_border"}
@@ -75,14 +78,14 @@ export function ArticleActionBar({
           label={String(count)}
           active={liked}
           onClick={toggle}
-          srLabel="Bəyən"
+          srLabel={t("like")}
         />
         {showComments && (
           <ActionButton
             icon="chat_bubble_outline"
             label={String(commentCount)}
             href="#serhler"
-            srLabel="Şərhlər"
+            srLabel={t("comments")}
           />
         )}
         <button
@@ -91,7 +94,7 @@ export function ArticleActionBar({
           className="inline-flex items-center gap-1.5 h-10 px-space-md rounded-full bg-primary-container text-on-primary font-label text-label-lg"
         >
           <Icon name={copied ? "check_circle" : "share"} size={18} />
-          {copied ? "Kopyalandı" : "Paylaş"}
+          {copied ? t("copied") : t("share")}
         </button>
       </div>
     </div>

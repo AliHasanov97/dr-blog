@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { revalidateSitePath } from "@/lib/revalidate-site";
 import type { ActionResult } from "@/lib/admin/types";
 import { nextId, store, type CommentStatus } from "@/lib/mock/store";
 import { USE_MOCK } from "@/lib/api/config";
@@ -11,7 +12,7 @@ import { CommentStatus as PrismaCommentStatus } from "@prisma/client";
 function refresh(slug?: string) {
   revalidatePath("/admin/serhler");
   revalidatePath("/admin");
-  if (slug) revalidatePath(`/meqaleler/${slug}`);
+  if (slug) revalidateSitePath(`/articles/${slug}`);
 }
 
 export async function setCommentStatus(

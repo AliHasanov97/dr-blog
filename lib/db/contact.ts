@@ -67,9 +67,10 @@ export async function dbGetFaqItems(): Promise<FaqItem[]> {
   }));
 }
 
+/** `message` deyil `code` qaytarır — tərcüməsini çağıran action edir (DB qatı təqdimat dilindən asılı olmamalıdır) */
 export async function dbSubmitContactMessage(
   values: ContactFormValues
-): Promise<{ success: boolean; message: string }> {
+): Promise<{ success: boolean; code: "success" | "error" }> {
   try {
     await prisma.contactMessage.create({
       data: {
@@ -106,22 +107,23 @@ export async function dbSubmitContactMessage(
         : undefined,
     });
 
-    return {
-      success: true,
-      message: "Müraciətiniz uğurla göndərildi. Ən qısa zamanda sizinlə əlaqə saxlanılacaq.",
-    };
+    return { success: true, code: "success" };
   } catch (error) {
     console.error("Failed to submit contact message:", error);
-    return {
-      success: false,
-      message: "Xəta baş verdi. Zəhmət olmasa bir az sonra yenidən cəhd edin.",
-    };
+    return { success: false, code: "error" };
   }
 }
 
+export type NewsletterCode =
+  | "already_subscribed"
+  | "success"
+  | "success_no_mail"
+  | "error";
+
+/** `message` deyil `code` qaytarır — tərcüməsini çağıran action edir */
 export async function dbSubscribeNewsletter(
   rawEmail: string
-): Promise<{ success: boolean; message: string }> {
+): Promise<{ success: boolean; code: NewsletterCode }> {
   /*
    * E-poçt kiçik hərflərə salınır: `email` sütunu `@unique`-dir, PostgreSQL
    * isə böyük/kiçik hərfi fərqləndirir. Normallaşdırma olmasa `Ali@mail.az`
@@ -139,10 +141,7 @@ export async function dbSubscribeNewsletter(
 
     if (existing) {
       if (existing.isActive) {
-        return {
-          success: false,
-          message: "Bu e-poçt ünvanı artıq abunədir.",
-        };
+        return { success: false, code: "already_subscribed" };
       }
       // Reactivate
       const revived = await prisma.newsletterSubscriber.update({
@@ -173,16 +172,11 @@ export async function dbSubscribeNewsletter(
 
     return {
       success: true,
-      message: mail.success
-        ? "Abunəliyiniz qeydə alındı! Təsdiq məktubu poçtunuza göndərildi."
-        : "Abunəliyiniz uğurla qeydə alındı!",
+      code: mail.success ? "success" : "success_no_mail",
     };
   } catch (error) {
     console.error("Failed to subscribe:", error);
-    return {
-      success: false,
-      message: "Xəta baş verdi. Zəhmət olmasa yenidən cəhd edin.",
-    };
+    return { success: false, code: "error" };
   }
 }
 
@@ -193,11 +187,23 @@ export async function dbSubscribeNewsletter(
  * çıxarmaq üçün onun tokenini bilmək lazımdır. Qeyd silinmir, sadəcə
  * `isActive` sönür: eyni ünvan sonra yenidən abunə ola bilsin deyə.
  */
+export type UnsubscribeCode =
+  | "invalid"
+  | "not_found"
+  | "already_inactive"
+  | "success"
+  | "error";
+
+/**
+ * Mesaj mətni yoxdur — `code` qaytarır, tərcüməsini çağıran action edir
+ * (bax: `app/[locale]/(site)/abunelik/cixis/actions.ts`). DB qatı təqdimat
+ * dilindən asılı olmamalıdır.
+ */
 export async function dbUnsubscribeByToken(
   token: string,
-): Promise<{ success: boolean; email?: string; message: string }> {
+): Promise<{ success: boolean; email?: string; code: UnsubscribeCode }> {
   if (!token.trim()) {
-    return { success: false, message: "Link düzgün deyil." };
+    return { success: false, code: "invalid" };
   }
 
   try {
@@ -207,17 +213,14 @@ export async function dbUnsubscribeByToken(
     });
 
     if (!subscriber) {
-      return {
-        success: false,
-        message: "Bu link tanınmadı. Ünvan artıq silinmiş ola bilər.",
-      };
+      return { success: false, code: "not_found" };
     }
 
     if (!subscriber.isActive) {
       return {
         success: true,
         email: subscriber.email,
-        message: "Bu ünvan artıq abunə siyahısında deyil.",
+        code: "already_inactive",
       };
     }
 
@@ -229,13 +232,13 @@ export async function dbUnsubscribeByToken(
     return {
       success: true,
       email: subscriber.email,
-      message: "Abunəlikdən çıxarıldınız. Bundan sonra məktub göndərilməyəcək.",
+      code: "success",
     };
   } catch (error) {
     console.error("Failed to unsubscribe:", error);
     return {
       success: false,
-      message: "Xəta baş verdi. Zəhmət olmasa bir az sonra yenidən cəhd edin.",
+      code: "error",
     };
   }
 }

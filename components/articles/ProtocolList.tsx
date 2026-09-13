@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import { Card, Icon } from "@/components/ui";
 import type { ProtocolDocument } from "@/lib/types";
@@ -12,6 +13,7 @@ export interface ProtocolListProps {
 
 /** Həkimlər üçün yüklənə bilən/oxuna bilən PDF protokolları */
 export function ProtocolList({ documents, className }: ProtocolListProps) {
+  const t = useTranslations("articles");
   const [active, setActive] = useState<ProtocolDocument | null>(null);
 
   return (
@@ -50,7 +52,7 @@ export function ProtocolList({ documents, className }: ProtocolListProps) {
                 {info}
                 <span className="shrink-0 inline-flex items-center gap-0.5 font-label text-label-sm font-semibold text-secondary">
                   <Icon name="visibility" size={16} />
-                  Bax
+                  {t("protocolView")}
                 </span>
               </button>
             );
@@ -68,7 +70,7 @@ export function ProtocolList({ documents, className }: ProtocolListProps) {
                     className="inline-flex items-center gap-0.5 font-label text-label-sm font-semibold text-secondary hover:underline"
                   >
                     <Icon name="visibility" size={16} />
-                    Bax
+                    {t("protocolView")}
                   </button>
                 )}
                 {canDownload && (
@@ -78,7 +80,7 @@ export function ProtocolList({ documents, className }: ProtocolListProps) {
                     className="inline-flex items-center gap-0.5 font-label text-label-sm font-semibold text-secondary hover:underline"
                   >
                     <Icon name="download" size={16} />
-                    Endir
+                    {t("protocolDownload")}
                   </a>
                 )}
               </span>
@@ -100,6 +102,7 @@ function ProtocolViewer({
   document: ProtocolDocument | null;
   onClose: () => void;
 }) {
+  const t = useTranslations("articles");
   useEffect(() => {
     if (!doc) return;
     function handleKeyDown(event: KeyboardEvent) {
@@ -125,7 +128,7 @@ function ProtocolViewer({
     >
       <button
         type="button"
-        aria-label="Bağla"
+        aria-label={t("protocolClose")}
         onClick={onClose}
         className="absolute inset-0 bg-inverse-surface/45 backdrop-blur-sm animate-[fadeIn_.15s_ease-out]"
       />
@@ -145,13 +148,13 @@ function ProtocolViewer({
               className="hidden sm:inline-flex items-center gap-0.5 font-label text-label-sm font-semibold text-secondary hover:underline"
             >
               <Icon name="download" size={16} />
-              Endir
+              {t("protocolDownload")}
             </a>
           )}
           <button
             type="button"
             onClick={onClose}
-            aria-label="Bağla"
+            aria-label={t("protocolClose")}
             className="text-outline hover:text-on-surface"
           >
             <Icon name="close" size={20} />

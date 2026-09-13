@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useState, useSyncExternalStore } from "react";
 import { Card, Icon } from "@/components/ui";
 import { cn } from "@/lib/utils";
@@ -40,9 +41,10 @@ function getServerUrl() {
 export function ShareCard({
   title,
   url,
-  description = "Ürək sağlamlığı haqqında sübutlu elmi protokolları pasiyentləriniz və yaxınlarınızla paylaşın:",
+  description,
   className,
 }: ShareCardProps) {
+  const t = useTranslations("article");
   const [copied, setCopied] = useState(false);
   /*
    * `url` verilməyibsə cari səhifə ünvanı lazımdır, amma server-də `window`
@@ -69,11 +71,11 @@ export function ShareCard({
       <span className="flex items-center gap-space-xs">
         <Icon name="share" size={20} className="text-secondary" />
         <span className="font-headline text-headline-sm text-on-surface">
-          Məqaləni Paylaşın
+          {t("shareTitle")}
         </span>
       </span>
       <p className="font-body text-body-sm text-on-surface-variant leading-relaxed">
-        {description}
+        {description ?? t("shareDescription")}
       </p>
 
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-space-xs">
@@ -98,7 +100,7 @@ export function ShareCard({
         >
           <Icon name={copied ? "check_circle" : "link"} size={20} className={copied ? "text-secondary" : "text-on-surface-variant"} />
           <span className="font-label text-label-sm text-on-surface-variant">
-            {copied ? "Kopyalandı" : "Linki kopyala"}
+            {copied ? t("copied") : t("copyLink")}
           </span>
         </button>
       </div>

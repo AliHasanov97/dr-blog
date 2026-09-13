@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { CollapsiblePanel } from "@/components/ui";
 import type { TableOfContentsItem } from "@/lib/types";
 
@@ -10,6 +11,7 @@ export interface ArticleTocProps {
 }
 
 export function ArticleToc({ items, alwaysOpen = false }: ArticleTocProps) {
+  const t = useTranslations("article");
   const list = (
     <ol className="flex flex-col gap-space-xs">
       {items.map((item) => (
@@ -33,11 +35,11 @@ export function ArticleToc({ items, alwaysOpen = false }: ArticleTocProps) {
   if (alwaysOpen) {
     return (
       <nav
-        aria-label="Məqalənin məzmunu"
+        aria-label={t("tocAriaLabel")}
         className="rounded-xl border border-surface-container bg-surface-container-low p-space-md"
       >
         <span className="block font-label text-label-md uppercase tracking-wider text-outline mb-space-sm">
-          Məzmun ({items.length} bölmə)
+          {t("tocTitle", { count: items.length })}
         </span>
         {list}
       </nav>
@@ -46,7 +48,7 @@ export function ArticleToc({ items, alwaysOpen = false }: ArticleTocProps) {
 
   return (
     <CollapsiblePanel
-      title={`Məzmun (${items.length} bölmə)`}
+      title={t("tocTitle", { count: items.length })}
       icon="list_alt"
       defaultOpen
     >

@@ -45,7 +45,7 @@ export async function submitContactForm(
     return {
       data: null,
       success: result.success,
-      message: result.message,
+      code: result.code,
     };
   }
   // Mock: müraciət admin panelin gələnlər qutusuna düşür
@@ -62,7 +62,7 @@ export async function submitContactForm(
   return mockResponse<ApiResult<null>>({
     data: null,
     success: true,
-    message: "Müraciətiniz uğurla göndərildi. Tezliklə sizinlə əlaqə saxlanılacaq.",
+    code: "success",
   });
 }
 
@@ -75,7 +75,7 @@ export async function subscribeNewsletter(
     return {
       data: null,
       success: result.success,
-      message: result.message,
+      code: result.code,
     };
   }
   // Mock: abunəçi admin panelin siyahısına düşür
@@ -90,6 +90,6 @@ export async function subscribeNewsletter(
   return mockResponse<ApiResult<null>>({
     data: null,
     success: true,
-    message: "Təşəkkür edirik! İlk bülletenimiz tezliklə ünvanınıza çatacaq.",
+    code: "success",
   });
 }

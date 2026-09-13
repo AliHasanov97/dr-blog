@@ -14,7 +14,7 @@ export default async function AdminDoctorPage() {
         title="Mənim profilim"
         icon="badge"
         actions={
-          <ButtonLink href="/haqqinda" variant="secondary" icon="open_in_new">
+          <ButtonLink href="/about" variant="secondary" icon="open_in_new">
             Saytda bax
           </ButtonLink>
         }

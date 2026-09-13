@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { revalidateSitePath } from "@/lib/revalidate-site";
 import type { ActionResult } from "@/lib/admin/types";
 import { toDateLabel } from "@/lib/admin/format";
 import { listArticles } from "@/lib/admin/queries";
@@ -47,8 +48,8 @@ export interface ArticlePayload {
 
 function refreshPublicPages(slug?: string) {
   revalidatePath("/", "layout");
-  revalidatePath("/meqaleler");
-  if (slug) revalidatePath(`/meqaleler/${slug}`);
+  revalidateSitePath("/articles");
+  if (slug) revalidateSitePath(`/articles/${slug}`);
   // Admin siyahısı da yenilənməlidir — əks halda redaktədən sonra geri
   // qayıdanda köhnə başlıq/kateqoriya görünə bilər
   revalidatePath("/admin/meqaleler");
@@ -295,7 +296,7 @@ export async function deleteArticle(id: string): Promise<ActionResult> {
     // Database mode
     await dbDeleteArticle(id);
     revalidatePath("/", "layout");
-    revalidatePath("/meqaleler");
+    revalidateSitePath("/articles");
     revalidatePath("/admin/meqaleler");
     return { success: true };
   }
@@ -319,7 +320,7 @@ export async function setArticleStatus(
     // Database mode
     await dbUpdateArticle(id, { status });
     revalidatePath("/", "layout");
-    revalidatePath("/meqaleler");
+    revalidateSitePath("/articles");
     revalidatePath("/admin/meqaleler");
     return { success: true };
   }

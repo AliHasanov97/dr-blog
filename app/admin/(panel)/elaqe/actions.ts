@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { revalidateSitePath } from "@/lib/revalidate-site";
 import type { ActionResult } from "@/lib/admin/types";
 import { USE_MOCK } from "@/lib/api/config";
 import { nextId, store } from "@/lib/mock/store";
@@ -13,8 +14,8 @@ export interface ContactPayload {
 }
 
 function refresh() {
-  revalidatePath("/elaqe");
-  revalidatePath("/haqqinda");
+  revalidateSitePath("/contact");
+  revalidateSitePath("/about");
   revalidatePath("/", "layout");
   revalidatePath("/admin/elaqe");
 }

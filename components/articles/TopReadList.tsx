@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { Card } from "@/components/ui";
 import type { TopReadArticle } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -15,7 +15,7 @@ export function TopReadList({ items, className }: TopReadListProps) {
       {items.map((item) => (
         <Link
           key={item.rank}
-          href={`/meqaleler/${item.slug}`}
+          href={`/articles/${item.slug}`}
           className="flex gap-space-md p-space-md hover:bg-surface-container-low/60 transition-colors"
         >
           <span className="font-headline text-headline-md text-tertiary-fixed-dim shrink-0 w-10">

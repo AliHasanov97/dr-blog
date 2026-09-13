@@ -1,7 +1,9 @@
 "use client";
 
+import { useLocale, useTranslations } from "next-intl";
 import { useState } from "react";
 import { ButtonLink, Card, Icon } from "@/components/ui";
+import { routing } from "@/i18n/routing";
 import type { ContactChannel } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -11,7 +13,21 @@ export interface ContactChannelCardProps {
 }
 
 export function ContactChannelCard({ channel, className }: ContactChannelCardProps) {
+  const locale = useLocale();
+  const t = useTranslations("contact.channels");
   const [copiedValue, setCopiedValue] = useState<string | null>(null);
+
+  /*
+   * `title`/`subtitle`/`actionLabel` bazada yalnız admin-in yazdığı tək
+   * dildə saxlanılır — ayrıca dil sahəsi yoxdur. Standart dildən fərqli
+   * dillərdə DB mətni əvəzinə kanalın növünə (whatsapp/email/phone) görə
+   * hazır tərcümə göstərilir; standart dildə admin-in yazdığı mətn
+   * toxunulmadan qalır.
+   */
+  const useKindLabels = locale !== routing.defaultLocale;
+  const title = useKindLabels ? t(`${channel.kind}.title`) : channel.title;
+  const subtitle = useKindLabels ? t(`${channel.kind}.subtitle`) : channel.subtitle;
+  const actionLabel = useKindLabels ? t(`${channel.kind}.actionLabel`) : channel.actionLabel;
 
   async function copy(value: string) {
     try {
@@ -31,10 +47,10 @@ export function ContactChannelCard({ channel, className }: ContactChannelCardPro
         </span>
         <span className="flex flex-col gap-0.5 min-w-0">
           <span className="font-label text-label-lg text-on-surface">
-            {channel.title}
+            {title}
           </span>
           <span className="font-body text-body-sm text-on-surface-variant">
-            {channel.subtitle}
+            {subtitle}
           </span>
         </span>
       </div>
@@ -68,7 +84,7 @@ export function ContactChannelCard({ channel, className }: ContactChannelCardPro
         fullWidth
         className="mt-auto"
       >
-        {channel.actionLabel}
+        {actionLabel}
       </ButtonLink>
     </Card>
   );

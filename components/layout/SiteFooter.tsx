@@ -1,6 +1,7 @@
-import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 import { Icon } from "@/components/ui";
 import { Container } from "./Container";
+import { Link } from "@/i18n/navigation";
 import { navItems, siteConfig } from "@/lib/site";
 import type { DoctorProfile } from "@/lib/types";
 
@@ -9,7 +10,12 @@ export interface SiteFooterProps {
 }
 
 /** Desktop altlıq — mobil alt naviqasiya ilə toqquşmasın deyə yalnız lg-də görünür */
-export function SiteFooter({ doctor }: SiteFooterProps) {
+export async function SiteFooter({ doctor }: SiteFooterProps) {
+  const [tNav, tFooter] = await Promise.all([
+    getTranslations("nav"),
+    getTranslations("footer"),
+  ]);
+
   return (
     <footer className="hidden lg:block mt-space-3xl border-t border-surface-container bg-surface-container-low/60">
       <Container className="py-space-2xl grid grid-cols-12 gap-space-xl">
@@ -25,9 +31,9 @@ export function SiteFooter({ doctor }: SiteFooterProps) {
           </p>
         </div>
 
-        <nav className="col-span-3 flex flex-col gap-space-xs" aria-label="Altlıq naviqasiyası">
+        <nav className="col-span-3 flex flex-col gap-space-xs" aria-label={tFooter("ariaLabel")}>
           <span className="font-label text-label-md uppercase tracking-wider text-outline">
-            Səhifələr
+            {tFooter("pagesHeading")}
           </span>
           {navItems.map((item) => (
             <Link
@@ -35,14 +41,14 @@ export function SiteFooter({ doctor }: SiteFooterProps) {
               href={item.href}
               className="font-body text-body-sm text-on-surface-variant hover:text-secondary transition-colors"
             >
-              {item.label}
+              {tNav(item.key)}
             </Link>
           ))}
         </nav>
 
         <div className="col-span-4 flex flex-col gap-space-xs">
           <span className="font-label text-label-md uppercase tracking-wider text-outline">
-            Kanallar
+            {tFooter("channelsHeading")}
           </span>
           <div className="flex flex-wrap gap-space-xs">
             {doctor.socialLinks.map((link) => (
@@ -59,18 +65,17 @@ export function SiteFooter({ doctor }: SiteFooterProps) {
             ))}
           </div>
           <p className="mt-space-xs font-label text-label-sm text-outline leading-relaxed">
-            Bu sayt məlumatlandırma məqsədi daşıyır və həkim məsləhətini əvəz etmir.
-            Təcili hallarda {siteConfig.emergencyNumber} xidmətinə müraciət edin.
+            {tFooter("disclaimer", { number: siteConfig.emergencyNumber })}
           </p>
         </div>
       </Container>
 
       <Container className="py-space-md border-t border-surface-container flex items-center justify-between">
         <span className="font-label text-label-sm text-outline">
-          © {new Date().getFullYear()} {doctor.fullName}. Bütün hüquqlar qorunur.
+          © {new Date().getFullYear()} {doctor.fullName}. {tFooter("rights")}
         </span>
         <span className="font-label text-label-sm text-outline">
-          Bakı, Azərbaycan
+          {tFooter("location")}
         </span>
       </Container>
     </footer>

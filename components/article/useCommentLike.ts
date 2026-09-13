@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback } from "react";
-import { setCommentLike } from "@/app/(site)/meqaleler/[slug]/actions";
+import { setCommentLike } from "@/app/[locale]/(site)/articles/[slug]/actions";
 import { useLikeCounter } from "./useLikeCounter";
 
 /** Şərhin bəyənilməsi */

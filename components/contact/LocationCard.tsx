@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import { ButtonLink, Card, Icon } from "@/components/ui";
 import { ScheduleTable } from "./ScheduleTable";
 import type { OfficeLocation } from "@/lib/types";
@@ -18,12 +19,14 @@ function buildMapEmbedSrc(office: OfficeLocation): string {
 }
 
 export function LocationCard({ office, className }: LocationCardProps) {
+  const t = useTranslations("contact");
+
   return (
     <Card padded={false} className={cn("overflow-hidden", className)}>
       <div className="relative w-full h-44 lg:h-56">
         <iframe
           src={buildMapEmbedSrc(office)}
-          title={`${office.name} xəritədə`}
+          title={t("mapIframeTitle", { name: office.name })}
           className="absolute inset-0 w-full h-full border-0"
           loading="lazy"
           referrerPolicy="no-referrer-when-downgrade"
@@ -37,7 +40,7 @@ export function LocationCard({ office, className }: LocationCardProps) {
       <div className="p-card-padding flex flex-col gap-space-sm">
         <div className="flex flex-col gap-0.5">
           <span className="font-label text-label-md uppercase tracking-wider text-outline">
-            Rəsmi Lokasiya
+            {t("officialLocation")}
           </span>
           <span className="font-headline text-headline-sm text-on-surface">
             {office.name} — {office.department}
@@ -60,7 +63,7 @@ export function LocationCard({ office, className }: LocationCardProps) {
           variant="secondary"
           fullWidth
         >
-          Xəritədə Aç / Naviqasiya
+          {t("openInMaps")}
         </ButtonLink>
       </div>
     </Card>

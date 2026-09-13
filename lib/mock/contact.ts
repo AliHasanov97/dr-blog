@@ -73,10 +73,3 @@ export const mockFaq: FaqItem[] = [
       "Beynəlxalq və yerli konfrans təşkilatçıları tədbir proqramı, mövzu çərçivəsi və tarixi göstərilməklə birbaşa elmi.elaqe@drnarmin.az ünvanına rəsmi dəvət məktubu göndərə bilərlər.",
   },
 ];
-
-export const inquiryTypeOptions = [
-  { value: "scientific", label: "Elmi sual / Məqalə haqqında" },
-  { value: "collaboration", label: "Əməkdaşlıq və Müsahibə təklifi" },
-  { value: "press", label: "Mətbuat & Müsahibə" },
-  { value: "general", label: "Ümumi Məlumat" },
-] as const;

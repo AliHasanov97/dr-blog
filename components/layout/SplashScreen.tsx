@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 
@@ -15,6 +16,7 @@ export interface SplashScreenProps {
  * Logo və/və ya mətn animasiyası göstərir.
  */
 export function SplashScreen({ text = "LOADING", logoUrl, showText = true, showLogo = false }: SplashScreenProps) {
+  const t = useTranslations("common");
   const [visible, setVisible] = useState(true);
   const [fading, setFading] = useState(false);
   const [cycleComplete, setCycleComplete] = useState(false);
@@ -101,7 +103,7 @@ export function SplashScreen({ text = "LOADING", logoUrl, showText = true, showL
         {showLogo && logoUrl && (
           <img
             src={logoUrl}
-            alt="Loading"
+            alt={t("loadingAlt")}
             className="h-14 sm:h-18 md:h-20 w-auto object-contain"
             style={{ animation: "logoPulse 1.2s ease-in-out infinite" }}
           />

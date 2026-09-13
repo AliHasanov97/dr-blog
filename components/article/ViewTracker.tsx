@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { registerArticleView } from "@/app/(site)/meqaleler/[slug]/actions";
+import { registerArticleView } from "@/app/[locale]/(site)/articles/[slug]/actions";
 
 /**
  * Baxış sayğacı.

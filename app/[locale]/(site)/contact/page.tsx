@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import { PageShell } from "@/components/layout";
 import {
   ContactChannelCard,
@@ -23,19 +24,23 @@ import {
 export const revalidate = 60;
 
 export async function generateMetadata(): Promise<Metadata> {
-  const doctor = await getDoctorProfile();
+  const [doctor, t] = await Promise.all([
+    getDoctorProfile(),
+    getTranslations("contact"),
+  ]);
   return {
-    title: "Əlaqə",
-    description: `Elmi əməkdaşlıq, mühazirə dəvətləri və məqalələr üzrə suallar üçün ${doctor.fullName} ilə birbaşa əlaqə kanalları.`,
+    title: t("metaTitle"),
+    description: t("metaDescription", { name: doctor.fullName }),
   };
 }
 
 export default async function ContactPage() {
-  const [channels, office, faq, doctor] = await Promise.all([
+  const [channels, office, faq, doctor, t] = await Promise.all([
     getContactChannels(),
     getOfficeLocation(),
     getFaq(),
     getDoctorProfile(),
+    getTranslations("contact"),
   ]);
 
   return (
@@ -44,27 +49,26 @@ export default async function ContactPage() {
       <section className="flex flex-col gap-space-sm">
         <div className="flex items-center gap-space-xs flex-wrap">
           <Badge tone="secondary" icon="verified" uppercase>
-            Rəsmi Əlaqə & Müraciət
+            {t("officialBadge")}
           </Badge>
           <Badge tone="tertiary" icon="schedule">
-            Aktiv Xətt
+            {t("activeLineBadge")}
           </Badge>
         </div>
         <h1 className="font-headline text-headline-lg-mobile lg:text-display text-on-surface leading-tight">
-          Bizimlə Əlaqə Saxlayın
+          {t("heroTitle")}
         </h1>
         <p className="font-body text-body-md text-on-surface-variant leading-relaxed max-w-2xl">
-          Elmi əməkdaşlıq, mühazirə və çıxış dəvətləri, məqalələr üzrə suallar və
-          pasiyent məlumat xətti üçün birbaşa əlaqə kanalları.
+          {t("heroDescription")}
         </p>
       </section>
 
       {/* Sürətli əlaqə kanalları — başlıqdan dərhal sonra, ən önəmli məzmun */}
       <section className="flex flex-col gap-space-sm">
         <SectionHeader
-          title="Sürətli Əlaqə Kanalları"
+          title={t("quickChannelsTitle")}
           icon="contact_support"
-          hint="Cavab: 09:00 - 18:00"
+          hint={t("quickChannelsHint")}
         />
         <div className="grid gap-space-md lg:grid-cols-3">
           {channels.map((channel) => (
@@ -76,13 +80,13 @@ export default async function ContactPage() {
       {/* Forma + lokasiya */}
       <div className="grid gap-space-xl lg:grid-cols-2 lg:gap-space-2xl">
         <section className="flex flex-col gap-space-sm">
-          <SectionHeader title="Məlumat və Sorğu" icon="edit_note" size="sm" />
+          <SectionHeader title={t("formSectionTitle")} icon="edit_note" size="sm" />
           <ContactForm />
         </section>
 
         <section className="flex flex-col gap-space-sm">
           <SectionHeader
-            title="Klinika və Elmi Qərargah"
+            title={t("locationSectionTitle")}
             icon="domain"
             size="sm"
             hint={office.city}
@@ -94,19 +98,19 @@ export default async function ContactPage() {
       {/* Sosial kanallar */}
       <section className="flex flex-col gap-space-sm">
         <SectionHeader
-          title="Sosial Şəbəkələr & Elmi Baza"
+          title={t("socialSectionTitle")}
           icon="hub"
           size="sm"
-          hint="Elmi xülasələr və videolar"
+          hint={t("socialSectionHint")}
         />
         <SocialLinkList links={doctor.socialLinks} />
       </section>
 
       {/* FAQ */}
       <section className="flex flex-col gap-space-sm">
-        <SectionHeader title="Tez-tez Verilən Suallar" icon="quiz" />
+        <SectionHeader title={t("faqSectionTitle")} icon="quiz" />
         <p className="font-body text-body-sm text-on-surface-variant">
-          Əlaqə və elmi materiallar barədə aydınlaşdırıcı qeydlər.
+          {t("faqSectionHint")}
         </p>
         <FaqList items={faq} />
       </section>
@@ -120,11 +124,10 @@ export default async function ContactPage() {
         <div className="relative flex flex-col items-center text-center gap-space-xs">
           <Icon name="cardiology" size={28} className="text-secondary-fixed" />
           <p className="font-display italic text-headline-md lg:text-headline-lg text-on-primary leading-relaxed max-w-2xl">
-            «Ürək ritminizin harmoniyası elmi dəqiqlik və vaxtında qurulan
-            dialoqdan başlayır.»
+            {t("quote")}
           </p>
           <span className="font-label text-label-md text-tertiary-fixed">
-            {doctor.fullName} — T.E.N., Kardioloq-Aritmoloq
+            {doctor.fullName} — {t("quoteAttribution")}
           </span>
         </div>
       </section>

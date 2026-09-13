@@ -20,6 +20,8 @@ export interface ApiResult<T> {
   data: T;
   success: boolean;
   message?: string;
+  /** Tərcümə açarı — `message` əvəzinə işlədiləndə çağıran tərəf lokal mesaja çevirir */
+  code?: string;
 }
 
 /* ---------------------------------------------------------------

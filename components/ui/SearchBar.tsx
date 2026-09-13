@@ -10,6 +10,13 @@ export interface SearchBarProps {
   /** Sağdakı filtr düyməsi */
   onFilterClick?: () => void;
   className?: string;
+  /**
+   * Admin panel və sayt bu komponenti paylaşır, admin `next-intl` provider-i
+   * olmadığı üçün defolt dəyərlər sabit qalır — sayt çağıranları öz tərcümə
+   * mətnlərini bu proplarla veriməlidir.
+   */
+  clearLabel?: string;
+  filterLabel?: string;
 }
 
 export function SearchBar({
@@ -18,6 +25,8 @@ export function SearchBar({
   placeholder = "Axtarış...",
   onFilterClick,
   className,
+  clearLabel = "Axtarışı təmizlə",
+  filterLabel = "Filtrlər",
 }: SearchBarProps) {
   return (
     <div
@@ -42,7 +51,7 @@ export function SearchBar({
         <button
           type="button"
           onClick={() => onChange("")}
-          aria-label="Axtarışı təmizlə"
+          aria-label={clearLabel}
           className="text-outline hover:text-on-surface"
         >
           <Icon name="close" size={18} />
@@ -52,7 +61,7 @@ export function SearchBar({
         <button
           type="button"
           onClick={onFilterClick}
-          aria-label="Filtrlər"
+          aria-label={filterLabel}
           className="ml-space-xs flex items-center justify-center text-outline hover:text-secondary"
         >
           <Icon name="tune" size={20} />

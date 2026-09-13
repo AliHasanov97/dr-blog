@@ -1,15 +1,16 @@
 export interface NavItem {
   href: string;
-  label: string;
-  shortLabel: string;
+  /** `nav` mesaj namespace-indəki açar — label/shortLabel buradan gəlir (bax: messages/*.json) */
+  key: "home" | "articles" | "about" | "contact";
   icon: string;
 }
 
+/** Label/shortLabel `nav` tərcümə namespace-indən gəlir — bax: components/layout/SiteHeader.tsx və s. */
 export const navItems: NavItem[] = [
-  { href: "/", label: "Ana səhifə", shortLabel: "Ana səhifə", icon: "home" },
-  { href: "/meqaleler", label: "Bloq və Elmi Məqalələr", shortLabel: "Məqalələr", icon: "menu_book" },
-  { href: "/haqqinda", label: "Haqqında", shortLabel: "Haqqında", icon: "workspace_premium" },
-  { href: "/elaqe", label: "Əlaqə", shortLabel: "Əlaqə", icon: "mail" },
+  { href: "/", key: "home", icon: "home" },
+  { href: "/articles", key: "articles", icon: "menu_book" },
+  { href: "/about", key: "about", icon: "workspace_premium" },
+  { href: "/contact", key: "contact", icon: "mail" },
 ];
 
 export const siteConfig = {

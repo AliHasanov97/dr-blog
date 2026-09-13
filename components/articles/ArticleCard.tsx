@@ -1,7 +1,8 @@
 import Image from "next/image";
-import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { Badge, Card, Icon } from "@/components/ui";
 import { ArticleMeta } from "./ArticleMeta";
+import { Link } from "@/i18n/navigation";
 import type { ArticleSummary } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -24,7 +25,8 @@ export function ArticleCard({
   priority = false,
   className,
 }: ArticleCardProps) {
-  const href = `/meqaleler/${article.slug}`;
+  const t = useTranslations("articles");
+  const href = `/articles/${article.slug}`;
 
   /* ---------------- Featured ---------------- */
   if (variant === "featured") {
@@ -52,7 +54,7 @@ export function ArticleCard({
             {article.isPeerReviewed && (
               <div className="absolute top-space-sm inset-x-space-sm flex items-start">
                 <Badge tone="solid" icon="verified">
-                  Resenziyalı Nəşr
+                  {t("peerReviewedBadge")}
                 </Badge>
               </div>
             )}
@@ -85,7 +87,7 @@ export function ArticleCard({
                 </span>
               </span>
               <span className="shrink-0 inline-flex items-center gap-0.5 font-label text-label-lg font-semibold text-secondary">
-                Məqaləni Oxu
+                {t("readArticleCta")}
                 <Icon
                   name="arrow_forward"
                   size={16}
@@ -136,7 +138,7 @@ export function ArticleCard({
               {article.excerpt}
             </p>
             <span className="mt-auto pt-space-sm inline-flex items-center gap-0.5 font-label text-label-sm font-semibold text-secondary">
-              İcmala bax
+              {t("viewSummaryCta")}
               <Icon
                 name="arrow_forward"
                 size={14}
@@ -208,7 +210,7 @@ export function ArticleCard({
             <span className="truncate">{article.referenceLabel ?? article.category.name}</span>
           </span>
           <span className="shrink-0 inline-flex items-center gap-0.5 font-label text-label-sm font-semibold text-secondary">
-            İcmala Bax
+            {t("viewSummaryCta")}
             <Icon
               name="arrow_forward"
               size={16}

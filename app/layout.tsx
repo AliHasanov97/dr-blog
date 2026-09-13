@@ -1,9 +1,15 @@
 import type { Metadata, Viewport } from "next";
 import { Newsreader, Plus_Jakarta_Sans } from "next/font/google";
 import Script from "next/script";
+import { getLocale } from "next-intl/server";
 import { siteConfig } from "@/lib/site";
 import { getSiteSettings } from "@/lib/admin/queries";
 import "./globals.css";
+
+/* RU üçün Open Graph locale kodu — admin (`/admin`) bu faylı da işlədir,
+ * amma orada intl middleware işləmədiyi üçün `getLocale()` standart
+ * dilə (az) düşür — düzgün nəticədir, əlavə şərtə ehtiyac yoxdur. */
+const OG_LOCALES: Record<string, string> = { az: "az_AZ", ru: "ru_RU" };
 
 /* Mətn şriftləri next/font ilə self-host edilir — layout shift olmur */
 const newsreader = Newsreader({
@@ -26,13 +32,14 @@ const jakarta = Plus_Jakarta_Sans({
  * `siteConfig` yalnız baza əlçatmaz olduqda ehtiyat rolunu oynayır.
  */
 export async function generateMetadata(): Promise<Metadata> {
-  const { siteName, tagline, description } = await getSiteSettings().catch(
-    () => ({
+  const [locale, { siteName, tagline, description }] = await Promise.all([
+    getLocale(),
+    getSiteSettings().catch(() => ({
       siteName: siteConfig.name,
       tagline: siteConfig.title,
       description: siteConfig.description,
-    }),
-  );
+    })),
+  ]);
 
   return {
     title: {
@@ -43,7 +50,7 @@ export async function generateMetadata(): Promise<Metadata> {
     openGraph: {
       title: `${siteName} — ${tagline}`,
       description,
-      locale: "az_AZ",
+      locale: OG_LOCALES[locale] ?? OG_LOCALES.az,
       type: "website",
     },
   };
@@ -57,15 +64,18 @@ export const viewport: Viewport = {
 };
 
 /**
- * Kök layout — yalnız <html>/<body> və şriftlər.
- * Sayt bəzəyi `(site)/layout.tsx`, admin bəzəyi `admin/(panel)/layout.tsx` içindədir.
+ * Kök layout — yalnız <html>/<body> və şriftlər. Həm sayt (`[locale]/(site)`),
+ * həm admin (`admin/(panel)`) bunun altındadır — `lang` `getLocale()`-dən
+ * gəlir (admin-də intl middleware işləmədiyi üçün standart "az"-a düşür).
  */
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  const locale = await getLocale();
+
   return (
     <html
-      lang="az"
+      lang={locale}
       className={`${newsreader.variable} ${jakarta.variable}`}
       suppressHydrationWarning
     >

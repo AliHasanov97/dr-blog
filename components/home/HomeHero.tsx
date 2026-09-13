@@ -1,6 +1,8 @@
 import Image from "next/image";
+import { getTranslations } from "next-intl/server";
 import { Badge, ButtonLink, Icon } from "@/components/ui";
 import { Container } from "@/components/layout";
+import { Link } from "@/i18n/navigation";
 import type { DoctorProfile } from "@/lib/types";
 
 export interface HomeHeroProps {
@@ -17,7 +19,7 @@ export interface HomeHeroProps {
  * Landing hero — tam enli tünd redaksiya bandı.
  * Mobil: portret üstdə, mətn altda. Desktop: 7/5 asimmetrik grid.
  */
-export function HomeHero({
+export async function HomeHero({
   doctor,
   heroEyebrow,
   heroHeadline,
@@ -25,6 +27,7 @@ export function HomeHero({
   latestTitle,
   latestHref,
 }: HomeHeroProps) {
+  const t = await getTranslations("home");
   return (
     <section className="relative overflow-hidden bg-primary-container text-on-primary">
       {/* Ambient işıq ləkələri */}
@@ -67,17 +70,18 @@ export function HomeHero({
             </p>
 
             <div className="flex flex-wrap items-center gap-space-sm pt-space-2xs">
-              <ButtonLink href="/meqaleler" variant="tonal" size="lg" icon="menu_book">
-                Məqalələri oxu
+              <ButtonLink href="/articles" localized variant="tonal" size="lg" icon="menu_book">
+                {t("readArticles")}
               </ButtonLink>
               <ButtonLink
-                href="/haqqinda"
+                href="/about"
+                localized
                 size="lg"
                 icon="arrow_forward"
                 iconPosition="end"
                 className="bg-transparent border-white/25 text-on-primary hover:bg-white/10"
               >
-                Həkim haqqında
+                {t("aboutDoctor")}
               </ButtonLink>
             </div>
 
@@ -106,7 +110,7 @@ export function HomeHero({
                 {doctor.isVerified && (
                   <span className="absolute top-space-sm right-space-sm inline-flex items-center gap-1 rounded-full bg-surface-container-lowest/90 backdrop-blur-sm px-2 py-1 font-label text-label-sm text-on-secondary-container">
                     <Icon name="verified" size={13} filled />
-                    Təsdiqlənmiş həkim
+                    {t("verifiedDoctor")}
                   </span>
                 )}
               </div>
@@ -131,13 +135,13 @@ export function HomeHero({
 
         {/* Son nəşr lenti */}
         {latestTitle && latestHref && (
-          <a
+          <Link
             href={latestHref}
             className="group relative mt-space-2xl lg:mt-space-3xl flex items-center gap-space-sm rounded-lg border border-white/12 bg-white/[0.06] px-space-md py-space-sm hover:bg-white/10 transition-colors"
           >
             <span className="shrink-0 inline-flex items-center gap-1 rounded-full bg-secondary px-2 py-0.5 font-label text-label-sm text-on-secondary uppercase tracking-wider">
               <Icon name="bolt" size={12} />
-              Yeni
+              {t("newBadge")}
             </span>
             <span className="font-body text-body-sm text-on-primary truncate">
               {latestTitle}
@@ -147,7 +151,7 @@ export function HomeHero({
               size={16}
               className="ms-auto shrink-0 text-tertiary-fixed group-hover:translate-x-0.5 transition-transform"
             />
-          </a>
+          </Link>
         )}
       </Container>
     </section>
