@@ -5,13 +5,14 @@ import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { FLAGS, Icon } from "@/components/ui";
 import { Link, usePathname } from "@/i18n/navigation";
-import { routing, type AppLocale } from "@/i18n/routing";
+import { getTranslatableLocales, routing, type AppLocale } from "@/i18n/routing";
 import { ThemeToggle } from "./ThemeToggle";
 import { cn } from "@/lib/utils";
 
 const LOCALE_NAMES: Record<AppLocale, string> = {
   az: "Azərbaycanca",
   ru: "Русский",
+  tr: "Türkçe",
 };
 
 /**
@@ -76,7 +77,7 @@ export function PreferencesMenu() {
             {t("languageLabel")}
           </span>
           <div className="flex flex-col gap-0.5">
-            {routing.locales.map((l) => {
+            {[routing.defaultLocale, ...getTranslatableLocales()].map((l) => {
               const Flag = FLAGS[l];
               const active = l === locale;
               return (

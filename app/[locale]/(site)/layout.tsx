@@ -21,8 +21,7 @@ export default async function SiteLayout({ children, params }: SiteLayoutProps) 
     getSiteSettings(locale),
     getDoctorProfile(locale),
   ]);
-  const { loadingText, loadingLogo, loadingShowText, loadingShowLogo, multiLanguageEnabled } =
-    settings;
+  const { loadingText, loadingLogo, loadingShowText, loadingShowLogo } = settings;
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -32,11 +31,7 @@ export default async function SiteLayout({ children, params }: SiteLayoutProps) 
         showText={loadingShowText}
         showLogo={loadingShowLogo}
       />
-      <SiteHeader
-        searchSuggestions={searchSuggestions}
-        doctor={doctor}
-        showLanguageSwitch={multiLanguageEnabled}
-      />
+      <SiteHeader searchSuggestions={searchSuggestions} doctor={doctor} />
       {children}
       <SiteFooter doctor={doctor} />
       <BottomNav />

@@ -33,7 +33,7 @@ export interface ArticlePayload {
   excerpt: string;
   categorySlug: string;
   /** Tərcümə eyni məqalə deyil, AYRI yazıdır — hər yazı bir dili daşıyır */
-  language: "az" | "ru";
+  language: string;
   status: ArticleStatus;
   publishedAt: string;
   coverImageUrl: string;

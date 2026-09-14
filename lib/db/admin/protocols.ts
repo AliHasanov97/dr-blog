@@ -1,12 +1,13 @@
 import { ArticleLanguage } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { prefixOf, removeStoredFile, storage } from "@/lib/admin/storage";
+import type { AppLocale } from "@/i18n/routing";
 
 export async function dbListProtocols() {
   const protocols = await prisma.protocolDocument.findMany({ orderBy: { sortOrder: "asc" } });
   return protocols.map((p) => ({
     ...p,
-    language: p.language.toLowerCase() as "az" | "ru",
+    language: p.language.toLowerCase() as AppLocale,
   }));
 }
 

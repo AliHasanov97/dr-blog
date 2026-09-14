@@ -1,5 +1,12 @@
 import { AdminPageHeader, HelpNote, ResourceManager } from "@/components/admin";
-import { getSiteSettings, listCategories } from "@/lib/admin/queries";
+import {
+  getTranslatableLocales,
+  isMultiLanguageEnabled,
+  LOCALE_LABELS,
+  translatableFieldName,
+} from "@/i18n/routing";
+import { listCategories } from "@/lib/admin/queries";
+import type { ResourceRow } from "@/lib/admin/types";
 import {
   createResource,
   deleteResource,
@@ -9,17 +16,27 @@ import {
 export const metadata = { title: "Kateqoriyalar" };
 
 export default async function AdminCategoriesPage() {
-  const [categories, settings] = await Promise.all([listCategories(), getSiteSettings()]);
-  const { multiLanguageEnabled } = settings;
-  const rows = categories.map((c) => ({
-    id: c.id,
-    name: c.name,
-    nameRu: c.nameRu ?? "",
-    nameRuLabel: multiLanguageEnabled && c.nameRu ? `RU: ${c.nameRu}` : "",
-    slug: c.slug,
-    icon: c.icon ?? "sell",
-    count: c.articleCount,
-  }));
+  const categories = await listCategories();
+  const multiLanguageEnabled = isMultiLanguageEnabled();
+  const locales = getTranslatableLocales();
+
+  const rows = categories.map((c) => {
+    const row: ResourceRow = {
+      id: c.id,
+      name: c.name,
+      slug: c.slug,
+      icon: c.icon ?? "sell",
+      count: c.articleCount,
+    };
+    const labelParts: string[] = [];
+    for (const locale of locales) {
+      const value = c.translations?.[locale]?.name ?? "";
+      row[translatableFieldName("name", locale)] = value;
+      if (value) labelParts.push(`${LOCALE_LABELS[locale] ?? locale}: ${value}`);
+    }
+    row.nameTranslationsLabel = labelParts.join(" · ");
+    return row;
+  });
 
   async function create(values: Record<string, string>) {
     "use server";
@@ -55,24 +72,22 @@ export default async function AdminCategoriesPage() {
         fields={[
           {
             name: "name",
-            label: multiLanguageEnabled ? "Mövzunun adı (Azərbaycan dili)" : "Mövzunun adı",
+            label: multiLanguageEnabled
+              ? `Mövzunun adı (${LOCALE_LABELS.az})`
+              : "Mövzunun adı",
             type: "text",
             required: true,
             placeholder: "Kardiologiya",
             colSpan: 2,
           },
-          ...(multiLanguageEnabled
-            ? [
-                {
-                  name: "nameRu",
-                  label: "Mövzunun adı (Rus dili)",
-                  type: "text" as const,
-                  placeholder: "Кардиология",
-                  hint: "Boş qalsa RU saytda Azərbaycanca ad göstərilir",
-                  colSpan: 2 as const,
-                },
-              ]
-            : []),
+          ...locales.map((locale) => ({
+            name: translatableFieldName("name", locale),
+            label: `Mövzunun adı (${LOCALE_LABELS[locale] ?? locale})`,
+            type: "text" as const,
+            placeholder: "Кардиология",
+            hint: `Boş qalsa ${LOCALE_LABELS[locale] ?? locale} saytda ${LOCALE_LABELS.az} ad göstərilir`,
+            colSpan: 2 as const,
+          })),
           {
             name: "icon",
             label: "İkon",
@@ -87,7 +102,7 @@ export default async function AdminCategoriesPage() {
             header: "Ad",
             type: "primary",
             titleField: "name",
-            subtitleField: "nameRuLabel",
+            subtitleField: "nameTranslationsLabel",
             iconField: "icon",
           },
           { key: "count", header: "Neçə məqalə", type: "badge", field: "count" },

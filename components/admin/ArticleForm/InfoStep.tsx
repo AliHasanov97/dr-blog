@@ -1,8 +1,8 @@
 import { Button, FLAGS, Icon, TextAreaField, TextField } from "@/components/ui";
+import { getTranslatableLocales, isMultiLanguageEnabled, LOCALE_LABELS, routing } from "@/i18n/routing";
 import { AdminCard } from "../AdminCard";
 import { ChoiceGroup } from "../ChoiceGroup";
 import { ImagePicker } from "../ImagePicker";
-import { useLanguageSupport } from "../LanguageSupportContext";
 import type { MediaScope } from "@/lib/admin/storage/scope";
 import type { Category } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -19,8 +19,8 @@ export interface InfoStepProps {
   categorySlug: string;
   onCategoryChange: (value: string) => void;
   categories: Category[];
-  language: "az" | "ru";
-  onLanguageChange: (value: "az" | "ru") => void;
+  language: string;
+  onLanguageChange: (value: string) => void;
   coverMode: CoverMode;
   onCoverModeChange: (value: CoverMode) => void;
   coverImageUrl: string;
@@ -50,7 +50,7 @@ export function InfoStep({
   coverScope,
   onNext,
 }: InfoStepProps) {
-  const languageSupport = useLanguageSupport();
+  const languageSupport = isMultiLanguageEnabled();
 
   return (
     <div className="flex flex-col gap-space-md">
@@ -65,22 +65,17 @@ export function InfoStep({
       {languageSupport && (
       <AdminCard title="Dil" description="Tərcümə eyni yazı deyil — hər dil üçün ayrı məqalə yaradılır">
         <div className="grid gap-space-sm sm:grid-cols-2">
-          {(
-            [
-              {
-                value: "az" as const,
-                label: "Azərbaycan dili",
-                description: "Sayt üçün əsas dil — indiyədək bütün yazılar bu dildədir.",
-              },
-              {
-                value: "ru" as const,
-                label: "Rus dili",
-                description: "Rus dilli oxucular üçün — saytın /ru bölməsində görünür.",
-              },
-            ] as const
-          ).map((opt) => {
+          {[routing.defaultLocale, ...getTranslatableLocales()].map((l) => {
+            const opt = {
+              value: l,
+              label: `${LOCALE_LABELS[l] ?? l} dili`,
+              description:
+                l === routing.defaultLocale
+                  ? "Sayt üçün əsas dil — indiyədək bütün yazılar bu dildədir."
+                  : `${LOCALE_LABELS[l] ?? l} dilli oxucular üçün — saytın /${l} bölməsində görünür.`,
+            };
             const active = language === opt.value;
-            const Flag = FLAGS[opt.value];
+            const Flag = FLAGS[opt.value as keyof typeof FLAGS];
             return (
               <button
                 key={opt.value}
@@ -94,7 +89,9 @@ export function InfoStep({
                     : "border-outline-variant hover:border-secondary/40",
                 )}
               >
-                <Flag className="shrink-0 w-14 h-11 rounded-lg object-cover ring-1 ring-outline-variant/60" />
+                {Flag && (
+                  <Flag className="shrink-0 w-14 h-11 rounded-lg object-cover ring-1 ring-outline-variant/60" />
+                )}
                 <span className="flex flex-col gap-0.5 min-w-0">
                   <span className="flex items-center gap-space-2xs font-label text-label-lg text-on-surface">
                     {opt.label}

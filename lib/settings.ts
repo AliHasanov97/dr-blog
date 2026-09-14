@@ -6,7 +6,10 @@
  * qurulub — hər parametr üçün ayrıca sütun yoxdur.
  */
 
-export interface SiteSettings {
+import { pickTranslation } from "@/lib/i18n/translations";
+
+/** Rus dilinə (və gələcək hər dilə) tərcümə oluna bilən sahələr */
+export interface TranslatableSettingsFields {
   siteName: string;
   tagline: string;
   description: string;
@@ -16,39 +19,11 @@ export interface SiteSettings {
   heroHeadline: string;
   /** Ana səhifə hero bölməsində həkim titulundan sonra gələn cümlə */
   heroDescription: string;
-  articlesPerPage: number;
-  commentsEnabled: boolean;
-  commentsRequireApproval: boolean;
-  newsletterEnabled: boolean;
-  /**
-   * Söndürülsə RU saytı (`/ru/...`) bağlanır — hər sorğu `/az`-a
-   * yönləndirilir, dil seçimi (`PreferencesMenu`) də gizlənir. RU
-   * məzmun silinmir, sadəcə əlçatmaz olur — istənilən vaxt geri açıla bilər.
-   */
-  multiLanguageEnabled: boolean;
   loadingText: string;
-  loadingLogo: string;
-  /** Açılış ekranında mətn göstərilsin */
-  loadingShowText: boolean;
-  /** Açılış ekranında logo göstərilsin */
-  loadingShowLogo: boolean;
-
-  /**
-   * Rus dilində variantlar — boşdursa RU saytda AZ mətn geri qayıdır.
-   * `getSiteSettings(locale)` bunları həll edib tək dəyər qaytarır; admin
-   * forması isə hər ikisini birlikdə göstərir (bax: `SettingsForm.tsx`).
-   */
-  siteNameRu: string;
-  taglineRu: string;
-  descriptionRu: string;
-  heroEyebrowRu: string;
-  heroHeadlineRu: string;
-  heroDescriptionRu: string;
-  loadingTextRu: string;
 }
 
-/** Rus dilinə tərcümə oluna bilən sahələr — `resolveSettingsForLocale`-də işlədilir */
-const TRANSLATABLE_KEYS = [
+/** `resolveSettingsForLocale`/`SettingsForm.tsx`-də işlədilir */
+export const TRANSLATABLE_KEYS = [
   "siteName",
   "tagline",
   "description",
@@ -56,7 +31,29 @@ const TRANSLATABLE_KEYS = [
   "heroHeadline",
   "heroDescription",
   "loadingText",
-] as const satisfies readonly (keyof SiteSettings)[];
+] as const satisfies readonly (keyof TranslatableSettingsFields)[];
+
+export interface SiteSettings extends TranslatableSettingsFields {
+  articlesPerPage: number;
+  commentsEnabled: boolean;
+  commentsRequireApproval: boolean;
+  newsletterEnabled: boolean;
+  loadingLogo: string;
+  /** Açılış ekranında mətn göstərilsin */
+  loadingShowText: boolean;
+  /** Açılış ekranında logo göstərilsin */
+  loadingShowLogo: boolean;
+
+  /**
+   * Digər dillərdəki tərcümələr — açar dil kodu (məs. "ru"), dəyər isə o
+   * dildə override olunan sahələr. Boş/olmayan sahə AZ mətnə geri qayıdır.
+   * `getSiteSettings(locale)` bunları həll edib tək dəyər qaytarır; admin
+   * forması isə xam `SiteSettings`-i (bütün dillər) göstərir (bax:
+   * `SettingsForm.tsx`). Yeni dil əlavə etmək sxemə TOXUNMAQ TƏLƏB ETMİR —
+   * sadəcə yeni açar (`"en": {...}`) yazılır.
+   */
+  translations?: Record<string, Partial<TranslatableSettingsFields>>;
+}
 
 /** Bazada sətir olmadıqda və ya sahə əskik olduqda işlədilir */
 export const DEFAULT_SETTINGS: SiteSettings = {
@@ -72,39 +69,23 @@ export const DEFAULT_SETTINGS: SiteSettings = {
   commentsEnabled: true,
   commentsRequireApproval: true,
   newsletterEnabled: true,
-  multiLanguageEnabled: true,
   loadingText: "DR.NARMIN",
   loadingLogo: "",
   loadingShowText: true,
   loadingShowLogo: false,
-  siteNameRu: "",
-  taglineRu: "",
-  descriptionRu: "",
-  heroEyebrowRu: "",
-  heroHeadlineRu: "",
-  heroDescriptionRu: "",
-  loadingTextRu: "",
+  translations: {},
 };
 
 /**
- * RU saytda göstərilən tək-dilli görünüş — hər sahə üçün `<sahə>Ru`
- * doludursa onu, boşdursa AZ mətni qaytarır. Admin formasında əvəzinə
- * xam `SiteSettings` (hər iki dil) işlədilir.
+ * RU (və ya digər dil) saytda göstərilən tək-dilli görünüş — `translations`
+ * daxilindəki dolu sahələr AZ mətnin üzərinə yazılır, boş qalanlar AZ-a
+ * geri qayıdır.
  */
 export function resolveSettingsForLocale(
   settings: SiteSettings,
   locale?: string,
 ): SiteSettings {
-  if (locale !== "ru") return settings;
-  const resolved = { ...settings };
-  for (const key of TRANSLATABLE_KEYS) {
-    const ruKey = `${key}Ru` as keyof SiteSettings;
-    const ruValue = settings[ruKey];
-    if (typeof ruValue === "string" && ruValue.trim()) {
-      resolved[key] = ruValue;
-    }
-  }
-  return resolved;
+  return pickTranslation(settings, settings.translations, locale);
 }
 
 /** Açar/dəyər cədvəlində parametrlərin saxlanıldığı açar */
@@ -121,6 +102,7 @@ export function normalizeSettings(raw: unknown): SiteSettings {
   const result = { ...DEFAULT_SETTINGS };
 
   for (const key of Object.keys(DEFAULT_SETTINGS) as (keyof SiteSettings)[]) {
+    if (key === "translations") continue;
     const value = input[key];
     const expected = typeof DEFAULT_SETTINGS[key];
     if (typeof value === expected) {
@@ -128,6 +110,11 @@ export function normalizeSettings(raw: unknown): SiteSettings {
       (result as any)[key] = value;
     }
   }
+
+  result.translations =
+    input.translations && typeof input.translations === "object" && !Array.isArray(input.translations)
+      ? (input.translations as SiteSettings["translations"])
+      : {};
 
   /* Səhifə başına məqalə sayı ağlabatan hədddə saxlanılır */
   result.articlesPerPage = Math.min(

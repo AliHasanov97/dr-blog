@@ -2,7 +2,8 @@
 
 import { useState, useTransition, useRef } from "react";
 import { Button, FLAGS, Icon, TextAreaField, TextField } from "@/components/ui";
-import type { SiteSettings } from "@/lib/settings";
+import { getTranslatableLocales, isMultiLanguageEnabled, LOCALE_LABELS, routing } from "@/i18n/routing";
+import type { SiteSettings, TranslatableSettingsFields } from "@/lib/settings";
 import { updateSettings } from "./actions";
 import { uploadMedia } from "../_resources/media-actions";
 import { cn } from "@/lib/utils";
@@ -14,29 +15,18 @@ const TABS = [
 ] as const;
 
 type TabId = typeof TABS[number]["id"];
-type Lang = "az" | "ru";
-
-/** Rus dilinə tərcümə oluna bilən sahələr — `lib/settings.ts`-dəki siyahı ilə eyni */
-type TranslatableKey =
-  | "siteName"
-  | "tagline"
-  | "description"
-  | "heroEyebrow"
-  | "heroHeadline"
-  | "heroDescription"
-  | "loadingText";
-
-function ruKeyOf(key: TranslatableKey): keyof SiteSettings {
-  return `${key}Ru` as keyof SiteSettings;
-}
+type Lang = string;
+type TranslatableKey = keyof TranslatableSettingsFields;
 
 export interface SettingsFormProps {
   settings: SiteSettings;
 }
 
 export function SettingsForm({ settings }: SettingsFormProps) {
+  /* `.env`-dəki NEXT_PUBLIC_ENABLED_LOCALES ilə idarə olunur (bax: i18n/routing.ts) */
+  const languageSupport = isMultiLanguageEnabled();
   const [activeTab, setActiveTab] = useState<TabId>("general");
-  const [lang, setLang] = useState<Lang>("az");
+  const [lang, setLang] = useState<Lang>(routing.defaultLocale);
   const [values, setValues] = useState(settings);
   const [pending, startTransition] = useTransition();
   const [feedback, setFeedback] = useState<{ tone: "ok" | "error"; text: string } | null>(null);
@@ -46,12 +36,24 @@ export function SettingsForm({ settings }: SettingsFormProps) {
     setFeedback(null);
   }
 
-  /* Tərcümə olunan sahələr üçün: `lang`-a görə AZ və ya RU dəyərini oxuyur/yazır */
+  /* Tərcümə olunan sahələr üçün: `lang`-a görə AZ əsas sahəni, ya da
+   * `translations[lang]`-ı oxuyur/yazır — heç bir dil bərkidilməyib */
   function tval(key: TranslatableKey): string {
-    return String(values[lang === "ru" ? ruKeyOf(key) : key] ?? "");
+    if (lang === routing.defaultLocale) return values[key];
+    return values.translations?.[lang]?.[key] ?? "";
   }
   function tset(key: TranslatableKey, value: string) {
-    setValues((prev) => ({ ...prev, [lang === "ru" ? ruKeyOf(key) : key]: value }));
+    if (lang === routing.defaultLocale) {
+      setValues((prev) => ({ ...prev, [key]: value }));
+    } else {
+      setValues((prev) => ({
+        ...prev,
+        translations: {
+          ...prev.translations,
+          [lang]: { ...prev.translations?.[lang], [key]: value },
+        },
+      }));
+    }
     setFeedback(null);
   }
 
@@ -108,19 +110,19 @@ export function SettingsForm({ settings }: SettingsFormProps) {
 
       {/*
         * Dil seçimi — yalnız tərcümə oluna bilən sahələr olan tab-larda VƏ
-        * RU aktiv olanda. Söndürülübsə RU heç yerdə görünməməlidir, ona
-        * görə bu bar tamam gizlənir (aşağıdakı `tval`/`tset` isə avtomatik
-        * AZ sahəsinə yazır, çünki `lang` "az"-da qalır).
+        * RU aktiv olanda (`.env`-dəki NEXT_PUBLIC_ENABLED_LOCALES). Söndürülübsə
+        * bu bar tamam gizlənir (aşağıdakı `tval`/`tset` isə avtomatik AZ
+        * sahəsinə yazır, çünki `lang` "az"-da qalır).
         */}
-      {values.multiLanguageEnabled && (activeTab === "general" || activeTab === "appearance") && (
+      {languageSupport && (activeTab === "general" || activeTab === "appearance") && (
         <div className="flex flex-col gap-space-xs sm:flex-row sm:items-center sm:justify-between px-space-md py-space-sm bg-secondary/[0.04] border-b border-surface-container">
           <span className="flex items-center gap-1.5 font-label text-label-sm text-on-surface-variant">
             <Icon name="translate" size={16} className="text-secondary" />
             Bu sahələr dilə görə ayrıca doldurulur
           </span>
           <div className="inline-flex items-center gap-0.5 p-0.5 rounded-full bg-surface-container-lowest border border-surface-container w-fit">
-            {(["az", "ru"] as const).map((l) => {
-              const Flag = FLAGS[l];
+            {[routing.defaultLocale, ...getTranslatableLocales()].map((l) => {
+              const Flag = FLAGS[l as keyof typeof FLAGS];
               const active = lang === l;
               return (
                 <button
@@ -134,8 +136,8 @@ export function SettingsForm({ settings }: SettingsFormProps) {
                       : "text-on-surface-variant hover:bg-surface-container",
                   )}
                 >
-                  <Flag className="w-5 h-[14px] shrink-0 rounded-[2px] object-cover" />
-                  {l === "az" ? "Azərbaycan" : "Rus"}
+                  {Flag && <Flag className="w-5 h-[14px] shrink-0 rounded-[2px] object-cover" />}
+                  {LOCALE_LABELS[l as keyof typeof LOCALE_LABELS] ?? l}
                 </button>
               );
             })}
@@ -149,39 +151,13 @@ export function SettingsForm({ settings }: SettingsFormProps) {
         {activeTab === "general" && (
           <div className="space-y-space-lg">
             <div>
-              <h3 className="font-label text-label-lg text-on-surface mb-1">Dil dəstəyi</h3>
-              <p className="text-sm text-outline mb-4">
-                Söndürülsə rus dilli sayt (/ru) bağlanır, ziyarətçilər avtomatik azərbaycan
-                versiyasına yönləndirilir və başlıqdakı dil seçimi gizlənir. RU məzmun silinmir —
-                istənilən vaxt geri aça bilərsiniz.
-              </p>
-
-              <ToggleCard
-                active={values.multiLanguageEnabled}
-                onChange={(v) => {
-                  set("multiLanguageEnabled", v);
-                  if (!v) setLang("az");
-                }}
-                icon="translate"
-                title="Rus dili aktivdir"
-                description={
-                  values.multiLanguageEnabled
-                    ? "Sayt həm AZ, həm RU dilində əlçatandır"
-                    : "Sayt yalnız azərbaycan dilində göstərilir"
-                }
-              />
-            </div>
-
-            <hr className="border-surface-container" />
-
-            <div>
               <h3 className="font-label text-label-lg text-on-surface mb-1">Sayt məlumatları</h3>
               <p className="text-sm text-outline mb-4">Saytın başlığı və SEO üçün təsviri</p>
 
               <div className="grid gap-space-md sm:grid-cols-2">
                 <TextField
                   label="Sayt adı"
-                  required={lang === "az"}
+                  required={lang === routing.defaultLocale}
                   value={tval("siteName")}
                   onChange={(e) => tset("siteName", e.target.value)}
                 />

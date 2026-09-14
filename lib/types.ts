@@ -33,7 +33,7 @@ export interface Category {
   slug: string;
   name: string;
   /** Yalnız admin siyahısında dolur — publik sorğular artıq həll olunmuş `name`-i qaytarır */
-  nameRu?: string;
+  translations?: Record<string, { name?: string }>;
   /** Material Symbols ikon adı */
   icon?: string;
   articleCount?: number;
@@ -322,7 +322,7 @@ export interface VideoItem {
   kindLabel: string;
   url: string;
   /** Yalnız admin siyahısında dolur */
-  language?: "az" | "ru";
+  language?: string;
 }
 
 export interface ProtocolDocument {
@@ -339,7 +339,7 @@ export interface ProtocolDocument {
    */
   access?: "download" | "read" | "both";
   /** Yalnız admin siyahısında dolur */
-  language?: "az" | "ru";
+  language?: string;
 }
 
 /* ---------------------------------------------------------------

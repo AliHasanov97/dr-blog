@@ -9,9 +9,9 @@ import {
   DataTable,
   LanguageFilterCards,
   StatusPill,
-  useLanguageSupport,
   type ContentLanguageFilter,
 } from "@/components/admin";
+import { isMultiLanguageEnabled, type AppLocale } from "@/i18n/routing";
 import { Button, Chip, FLAGS, Icon, SearchBar } from "@/components/ui";
 import { articleStatusLabels } from "@/lib/admin/format";
 import type { AdminArticle, ArticleStatus } from "@/lib/mock/store";
@@ -37,9 +37,7 @@ const filters: { slug: ArticleStatus | "all"; name: string; icon: string }[] = [
   { slug: "draft", name: "Qaralama", icon: "edit_note" },
 ];
 
-type Language = "az" | "ru";
-
-const languageBadge: Record<Language, string> = { az: "AZ", ru: "RU" };
+type Language = AppLocale;
 
 const statusTone = {
   published: "success",
@@ -63,7 +61,7 @@ export function ArticleListClient({
   pageSize,
   categories,
 }: ArticleListClientProps) {
-  const languageSupport = useLanguageSupport();
+  const languageSupport = isMultiLanguageEnabled();
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState<ArticleStatus | "all">("all");
   const [category, setCategory] = useState<string>("all");
@@ -257,12 +255,14 @@ export function ArticleListClient({
               {languageSupport && (
                 <DataCell>
                   {(() => {
-                    const Flag = FLAGS[article.language];
+                    const Flag = FLAGS[article.language as keyof typeof FLAGS];
                     return (
                       <span className="inline-flex items-center gap-space-2xs">
-                        <Flag className="w-6 h-[18px] shrink-0 rounded-[3px] object-cover ring-1 ring-outline-variant/60" />
+                        {Flag && (
+                          <Flag className="w-6 h-[18px] shrink-0 rounded-[3px] object-cover ring-1 ring-outline-variant/60" />
+                        )}
                         <span className="font-label text-label-sm font-semibold text-on-surface-variant uppercase tracking-wide">
-                          {languageBadge[article.language]}
+                          {article.language.toUpperCase()}
                         </span>
                       </span>
                     );

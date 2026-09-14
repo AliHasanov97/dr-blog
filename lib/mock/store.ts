@@ -46,7 +46,7 @@ export interface ArticleReactions {
 export interface AdminArticle extends Article {
   status: ArticleStatus;
   /** Məqalənin yazıldığı dil — tərcümə eyni məqalə deyil, AYRI yazıdır */
-  language: "az" | "ru";
+  language: string;
   updatedAt: string;
   reactions?: ArticleReactions;
   allowComments?: boolean;

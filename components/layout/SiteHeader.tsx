@@ -9,6 +9,7 @@ import { PreferencesMenu } from "./PreferencesMenu";
 import { SearchDialog } from "./SearchDialog";
 import { ThemeToggle } from "./ThemeToggle";
 import { Link, usePathname } from "@/i18n/navigation";
+import { isMultiLanguageEnabled } from "@/i18n/routing";
 import { navItems } from "@/lib/site";
 import type { DoctorProfile, SearchIndexItem } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -22,16 +23,16 @@ export interface SiteHeaderProps {
   /** Axtarış qutusu boş olanda göstərilən təkliflər */
   searchSuggestions: SearchIndexItem[];
   doctor: DoctorProfile;
-  /** Admin RU dilini söndürübsə (bax: /admin/parametrler) dil seçimi gizlənir */
-  showLanguageSwitch: boolean;
 }
 
 /**
  * Sabit üst panel.
  * Mobil: loqo + axtarış. Desktop: əlavə olaraq üfüqi naviqasiya və ⌘K göstəricisi.
  */
-export function SiteHeader({ searchSuggestions, doctor, showLanguageSwitch }: SiteHeaderProps) {
+export function SiteHeader({ searchSuggestions, doctor }: SiteHeaderProps) {
   const t = useTranslations("nav");
+  /* `.env`-dəki NEXT_PUBLIC_ENABLED_LOCALES ilə idarə olunur (bax: i18n/routing.ts) */
+  const showLanguageSwitch = isMultiLanguageEnabled();
   const pathname = usePathname();
   const [searchOpen, setSearchOpen] = useState(false);
 

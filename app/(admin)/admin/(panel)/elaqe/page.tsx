@@ -1,5 +1,12 @@
 import { AdminPageHeader, ResourceManager } from "@/components/admin";
-import { getContactInfo, getDoctorProfile, getSiteSettings, listFaq } from "@/lib/admin/queries";
+import {
+  getTranslatableLocales,
+  isMultiLanguageEnabled,
+  LOCALE_LABELS,
+  translatableFieldName,
+} from "@/i18n/routing";
+import { getContactInfo, getDoctorProfile, listFaq } from "@/lib/admin/queries";
+import type { ResourceRow } from "@/lib/admin/types";
 import {
   createResource,
   deleteResource,
@@ -10,13 +17,13 @@ import { ContactSettingsForm } from "./ContactSettingsForm";
 export const metadata = { title: "Əlaqə & FAQ" };
 
 export default async function AdminContactPage() {
-  const [contactInfo, doctor, faqItems, settings] = await Promise.all([
+  const [contactInfo, doctor, faqItems] = await Promise.all([
     getContactInfo(),
     getDoctorProfile(),
     listFaq(),
-    getSiteSettings(),
   ]);
-  const { multiLanguageEnabled } = settings;
+  const multiLanguageEnabled = isMultiLanguageEnabled();
+  const locales = getTranslatableLocales();
 
   async function create(values: Record<string, string>) {
     "use server";
@@ -53,17 +60,32 @@ export default async function AdminContactPage() {
           </div>
           <div className="p-space-md">
             <ResourceManager
-              items={faqItems.map((f: any) => ({
-                ...f,
-                ruStatus:
-                  multiLanguageEnabled && (f.questionRu || f.answerRu) ? "RU var" : "RU yoxdur",
-              }))}
+              items={faqItems.map((f: any) => {
+                const row: ResourceRow = {
+                  id: f.id,
+                  question: f.question,
+                  answer: f.answer,
+                };
+                const filled: string[] = [];
+                for (const locale of locales) {
+                  const question = f.translations?.[locale]?.question ?? "";
+                  const answer = f.translations?.[locale]?.answer ?? "";
+                  row[translatableFieldName("question", locale)] = question;
+                  row[translatableFieldName("answer", locale)] = answer;
+                  if (question || answer) filled.push(LOCALE_LABELS[locale] ?? locale);
+                }
+                row.translationStatus =
+                  multiLanguageEnabled && filled.length > 0
+                    ? `${filled.join(", ")} var`
+                    : "Tərcümə yoxdur";
+                return row;
+              })}
               actions={{ create, update, remove }}
               searchFields={["question", "answer"]}
               fields={[
                 {
                   name: "question",
-                  label: multiLanguageEnabled ? "Sual (Azərbaycan dili)" : "Sual",
+                  label: multiLanguageEnabled ? `Sual (${LOCALE_LABELS.az})` : "Sual",
                   type: "text",
                   required: true,
                   placeholder: "Həkimə necə müraciət edə bilərəm?",
@@ -71,31 +93,29 @@ export default async function AdminContactPage() {
                 },
                 {
                   name: "answer",
-                  label: multiLanguageEnabled ? "Cavab (Azərbaycan dili)" : "Cavab",
+                  label: multiLanguageEnabled ? `Cavab (${LOCALE_LABELS.az})` : "Cavab",
                   type: "textarea",
                   rows: 4,
                   required: true,
                   colSpan: 2,
                 },
-                ...(multiLanguageEnabled
-                  ? [
-                      {
-                        name: "questionRu",
-                        label: "Sual (Rus dili)",
-                        type: "text" as const,
-                        hint: "Boş qalsa RU saytda Azərbaycanca sual göstərilir",
-                        colSpan: 2 as const,
-                      },
-                      {
-                        name: "answerRu",
-                        label: "Cavab (Rus dili)",
-                        type: "textarea" as const,
-                        rows: 4,
-                        hint: "Boş qalsa RU saytda Azərbaycanca cavab göstərilir",
-                        colSpan: 2 as const,
-                      },
-                    ]
-                  : []),
+                ...locales.flatMap((locale) => [
+                  {
+                    name: translatableFieldName("question", locale),
+                    label: `Sual (${LOCALE_LABELS[locale] ?? locale})`,
+                    type: "text" as const,
+                    hint: `Boş qalsa ${LOCALE_LABELS[locale] ?? locale} saytda ${LOCALE_LABELS.az} sual göstərilir`,
+                    colSpan: 2 as const,
+                  },
+                  {
+                    name: translatableFieldName("answer", locale),
+                    label: `Cavab (${LOCALE_LABELS[locale] ?? locale})`,
+                    type: "textarea" as const,
+                    rows: 4,
+                    hint: `Boş qalsa ${LOCALE_LABELS[locale] ?? locale} saytda ${LOCALE_LABELS.az} cavab göstərilir`,
+                    colSpan: 2 as const,
+                  },
+                ]),
               ]}
               nameField="question"
               labels={{
@@ -117,10 +137,10 @@ export default async function AdminContactPage() {
                 ...(multiLanguageEnabled
                   ? [
                       {
-                        key: "ruStatus",
-                        header: "Rus dili",
+                        key: "translationStatus",
+                        header: "Tərcümələr",
                         type: "badge" as const,
-                        field: "ruStatus",
+                        field: "translationStatus",
                       },
                     ]
                   : []),

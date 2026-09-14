@@ -1,6 +1,7 @@
 import { ArticleLanguage } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { removeStoredFile } from "@/lib/admin/storage";
+import type { AppLocale } from "@/i18n/routing";
 
 /**
  * Admin siyahısı üçün videolar.
@@ -17,7 +18,7 @@ export async function dbListVideos() {
     description: v.description ?? "",
     thumbnailUrl: v.thumbnailUrl ?? "",
     kindLabel: v.kindLabel ?? "",
-    language: v.language.toLowerCase() as "az" | "ru",
+    language: v.language.toLowerCase() as AppLocale,
     url: v.videoUrl,
   }));
 }

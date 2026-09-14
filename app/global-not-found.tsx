@@ -3,7 +3,7 @@ import { cookies, headers } from "next/headers";
 import { RootHeadAssets } from "@/components/layout";
 import { ButtonLink, EmptyState } from "@/components/ui";
 import { newsreader, jakarta } from "@/lib/fonts";
-import { routing, type AppLocale } from "@/i18n/routing";
+import { getEnabledLocales, routing, type AppLocale } from "@/i18n/routing";
 import "./globals.css";
 
 /**
@@ -44,16 +44,25 @@ const COPY: Record<AppLocale, { title: string; description: string; backHome: st
     description: "Запрашиваемый адрес не существует, был удалён или введён неверно.",
     backHome: "На главную страницу",
   },
+  tr: {
+    title: "404 — Sayfa bulunamadı",
+    description: "Aradığınız adres mevcut değil, silinmiş ya da yanlış yazılmış olabilir.",
+    backHome: "Ana sayfaya dön",
+  },
 };
 
 async function detectLocale(): Promise<AppLocale> {
+  /* Yalnız aktiv dillər (bax: i18n/routing.ts) — söndürülmüş dilin köhnə
+   * NEXT_LOCALE cookie-si qalıbsa belə, bu səhifə həmin dildə göstərilmir */
+  const enabled = getEnabledLocales();
+
   const cookieLocale = (await cookies()).get("NEXT_LOCALE")?.value;
-  const fromCookie = routing.locales.find((l) => l === cookieLocale);
+  const fromCookie = enabled.find((l) => l === cookieLocale);
   if (fromCookie) return fromCookie;
 
   const acceptLanguage = (await headers()).get("accept-language") ?? "";
   const preferred = acceptLanguage.toLowerCase().split(",")[0]?.split("-")[0];
-  return routing.locales.find((l) => l === preferred) ?? routing.defaultLocale;
+  return enabled.find((l) => l === preferred) ?? routing.defaultLocale;
 }
 
 export default async function GlobalNotFound() {

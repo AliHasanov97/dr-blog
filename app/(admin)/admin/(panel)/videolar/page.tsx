@@ -3,7 +3,8 @@ import {
   HelpNote,
   LanguageFilteredResourceManager,
 } from "@/components/admin";
-import { getSiteSettings, listVideos } from "@/lib/admin/queries";
+import { getTranslatableLocales, isMultiLanguageEnabled, LOCALE_LABELS, routing } from "@/i18n/routing";
+import { listVideos } from "@/lib/admin/queries";
 import {
   createResource,
   deleteResource,
@@ -13,14 +14,15 @@ import {
 export const metadata = { title: "Videolar" };
 
 export default async function AdminVideosPage() {
-  const [videos, settings] = await Promise.all([listVideos(), getSiteSettings()]);
-  const { multiLanguageEnabled } = settings;
-  /* Cədvəldə başlığın altında videonun növü göstərilir — RU söndürülübsə
-   * dil mövcud RU qeydlər üçün belə göstərilmir (bax: LanguageSupportContext) */
+  const videos = await listVideos();
+  const languageSupport = isMultiLanguageEnabled();
+  const locales = [routing.defaultLocale, ...getTranslatableLocales()];
+  /* Cədvəldə başlığın altında videonun növü göstərilir — dil dəstəyi
+   * söndürülübsə mövcud qeydlər üçün belə göstərilmir (bax: i18n/routing.ts) */
   const rows = videos.map((v) => ({
     ...v,
-    meta: multiLanguageEnabled
-      ? [v.kindLabel, v.language === "ru" ? "RU" : "AZ"].filter(Boolean).join(" · ")
+    meta: languageSupport
+      ? [v.kindLabel, v.language?.toUpperCase()].filter(Boolean).join(" · ")
       : v.kindLabel,
   }));
 
@@ -82,10 +84,7 @@ export default async function AdminVideosPage() {
             name: "language",
             label: "Dil",
             type: "select",
-            options: [
-              { value: "az", label: "Azərbaycan dili" },
-              { value: "ru", label: "Rus dili" },
-            ],
+            options: locales.map((l) => ({ value: l, label: `${LOCALE_LABELS[l] ?? l} dili` })),
           },
           { name: "thumbnailUrl", label: "Örtük şəkli", type: "image", colSpan: 2 },
         ]}

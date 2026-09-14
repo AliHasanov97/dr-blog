@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { AdminShell, LanguageSupportProvider } from "@/components/admin";
+import { AdminShell } from "@/components/admin";
 import type { AdminNavGroup } from "@/components/admin";
 import { logoutAction } from "@/app/(admin)/admin/login/actions";
 import { getSession } from "@/lib/auth";
-import { getDashboardStats, getDoctorProfile, getSiteSettings } from "@/lib/admin/queries";
+import { getDashboardStats, getDoctorProfile } from "@/lib/admin/queries";
 
 export const metadata: Metadata = {
   title: { default: "İdarə paneli", template: "%s | İdarə paneli" },
@@ -17,10 +17,9 @@ export default async function AdminPanelLayout({
   const session = await getSession();
   if (!session) redirect("/admin/login");
 
-  const [doctor, stats, settings] = await Promise.all([
+  const [doctor, stats] = await Promise.all([
     getDoctorProfile(),
     getDashboardStats(),
-    getSiteSettings(),
   ]);
   const { pendingComments, newMessages } = stats;
 
@@ -67,15 +66,13 @@ export default async function AdminPanelLayout({
   ];
 
   return (
-    <LanguageSupportProvider enabled={settings.multiLanguageEnabled}>
-      <AdminShell
-        user={session.user}
-        doctorName={doctor?.fullName || "Həkim"}
-        groups={groups}
-        logoutAction={logoutAction}
-      >
-        {children}
-      </AdminShell>
-    </LanguageSupportProvider>
+    <AdminShell
+      user={session.user}
+      doctorName={doctor?.fullName || "Həkim"}
+      groups={groups}
+      logoutAction={logoutAction}
+    >
+      {children}
+    </AdminShell>
   );
 }

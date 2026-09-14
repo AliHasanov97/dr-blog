@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { sendMail } from "@/lib/mail";
 import { inboxNotificationEmail, welcomeEmail } from "@/lib/mail/templates";
 import { dbGetArticleAuthor } from "@/lib/db/doctor";
+import { pickTranslation } from "@/lib/i18n/translations";
 import type {
   ContactChannel,
   ContactFormValues,
@@ -60,13 +61,14 @@ export async function dbGetFaqItems(locale?: string): Promise<FaqItem[]> {
     orderBy: { sortOrder: "asc" },
   });
 
-  const ru = locale === "ru";
-
   return items.map((item) => ({
     id: item.id,
-    /* Boş qalsa AZ mətnə geri qayıdır — Category.nameRu ilə eyni qayda */
-    question: ru && item.questionRu?.trim() ? item.questionRu : item.question,
-    answer: ru && item.answerRu?.trim() ? item.answerRu : item.answer,
+    /* Boş qalsa AZ mətnə geri qayıdır — Category.translations ilə eyni qayda */
+    ...pickTranslation(
+      { question: item.question, answer: item.answer },
+      item.translations,
+      locale,
+    ),
   }));
 }
 

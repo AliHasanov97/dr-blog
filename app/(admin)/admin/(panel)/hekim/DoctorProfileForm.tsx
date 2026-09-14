@@ -1,33 +1,19 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { ImagePicker, RepeaterField, useLanguageSupport } from "@/components/admin";
-import { Button, Icon, TextAreaField, TextField } from "@/components/ui";
+import { ImagePicker, RepeaterField } from "@/components/admin";
+import {
+  getTranslatableLocales,
+  isMultiLanguageEnabled,
+  LOCALE_LABELS,
+  routing,
+} from "@/i18n/routing";
+import { Button, FLAGS, Icon, TextAreaField, TextField } from "@/components/ui";
 import type { Credential, DoctorProfile, DoctorStat, ResearchArea, TimelineEntry } from "@/lib/types";
 import { updateDoctorProfile, type DoctorPayload } from "./actions";
 import { cn } from "@/lib/utils";
 
 const DOCTOR_IMAGE_SCOPE = { kind: "doctor" as const };
-
-/**
- * Admin sorğusu xam Prisma qeydini qaytarır — `DoctorProfile` (publik tip)
- * bu sahələri daşımır, ona görə formanın öz tipi var.
- */
-export interface DoctorProfileFormProps {
-  doctor: DoctorProfile & {
-    shortTitleRu?: string | null;
-    fullTitleRu?: string | null;
-    taglineRu?: string | null;
-    biographyRu?: string | null;
-    quoteRu?: string | null;
-    credentialsRu?: Credential[] | null;
-    statsRu?: DoctorStat[] | null;
-    educationRu?: TimelineEntry[] | null;
-    researchAreasRu?: ResearchArea[] | null;
-  };
-}
-
-type Lang = "az" | "ru";
 
 /** Dilə görə dəyişən sahələr — hər dilin öz nüsxəsi var */
 interface Translatable {
@@ -41,6 +27,30 @@ interface Translatable {
   education: TimelineEntry[];
   researchAreas: ResearchArea[];
 }
+
+/**
+ * Admin sorğusu xam Prisma qeydini qaytarır — `DoctorProfile` (publik tip)
+ * `translations` sahəsini daşımır, ona görə formanın öz tipi var.
+ */
+export interface DoctorProfileFormProps {
+  doctor: DoctorProfile & {
+    translations?: Record<string, Partial<Translatable>> | null;
+  };
+}
+
+type Lang = string;
+
+const EMPTY_TRANSLATABLE: Translatable = {
+  shortTitle: "",
+  fullTitle: "",
+  tagline: "",
+  biography: "",
+  quote: "",
+  credentials: [],
+  stats: [],
+  education: [],
+  researchAreas: [],
+};
 
 const STEPS = [
   { id: 0, label: "Kimlik", icon: "badge" },
@@ -63,7 +73,7 @@ const RESEARCH_ICONS = [
 ];
 
 export function DoctorProfileForm({ doctor }: DoctorProfileFormProps) {
-  const languageSupport = useLanguageSupport();
+  const languageSupport = isMultiLanguageEnabled();
   const [step, setStep] = useState(0);
   const [showPreview, setShowPreview] = useState(true);
   const [pending, startTransition] = useTransition();
@@ -80,13 +90,14 @@ export function DoctorProfileForm({ doctor }: DoctorProfileFormProps) {
 
   /*
    * Dilə görə dəyişən hər şey — bioqrafiya, titul, sitat, nişanlar,
-   * statistika, təhsil, tədqiqat sahələri — iki ayrı dəstdə saxlanılır.
-   * Redaktor "Rus dili" tab-ına keçəndə eyni sahələr, amma RU məzmunu
-   * göstərilir; "Yadda saxla" HƏR İKİ dili birlikdə göndərir.
+   * statistika, təhsil, tədqiqat sahələri — hər dil üçün ayrı dəstdə
+   * saxlanılır (`routing.locales`-ə görə dinamik — RU-ya bərkidilməyib).
+   * Redaktor başqa dil tab-ına keçəndə eyni sahələr, amma o dilin məzmunu
+   * göstərilir; "Yadda saxla" bütün dilləri birlikdə göndərir.
    */
-  const [lang, setLang] = useState<Lang>("az");
-  const [content, setContent] = useState<Record<Lang, Translatable>>({
-    az: {
+  const [lang, setLang] = useState<Lang>(routing.defaultLocale);
+  const [content, setContent] = useState<Record<Lang, Translatable>>(() => {
+    const az: Translatable = {
       shortTitle: doctor.shortTitle,
       fullTitle: doctor.fullTitle,
       tagline: doctor.tagline,
@@ -96,18 +107,14 @@ export function DoctorProfileForm({ doctor }: DoctorProfileFormProps) {
       stats: doctor.stats,
       education: doctor.education,
       researchAreas: doctor.researchAreas,
-    },
-    ru: {
-      shortTitle: doctor.shortTitleRu ?? "",
-      fullTitle: doctor.fullTitleRu ?? "",
-      tagline: doctor.taglineRu ?? "",
-      biography: doctor.biographyRu ?? "",
-      quote: doctor.quoteRu ?? "",
-      credentials: doctor.credentialsRu ?? [],
-      stats: doctor.statsRu ?? [],
-      education: doctor.educationRu ?? [],
-      researchAreas: doctor.researchAreasRu ?? [],
-    },
+    };
+    const rest = Object.fromEntries(
+      getTranslatableLocales().map((l) => [
+        l,
+        { ...EMPTY_TRANSLATABLE, ...doctor.translations?.[l] },
+      ]),
+    );
+    return { [routing.defaultLocale]: az, ...rest };
   });
 
   const cur = content[lang];
@@ -123,28 +130,23 @@ export function DoctorProfileForm({ doctor }: DoctorProfileFormProps) {
       setStep(0);
       return;
     }
+    const az = content[routing.defaultLocale];
     const payload: DoctorPayload = {
       fullName,
       avatarUrl,
       portraitUrl,
-      shortTitle: content.az.shortTitle,
-      shortTitleRu: content.ru.shortTitle,
-      fullTitle: content.az.fullTitle,
-      fullTitleRu: content.ru.fullTitle,
-      tagline: content.az.tagline,
-      taglineRu: content.ru.tagline,
-      biography: content.az.biography,
-      biographyRu: content.ru.biography,
-      quote: content.az.quote,
-      quoteRu: content.ru.quote,
-      credentials: content.az.credentials,
-      credentialsRu: content.ru.credentials,
-      stats: content.az.stats,
-      statsRu: content.ru.stats,
-      education: content.az.education,
-      educationRu: content.ru.education,
-      researchAreas: content.az.researchAreas,
-      researchAreasRu: content.ru.researchAreas,
+      shortTitle: az.shortTitle,
+      fullTitle: az.fullTitle,
+      tagline: az.tagline,
+      biography: az.biography,
+      quote: az.quote,
+      credentials: az.credentials,
+      stats: az.stats,
+      education: az.education,
+      researchAreas: az.researchAreas,
+      translations: Object.fromEntries(
+        getTranslatableLocales().map((l) => [l, content[l]]),
+      ),
     };
     startTransition(async () => {
       const result = await updateDoctorProfile(payload);
@@ -304,26 +306,32 @@ export function DoctorProfileForm({ doctor }: DoctorProfileFormProps) {
       {/*
         * Dil tab-ı — bioqrafiya, titul, nişanlar və s. dilə görə dəyişir.
         * Ad və şəkillər yuxarıda paylaşılır (bütün dillərdə eynidir).
-        * RU söndürülübsə tab tamam gizlənir — `lang` "az"-da qalır, RU
-        * məzmun (varsa) toxunulmadan saxlanılıb göndərilir.
+        * `getTranslatableLocales()`-ə görə dinamikdir — heç bir dil
+        * bərkidilməyib. Dil dəstəyi söndürülübsə tab tamam gizlənir,
+        * `lang` default dildə qalır, digər dillərin məzmunu (varsa)
+        * toxunulmadan saxlanılıb göndərilir.
         */}
       {languageSupport && (
       <div className="flex items-center gap-space-xs rounded-xl border border-surface-container bg-surface-container-lowest p-space-2xs w-fit">
-        {(["az", "ru"] as const).map((l) => (
-          <button
-            key={l}
-            type="button"
-            onClick={() => setLang(l)}
-            className={cn(
-              "px-space-md py-space-2xs rounded-lg font-label text-label-md font-semibold transition-colors",
-              lang === l
-                ? "bg-secondary text-on-secondary"
-                : "text-on-surface-variant hover:bg-surface-container",
-            )}
-          >
-            {l === "az" ? "Azərbaycan dili" : "Rus dili"}
-          </button>
-        ))}
+        {[routing.defaultLocale, ...getTranslatableLocales()].map((l) => {
+          const Flag = FLAGS[l as keyof typeof FLAGS];
+          return (
+            <button
+              key={l}
+              type="button"
+              onClick={() => setLang(l)}
+              className={cn(
+                "flex items-center gap-space-2xs px-space-md py-space-2xs rounded-lg font-label text-label-md font-semibold transition-colors",
+                lang === l
+                  ? "bg-secondary text-on-secondary"
+                  : "text-on-surface-variant hover:bg-surface-container",
+              )}
+            >
+              {Flag && <Flag className="w-5 h-[14px] shrink-0 rounded-[2px] object-cover" />}
+              {LOCALE_LABELS[l as keyof typeof LOCALE_LABELS] ?? l}
+            </button>
+          );
+        })}
       </div>
       )}
 

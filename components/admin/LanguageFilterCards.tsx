@@ -1,28 +1,24 @@
 "use client";
 
 import { FLAGS, Icon } from "@/components/ui";
+import { getTranslatableLocales, LOCALE_LABELS, routing, type AppLocale } from "@/i18n/routing";
 import { cn } from "@/lib/utils";
 
-export type ContentLanguageFilter = "all" | "az" | "ru";
+export type ContentLanguageFilter = "all" | AppLocale;
 
 export interface LanguageFilterCardsProps {
   value: ContentLanguageFilter;
   onChange: (value: ContentLanguageFilter) => void;
-  counts: { az: number; ru: number };
+  counts: Partial<Record<AppLocale, number>>;
   className?: string;
 }
-
-const OPTIONS: { slug: ContentLanguageFilter; name: string }[] = [
-  { slug: "all", name: "Bütün dillər" },
-  { slug: "az", name: "Azərbaycan dili" },
-  { slug: "ru", name: "Rus dili" },
-];
 
 /**
  * Dil — məqalə/video/PDF sənədinin ən önəmli parametri, ona görə
  * status/kateqoriya süzgəclərindən fərqli, bayraqlı böyük kartlar
  * kimi göstərilir. Admin siyahılarının hamısında (məqalələr, videolar,
- * PDF sənədləri) eyni komponentdir.
+ * PDF sənədləri) eyni komponentdir. Dillər `routing.locales`-ə görə
+ * dinamikdir — heç biri bərkidilməyib.
  */
 export function LanguageFilterCards({
   value,
@@ -30,11 +26,22 @@ export function LanguageFilterCards({
   counts,
   className,
 }: LanguageFilterCardsProps) {
+  const locales = [routing.defaultLocale, ...getTranslatableLocales()];
+  const options: { slug: ContentLanguageFilter; name: string }[] = [
+    { slug: "all", name: "Bütün dillər" },
+    ...locales.map((l) => ({ slug: l, name: `${LOCALE_LABELS[l] ?? l} dili` })),
+  ];
+
   return (
-    <div className={cn("grid grid-cols-1 sm:grid-cols-3 gap-space-sm", className)}>
-      {OPTIONS.map((f) => {
+    <div
+      className={cn(
+        "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-space-sm",
+        className,
+      )}
+    >
+      {options.map((f) => {
         const active = value === f.slug;
-        const Flag = f.slug !== "all" ? FLAGS[f.slug] : null;
+        const Flag = f.slug !== "all" ? FLAGS[f.slug as keyof typeof FLAGS] : null;
         return (
           <button
             key={f.slug}
@@ -61,7 +68,7 @@ export function LanguageFilterCards({
               </span>
               {f.slug !== "all" && (
                 <span className="font-label text-label-sm text-outline tabular-nums">
-                  {counts[f.slug]} qeyd
+                  {counts[f.slug as AppLocale] ?? 0} qeyd
                 </span>
               )}
             </span>

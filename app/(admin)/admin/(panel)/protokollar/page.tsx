@@ -4,6 +4,7 @@ import {
   LanguageFilteredResourceManager,
   SCOPE_KEY_PLACEHOLDER,
 } from "@/components/admin";
+import { getTranslatableLocales, LOCALE_LABELS, routing } from "@/i18n/routing";
 import { listProtocols } from "@/lib/admin/queries";
 import {
   createResource,
@@ -15,9 +16,10 @@ export const metadata = { title: "Protokollar" };
 
 export default async function AdminProtocolsPage() {
   const protocols = await listProtocols();
+  const locales = [routing.defaultLocale, ...getTranslatableLocales()];
   const rows = protocols.map((p: any) => ({
     ...p,
-    languageLabel: p.language === "ru" ? "RU" : "AZ",
+    languageLabel: (p.language as string).toUpperCase(),
   }));
 
   async function create(values: Record<string, string>) {
@@ -78,10 +80,7 @@ export default async function AdminProtocolsPage() {
             name: "language",
             label: "Dil",
             type: "select",
-            options: [
-              { value: "az", label: "Azərbaycan dili" },
-              { value: "ru", label: "Rus dili" },
-            ],
+            options: locales.map((l) => ({ value: l, label: `${LOCALE_LABELS[l] ?? l} dili` })),
           },
         ]}
         columns={[

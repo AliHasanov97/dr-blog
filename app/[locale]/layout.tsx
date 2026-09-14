@@ -4,14 +4,14 @@ import { NextIntlClientProvider } from "next-intl";
 import { getMessages, setRequestLocale } from "next-intl/server";
 import { notFound, redirect } from "next/navigation";
 import Script from "next/script";
-import { routing, type AppLocale } from "@/i18n/routing";
+import { routing, getEnabledLocales, type AppLocale } from "@/i18n/routing";
 import { RootHeadAssets, ThemeSync } from "@/components/layout";
 import { siteConfig } from "@/lib/site";
 import { getSiteSettings } from "@/lib/admin/queries";
 import { newsreader, jakarta } from "@/lib/fonts";
 import "../globals.css";
 
-const OG_LOCALES: Record<AppLocale, string> = { az: "az_AZ", ru: "ru_RU" };
+const OG_LOCALES: Record<AppLocale, string> = { az: "az_AZ", ru: "ru_RU", tr: "tr_TR" };
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
@@ -83,15 +83,13 @@ export default async function LocaleLayout({
   setRequestLocale(locale);
 
   /*
-   * Admin RU dilini söndürə bilər (bax: /admin/parametrler). Söndürülübsə
-   * RU saytın hər sorğusu bura çatmadan `/az`-a yönləndirilir — RU məzmun
-   * silinmir, sadəcə əlçatmaz olur. AZ (default dil) heç vaxt bağlanmır.
+   * `.env`-dəki `NEXT_PUBLIC_ENABLED_LOCALES` bu deploymentdə hansı dillərin
+   * canlı olduğunu deyir (bax: i18n/routing.ts). Söndürülmüş dilin hər
+   * sorğusu bura çatmadan `/az`-a yönləndirilir — məzmun silinmir, sadəcə
+   * əlçatmaz olur. AZ (default dil) heç vaxt bağlanmır.
    */
-  if (locale !== routing.defaultLocale) {
-    const settings = await getSiteSettings().catch(() => null);
-    if (settings && !settings.multiLanguageEnabled) {
-      redirect(`/${routing.defaultLocale}`);
-    }
+  if (!getEnabledLocales().includes(locale as AppLocale)) {
+    redirect(`/${routing.defaultLocale}`);
   }
 
   const messages = await getMessages();

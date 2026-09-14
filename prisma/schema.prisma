@@ -18,14 +18,16 @@ model Category {
   id       String    @id @default(cuid())
   slug     String    @unique
   name     String
-  /**
-   * Rus dilində ad — boşdursa RU saytda `name` (AZ) geri qayıdır. Kateqoriya
-   * BİR siyahıdır (məqalə kimi dilə görə ikiyə bölünmür) — sadəcə adı hər
-   * dildə fərqli göstərilir.
-   */
-  nameRu   String?
   icon     String?
   articles Article[]
+
+  /**
+   * Digər dillərdəki ad — açar dil kodu (məs. "ru"), dəyər `{ name: "..." }`.
+   * Boş/olmayan sahə AZ (`name`) geri qayıdır. Kateqoriya BİR siyahıdır
+   * (məqalə kimi dilə görə ikiyə bölünmür) — sadəcə adı hər dildə fərqli
+   * göstərilir. Yeni dil əlavə etmək sxemə TOXUNMAQ TƏLƏB ETMİR.
+   */
+  translations Json?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -58,6 +60,7 @@ enum ArticleStatus {
 enum ArticleLanguage {
   AZ
   RU
+  TR
 }
 
 model Article {
@@ -172,29 +175,22 @@ model DoctorProfile {
   biography   String?
   quote       String?
 
-  /**
-   * Rus dilində variantlar — boş qalsa RU saytda AZ mətn geri qayıdır.
-   * Profil BİR qeyddir (tək həkim), ona görə hər sahə öz tərcüməsini
-   * daşıyır — məqalə kimi ayrı qeydə bölünmür.
-   */
-  shortTitleRu String?
-  fullTitleRu  String?
-  taglineRu    String?
-  biographyRu  String?
-  quoteRu      String?
-
   // JSON fields for complex nested data
   credentials   Json? // Credential[]
   stats         Json? // DoctorStat[]
   education     Json? // TimelineEntry[]
   researchAreas Json? // ResearchArea[]
-  socialLinks   Json? // SocialLink[]
+  socialLinks   Json? // SocialLink[] — tərcümə olunmur, /admin/elaqe-də idarə olunur
 
-  // Yuxarıdakı JSON sahələrin RU variantları
-  credentialsRu   Json? // Credential[]
-  statsRu         Json? // DoctorStat[]
-  educationRu     Json? // TimelineEntry[]
-  researchAreasRu Json? // ResearchArea[]
+  /**
+   * Digər dillərdəki variantlar — açar dil kodu (məs. "ru"), dəyər
+   * `{ shortTitle?, fullTitle?, tagline?, biography?, quote?, credentials?,
+   * stats?, education?, researchAreas? }`. Boş/olmayan sahə AZ mətnə geri
+   * qayıdır. Profil BİR qeyddir (tək həkim), ona görə hər sahə öz
+   * tərcüməsini daşıyır — məqalə kimi ayrı qeydə bölünmür. Yeni dil əlavə
+   * etmək sxemə TOXUNMAQ TƏLƏB ETMİR.
+   */
+  translations Json?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -244,15 +240,17 @@ model OfficeLocation {
 }
 
 model FaqItem {
-  id         String  @id @default(cuid())
-  question   String
-  answer     String
+  id        String @id @default(cuid())
+  question  String
+  answer    String
+  sortOrder Int    @default(0)
+
   /**
-   * Boş qalsa RU saytda AZ mətn geri qayıdır — Category.nameRu ilə eyni qayda
+   * Digər dillərdəki variantlar — açar dil kodu (məs. "ru"), dəyər
+   * `{ question?, answer? }`. Boş/olmayan sahə AZ mətnə geri qayıdır —
+   * Category.translations ilə eyni qayda.
    */
-  questionRu String?
-  answerRu   String?
-  sortOrder  Int     @default(0)
+  translations Json?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

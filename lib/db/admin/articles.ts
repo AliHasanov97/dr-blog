@@ -3,7 +3,9 @@ import type { AdminArticle } from "@/lib/mock/store";
 import type { Author } from "@/lib/types";
 import { prisma } from "@/lib/prisma";
 import { dbGetArticleAuthor } from "@/lib/db/doctor";
+import { toArticleLanguage } from "@/lib/db/language";
 import { articleFolderPrefix, storage } from "@/lib/admin/storage";
+import { getTranslatableLocales, routing, type AppLocale } from "@/i18n/routing";
 import { slugify } from "./slugify";
 
 /** DoctorProfile hələ yaradılmayıbsa istifadə olunan ehtiyat müəllif */
@@ -31,7 +33,7 @@ export interface AdminArticleQuery {
   /** Kateqoriya slug-ı üzrə süzgəc — verilməyəndə hamısı */
   category?: string;
   /** Məqalənin dili — verilməyəndə hamısı göstərilir */
-  language?: "all" | "az" | "ru";
+  language?: "all" | AppLocale;
   page?: number;
   pageSize?: number;
   sortBy?: "date" | "title" | "category" | "status" | "language" | "views" | "reactions";
@@ -46,7 +48,7 @@ export interface AdminArticleListResult {
   /** Vəziyyət süzgəclərinin sayğacları — filtrə görə dəyişmir */
   counts: { all: number; published: number; draft: number };
   /** Dil tab-larının sayğacları — digər filtrlərdən asılı olmayaraq bütün bazadandır */
-  languageCounts: { az: number; ru: number };
+  languageCounts: Partial<Record<AppLocale, number>>;
 }
 
 export async function dbListArticles(
@@ -81,15 +83,20 @@ export async function dbListArticles(
    * səhifəyə görə deyil. Əks halda «Qaralama (2)» yazısı yalnız cari
    * səhifədəki qaralamaları sayardı.
    */
-  const [total, published, draft, allCount, azCount, ruCount, author] = await Promise.all([
+  const locales = [routing.defaultLocale, ...getTranslatableLocales()];
+  const [total, published, draft, allCount, languageCountsList, author] = await Promise.all([
     prisma.article.count({ where }),
     prisma.article.count({ where: { status: ArticleStatus.PUBLISHED } }),
     prisma.article.count({ where: { status: ArticleStatus.DRAFT } }),
     prisma.article.count(),
-    prisma.article.count({ where: { language: ArticleLanguage.AZ } }),
-    prisma.article.count({ where: { language: ArticleLanguage.RU } }),
+    Promise.all(
+      locales.map((l) => prisma.article.count({ where: { language: toArticleLanguage(l) } })),
+    ),
     dbGetArticleAuthor(),
   ]);
+  const languageCounts = Object.fromEntries(
+    locales.map((l, i) => [l, languageCountsList[i]]),
+  ) as Partial<Record<AppLocale, number>>;
   const resolvedAuthor = author ?? FALLBACK_AUTHOR;
 
   const select = {
@@ -161,7 +168,7 @@ export async function dbListArticles(
     title: a.title,
     excerpt: a.excerpt,
     status: a.status.toLowerCase() as "published" | "draft",
-    language: a.language.toLowerCase() as "az" | "ru",
+    language: a.language.toLowerCase() as AppLocale,
     category: {
       id: a.category.id,
       slug: a.category.slug,
@@ -202,7 +209,7 @@ export async function dbListArticles(
     page,
     totalPages: Math.max(1, Math.ceil(total / pageSize)),
     counts: { all: allCount, published, draft },
-    languageCounts: { az: azCount, ru: ruCount },
+    languageCounts,
   };
 }
 
@@ -226,7 +233,7 @@ export async function dbGetArticle(id: string) {
     title: article.title,
     excerpt: article.excerpt,
     status: article.status.toLowerCase() as "published" | "draft",
-    language: article.language.toLowerCase() as "az" | "ru",
+    language: article.language.toLowerCase() as AppLocale,
     category: {
       id: article.category.id,
       slug: article.category.slug,

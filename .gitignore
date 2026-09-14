@@ -58,6 +58,10 @@ docker-compose.override.yml
 .vscode/*
 !.vscode/extensions.json
 
+# `scripts/backup-ru-columns.ts` bura yazır — baza qeydləri (email, ad və s.
+# ola bilər), heç vaxt commit edilməməlidir
+/scripts/ru-columns-backup.json
+
 # Prisma — yaradilan klient
 /prisma/generated/
 

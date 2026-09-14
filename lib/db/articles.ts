@@ -10,11 +10,12 @@ import type {
   SearchIndexItem,
   TopReadArticle,
 } from "@/lib/types";
-import { ArticleLanguage, ArticleStatus, CommentStatus, Prisma } from "@prisma/client";
+import { ArticleStatus, CommentStatus, Prisma } from "@prisma/client";
 import { buildToc, normalizeHeadings } from "@/lib/article-toc";
 import { dbGetSiteSettings } from "@/lib/db/admin";
 import { dbGetArticleAuthor } from "@/lib/db/doctor";
 import { toArticleLanguage } from "@/lib/db/language";
+import { pickTranslation } from "@/lib/i18n/translations";
 import { formatCompact } from "@/lib/utils";
 
 /**
@@ -76,10 +77,11 @@ function toSummary(article: any, author: Author, ctx: FormatCtx): ArticleSummary
       id: article.category.id,
       slug: article.category.slug,
       /* RU saytda tərcümə edilmiş ad, boşdursa Azərbaycanca geri qayıdır */
-      name:
-        ctx.locale === "ru" && article.category.nameRu
-          ? article.category.nameRu
-          : article.category.name,
+      name: pickTranslation(
+        { name: article.category.name as string },
+        article.category.translations,
+        ctx.locale,
+      ).name,
       icon: article.category.icon ?? undefined,
     },
     coverImageUrl: article.coverImageUrl ?? undefined,
@@ -479,7 +481,7 @@ export async function dbGetCategories(locale?: string): Promise<Category[]> {
       id: c.id,
       slug: c.slug,
       /* RU saytda tərcümə edilmiş ad, boşdursa Azərbaycanca geri qayıdır */
-      name: language === ArticleLanguage.RU && c.nameRu ? c.nameRu : c.name,
+      name: pickTranslation({ name: c.name }, c.translations, locale).name,
       icon: c.icon ?? undefined,
       articleCount: c._count.articles,
     })),
@@ -521,7 +523,7 @@ export async function dbGetSearchIndex(
       slug: true,
       title: true,
       excerpt: true,
-      category: { select: { name: true, nameRu: true } },
+      category: { select: { name: true, translations: true } },
     },
   });
 
@@ -529,8 +531,11 @@ export async function dbGetSearchIndex(
     slug: a.slug,
     title: a.title,
     excerpt: a.excerpt,
-    categoryName:
-      locale === "ru" && a.category.nameRu ? a.category.nameRu : a.category.name,
+    categoryName: pickTranslation(
+      { name: a.category.name },
+      a.category.translations,
+      locale,
+    ).name,
   }));
 }
 

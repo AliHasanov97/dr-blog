@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { revalidateSitePath } from "@/lib/revalidate-site";
+import { getTranslatableLocales, translatableFieldName } from "@/i18n/routing";
 import type { ActionResult } from "@/lib/admin/types";
 import { nextId, slugify, store } from "@/lib/mock/store";
 import { USE_MOCK } from "@/lib/api/config";
@@ -48,12 +49,44 @@ function collection(key: CollectionKey): Row[] {
   return store[key] as unknown as Row[];
 }
 
+/**
+ * Admin formasındakı flat `<sahə>_<dil>` sahələrini `translations` JSON-una
+ * yığır — heç bir dil bərkidilməyib, `getTranslatableLocales()`-ə görə
+ * dinamikdir. HƏR aktiv dil üçün (boş olsa belə) açar yazılır ki,
+ * `dbUpdateCategory`/`dbUpdateFaq`-dakı `mergeTranslations` boş sahəni
+ * QƏSDƏN silmə kimi tətbiq etsin — söndürülmüş dillərin köhnə tərcüməsi isə
+ * (bu formada heç görünmədiyi üçün) toxunulmadan qalır.
+ */
+function buildTranslations<K extends string>(
+  values: Record<string, string>,
+  baseKeys: readonly K[],
+): Record<string, Partial<Record<K, string>>> {
+  const result: Record<string, Partial<Record<K, string>>> = {};
+  for (const locale of getTranslatableLocales()) {
+    const entry: Partial<Record<K, string>> = {};
+    for (const key of baseKeys) {
+      const v = values[translatableFieldName(key, locale)]?.trim();
+      if (v) entry[key] = v;
+    }
+    result[locale] = entry;
+  }
+  return result;
+}
+
+function categoryTranslations(values: Record<string, string>) {
+  return buildTranslations(values, ["name"] as const);
+}
+
+function faqTranslations(values: Record<string, string>) {
+  return buildTranslations(values, ["question", "answer"] as const);
+}
+
 const mappers: Record<CollectionKey, Mapper> = {
   categories: (v, existing) => ({
     id: existing?.id ?? nextId("cat"),
     slug: v.slug?.trim() ? slugify(v.slug) : slugify(v.name),
     name: v.name,
-    nameRu: v.nameRu?.trim() || undefined,
+    translations: categoryTranslations(v),
     icon: v.icon || "sell",
     articleCount: existing?.articleCount ?? 0,
   }),
@@ -79,8 +112,7 @@ const mappers: Record<CollectionKey, Mapper> = {
     id: existing?.id ?? nextId("faq"),
     question: v.question,
     answer: v.answer,
-    questionRu: v.questionRu?.trim() || undefined,
-    answerRu: v.answerRu?.trim() || undefined,
+    translations: faqTranslations(v),
   }),
 };
 
@@ -94,9 +126,9 @@ export async function createResource(
         case "categories":
           await dbCreateCategory({
             name: values.name,
-            nameRu: values.nameRu,
             slug: values.slug,
             icon: values.icon,
+            translations: categoryTranslations(values),
           });
           break;
         case "videos":
@@ -124,8 +156,7 @@ export async function createResource(
           await dbCreateFaq({
             question: values.question,
             answer: values.answer,
-            questionRu: values.questionRu,
-            answerRu: values.answerRu,
+            translations: faqTranslations(values),
           });
           break;
       }
@@ -153,9 +184,9 @@ export async function updateResource(
         case "categories":
           await dbUpdateCategory(id, {
             name: values.name,
-            nameRu: values.nameRu,
             slug: values.slug,
             icon: values.icon,
+            translations: categoryTranslations(values),
           });
           break;
         case "videos":
@@ -175,8 +206,7 @@ export async function updateResource(
           await dbUpdateFaq(id, {
             question: values.question,
             answer: values.answer,
-            questionRu: values.questionRu,
-            answerRu: values.answerRu,
+            translations: faqTranslations(values),
           });
           break;
       }

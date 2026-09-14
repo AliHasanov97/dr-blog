@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { Button, Icon } from "@/components/ui";
+import { routing } from "@/i18n/routing";
 import type { ActionResult } from "@/lib/admin/types";
 import { collectWarnings } from "@/lib/admin/article-helpers";
 import { toDateLabel } from "@/lib/admin/format";
@@ -98,8 +99,8 @@ export function ArticleForm({
   const [categorySlug, setCategorySlug] = useState(
     article?.category.slug ?? categories[0]?.slug ?? "",
   );
-  const [language, setLanguage] = useState<"az" | "ru">(
-    article?.language ?? "az",
+  const [language, setLanguage] = useState<string>(
+    article?.language ?? routing.defaultLocale,
   );
   const [publishedAt, setPublishedAt] = useState(
     article?.publishedAt ?? new Date().toISOString().slice(0, 10),
@@ -276,7 +277,7 @@ export function ArticleForm({
     setTitle(recovered.title);
     setExcerpt(recovered.excerpt);
     setCategorySlug(recovered.categorySlug);
-    setLanguage(recovered.language ?? "az");
+    setLanguage(recovered.language ?? routing.defaultLocale);
     setCoverImageUrl(recovered.coverImageUrl);
     setCoverMode(
       !recovered.coverImageUrl

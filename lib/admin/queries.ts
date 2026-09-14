@@ -174,7 +174,7 @@ export async function listCategories() {
     id: c.id,
     slug: c.slug,
     name: c.name,
-    nameRu: c.nameRu ?? "",
+    translations: c.translations ?? {},
     icon: c.icon ?? "sell",
     articleCount: store.articles.filter((a) => a.category.slug === c.slug).length,
   }));
