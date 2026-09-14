@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { hasLocale } from "next-intl";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages, setRequestLocale } from "next-intl/server";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import Script from "next/script";
 import { routing, type AppLocale } from "@/i18n/routing";
 import { RootHeadAssets, ThemeSync } from "@/components/layout";
@@ -81,6 +81,18 @@ export default async function LocaleLayout({
 
   /* Statik render optimizasiyası üçün — next-intl-in tövsiyə etdiyi qayda */
   setRequestLocale(locale);
+
+  /*
+   * Admin RU dilini söndürə bilər (bax: /admin/parametrler). Söndürülübsə
+   * RU saytın hər sorğusu bura çatmadan `/az`-a yönləndirilir — RU məzmun
+   * silinmir, sadəcə əlçatmaz olur. AZ (default dil) heç vaxt bağlanmır.
+   */
+  if (locale !== routing.defaultLocale) {
+    const settings = await getSiteSettings().catch(() => null);
+    if (settings && !settings.multiLanguageEnabled) {
+      redirect(`/${routing.defaultLocale}`);
+    }
+  }
 
   const messages = await getMessages();
 

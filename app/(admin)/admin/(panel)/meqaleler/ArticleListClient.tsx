@@ -9,6 +9,7 @@ import {
   DataTable,
   LanguageFilterCards,
   StatusPill,
+  useLanguageSupport,
   type ContentLanguageFilter,
 } from "@/components/admin";
 import { Button, Chip, FLAGS, Icon, SearchBar } from "@/components/ui";
@@ -62,6 +63,7 @@ export function ArticleListClient({
   pageSize,
   categories,
 }: ArticleListClientProps) {
+  const languageSupport = useLanguageSupport();
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState<ArticleStatus | "all">("all");
   const [category, setCategory] = useState<string>("all");
@@ -161,11 +163,13 @@ export function ArticleListClient({
 
   return (
     <div className="flex flex-col gap-space-md">
-      <LanguageFilterCards
-        value={language}
-        onChange={(v: ContentLanguageFilter) => setLanguage(v)}
-        counts={languageCounts}
-      />
+      {languageSupport && (
+        <LanguageFilterCards
+          value={language}
+          onChange={(v: ContentLanguageFilter) => setLanguage(v)}
+          counts={languageCounts}
+        />
+      )}
 
       <div className="flex flex-col gap-space-sm lg:flex-row lg:items-center lg:justify-between">
         <div className="flex items-center gap-space-xs overflow-x-auto scrollbar-none">
@@ -219,7 +223,9 @@ export function ArticleListClient({
         <DataTable
           headers={[
             { key: "title", label: "Məqalə", sortable: true },
-            { key: "language", label: "Dil", sortable: true },
+            ...(languageSupport
+              ? [{ key: "language", label: "Dil", sortable: true }]
+              : []),
             { key: "category", label: "Kateqoriya", sortable: true },
             { key: "status", label: "Vəziyyət", sortable: true },
             { key: "date", label: "Tarix", sortable: true },
@@ -248,19 +254,21 @@ export function ArticleListClient({
                   </span>
                 </Link>
               </DataCell>
-              <DataCell>
-                {(() => {
-                  const Flag = FLAGS[article.language];
-                  return (
-                    <span className="inline-flex items-center gap-space-2xs">
-                      <Flag className="w-6 h-[18px] shrink-0 rounded-[3px] object-cover ring-1 ring-outline-variant/60" />
-                      <span className="font-label text-label-sm font-semibold text-on-surface-variant uppercase tracking-wide">
-                        {languageBadge[article.language]}
+              {languageSupport && (
+                <DataCell>
+                  {(() => {
+                    const Flag = FLAGS[article.language];
+                    return (
+                      <span className="inline-flex items-center gap-space-2xs">
+                        <Flag className="w-6 h-[18px] shrink-0 rounded-[3px] object-cover ring-1 ring-outline-variant/60" />
+                        <span className="font-label text-label-sm font-semibold text-on-surface-variant uppercase tracking-wide">
+                          {languageBadge[article.language]}
+                        </span>
                       </span>
-                    </span>
-                  );
-                })()}
-              </DataCell>
+                    );
+                  })()}
+                </DataCell>
+              )}
               <DataCell>
                 <span className="font-body text-body-sm text-on-surface-variant whitespace-nowrap">
                   {article.category.name}

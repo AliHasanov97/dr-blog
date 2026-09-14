@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { ImagePicker, RepeaterField } from "@/components/admin";
+import { ImagePicker, RepeaterField, useLanguageSupport } from "@/components/admin";
 import { Button, Icon, TextAreaField, TextField } from "@/components/ui";
 import type { Credential, DoctorProfile, DoctorStat, ResearchArea, TimelineEntry } from "@/lib/types";
 import { updateDoctorProfile, type DoctorPayload } from "./actions";
@@ -63,6 +63,7 @@ const RESEARCH_ICONS = [
 ];
 
 export function DoctorProfileForm({ doctor }: DoctorProfileFormProps) {
+  const languageSupport = useLanguageSupport();
   const [step, setStep] = useState(0);
   const [showPreview, setShowPreview] = useState(true);
   const [pending, startTransition] = useTransition();
@@ -303,7 +304,10 @@ export function DoctorProfileForm({ doctor }: DoctorProfileFormProps) {
       {/*
         * Dil tab-ı — bioqrafiya, titul, nişanlar və s. dilə görə dəyişir.
         * Ad və şəkillər yuxarıda paylaşılır (bütün dillərdə eynidir).
+        * RU söndürülübsə tab tamam gizlənir — `lang` "az"-da qalır, RU
+        * məzmun (varsa) toxunulmadan saxlanılıb göndərilir.
         */}
+      {languageSupport && (
       <div className="flex items-center gap-space-xs rounded-xl border border-surface-container bg-surface-container-lowest p-space-2xs w-fit">
         {(["az", "ru"] as const).map((l) => (
           <button
@@ -321,6 +325,7 @@ export function DoctorProfileForm({ doctor }: DoctorProfileFormProps) {
           </button>
         ))}
       </div>
+      )}
 
       <div className="flex flex-col lg:flex-row gap-space-md">
       {/* Sidebar Stepper */}

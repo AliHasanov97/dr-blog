@@ -40,3 +40,4 @@ export type { FilePickerProps, PickedFile } from "./FilePicker";
 export { LanguageFilterCards } from "./LanguageFilterCards";
 export type { ContentLanguageFilter, LanguageFilterCardsProps } from "./LanguageFilterCards";
 export { LanguageFilteredResourceManager } from "./LanguageFilteredResourceManager";
+export { LanguageSupportProvider, useLanguageSupport } from "./LanguageSupportContext";

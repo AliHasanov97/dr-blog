@@ -3,7 +3,7 @@ import {
   HelpNote,
   LanguageFilteredResourceManager,
 } from "@/components/admin";
-import { listVideos } from "@/lib/admin/queries";
+import { getSiteSettings, listVideos } from "@/lib/admin/queries";
 import {
   createResource,
   deleteResource,
@@ -13,11 +13,15 @@ import {
 export const metadata = { title: "Videolar" };
 
 export default async function AdminVideosPage() {
-  const videos = await listVideos();
-  /* Cədvəldə başlığın altında videonun növü və dili göstərilir */
+  const [videos, settings] = await Promise.all([listVideos(), getSiteSettings()]);
+  const { multiLanguageEnabled } = settings;
+  /* Cədvəldə başlığın altında videonun növü göstərilir — RU söndürülübsə
+   * dil mövcud RU qeydlər üçün belə göstərilmir (bax: LanguageSupportContext) */
   const rows = videos.map((v) => ({
     ...v,
-    meta: [v.kindLabel, v.language === "ru" ? "RU" : "AZ"].filter(Boolean).join(" · "),
+    meta: multiLanguageEnabled
+      ? [v.kindLabel, v.language === "ru" ? "RU" : "AZ"].filter(Boolean).join(" · ")
+      : v.kindLabel,
   }));
 
   async function create(values: Record<string, string>) {

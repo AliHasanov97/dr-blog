@@ -106,8 +106,13 @@ export function SettingsForm({ settings }: SettingsFormProps) {
         </div>
       </div>
 
-      {/* Dil seçimi — yalnız tərcümə oluna bilən sahələr olan tab-larda */}
-      {(activeTab === "general" || activeTab === "appearance") && (
+      {/*
+        * Dil seçimi — yalnız tərcümə oluna bilən sahələr olan tab-larda VƏ
+        * RU aktiv olanda. Söndürülübsə RU heç yerdə görünməməlidir, ona
+        * görə bu bar tamam gizlənir (aşağıdakı `tval`/`tset` isə avtomatik
+        * AZ sahəsinə yazır, çünki `lang` "az"-da qalır).
+        */}
+      {values.multiLanguageEnabled && (activeTab === "general" || activeTab === "appearance") && (
         <div className="flex flex-col gap-space-xs sm:flex-row sm:items-center sm:justify-between px-space-md py-space-sm bg-secondary/[0.04] border-b border-surface-container">
           <span className="flex items-center gap-1.5 font-label text-label-sm text-on-surface-variant">
             <Icon name="translate" size={16} className="text-secondary" />
@@ -143,6 +148,32 @@ export function SettingsForm({ settings }: SettingsFormProps) {
         {/* Ümumi tab */}
         {activeTab === "general" && (
           <div className="space-y-space-lg">
+            <div>
+              <h3 className="font-label text-label-lg text-on-surface mb-1">Dil dəstəyi</h3>
+              <p className="text-sm text-outline mb-4">
+                Söndürülsə rus dilli sayt (/ru) bağlanır, ziyarətçilər avtomatik azərbaycan
+                versiyasına yönləndirilir və başlıqdakı dil seçimi gizlənir. RU məzmun silinmir —
+                istənilən vaxt geri aça bilərsiniz.
+              </p>
+
+              <ToggleCard
+                active={values.multiLanguageEnabled}
+                onChange={(v) => {
+                  set("multiLanguageEnabled", v);
+                  if (!v) setLang("az");
+                }}
+                icon="translate"
+                title="Rus dili aktivdir"
+                description={
+                  values.multiLanguageEnabled
+                    ? "Sayt həm AZ, həm RU dilində əlçatandır"
+                    : "Sayt yalnız azərbaycan dilində göstərilir"
+                }
+              />
+            </div>
+
+            <hr className="border-surface-container" />
+
             <div>
               <h3 className="font-label text-label-lg text-on-surface mb-1">Sayt məlumatları</h3>
               <p className="text-sm text-outline mb-4">Saytın başlığı və SEO üçün təsviri</p>

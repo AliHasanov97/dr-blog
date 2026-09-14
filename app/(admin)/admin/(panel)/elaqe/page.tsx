@@ -1,5 +1,5 @@
 import { AdminPageHeader, ResourceManager } from "@/components/admin";
-import { getContactInfo, getDoctorProfile, listFaq } from "@/lib/admin/queries";
+import { getContactInfo, getDoctorProfile, getSiteSettings, listFaq } from "@/lib/admin/queries";
 import {
   createResource,
   deleteResource,
@@ -10,11 +10,13 @@ import { ContactSettingsForm } from "./ContactSettingsForm";
 export const metadata = { title: "Əlaqə & FAQ" };
 
 export default async function AdminContactPage() {
-  const [contactInfo, doctor, faqItems] = await Promise.all([
+  const [contactInfo, doctor, faqItems, settings] = await Promise.all([
     getContactInfo(),
     getDoctorProfile(),
     listFaq(),
+    getSiteSettings(),
   ]);
+  const { multiLanguageEnabled } = settings;
 
   async function create(values: Record<string, string>) {
     "use server";
@@ -53,14 +55,15 @@ export default async function AdminContactPage() {
             <ResourceManager
               items={faqItems.map((f: any) => ({
                 ...f,
-                ruStatus: f.questionRu || f.answerRu ? "RU var" : "RU yoxdur",
+                ruStatus:
+                  multiLanguageEnabled && (f.questionRu || f.answerRu) ? "RU var" : "RU yoxdur",
               }))}
               actions={{ create, update, remove }}
               searchFields={["question", "answer"]}
               fields={[
                 {
                   name: "question",
-                  label: "Sual (Azərbaycan dili)",
+                  label: multiLanguageEnabled ? "Sual (Azərbaycan dili)" : "Sual",
                   type: "text",
                   required: true,
                   placeholder: "Həkimə necə müraciət edə bilərəm?",
@@ -68,27 +71,31 @@ export default async function AdminContactPage() {
                 },
                 {
                   name: "answer",
-                  label: "Cavab (Azərbaycan dili)",
+                  label: multiLanguageEnabled ? "Cavab (Azərbaycan dili)" : "Cavab",
                   type: "textarea",
                   rows: 4,
                   required: true,
                   colSpan: 2,
                 },
-                {
-                  name: "questionRu",
-                  label: "Sual (Rus dili)",
-                  type: "text",
-                  hint: "Boş qalsa RU saytda Azərbaycanca sual göstərilir",
-                  colSpan: 2,
-                },
-                {
-                  name: "answerRu",
-                  label: "Cavab (Rus dili)",
-                  type: "textarea",
-                  rows: 4,
-                  hint: "Boş qalsa RU saytda Azərbaycanca cavab göstərilir",
-                  colSpan: 2,
-                },
+                ...(multiLanguageEnabled
+                  ? [
+                      {
+                        name: "questionRu",
+                        label: "Sual (Rus dili)",
+                        type: "text" as const,
+                        hint: "Boş qalsa RU saytda Azərbaycanca sual göstərilir",
+                        colSpan: 2 as const,
+                      },
+                      {
+                        name: "answerRu",
+                        label: "Cavab (Rus dili)",
+                        type: "textarea" as const,
+                        rows: 4,
+                        hint: "Boş qalsa RU saytda Azərbaycanca cavab göstərilir",
+                        colSpan: 2 as const,
+                      },
+                    ]
+                  : []),
               ]}
               nameField="question"
               labels={{
@@ -107,7 +114,16 @@ export default async function AdminContactPage() {
                   subtitleField: "answer",
                   icon: "help",
                 },
-                { key: "ruStatus", header: "Rus dili", type: "badge", field: "ruStatus" },
+                ...(multiLanguageEnabled
+                  ? [
+                      {
+                        key: "ruStatus",
+                        header: "Rus dili",
+                        type: "badge" as const,
+                        field: "ruStatus",
+                      },
+                    ]
+                  : []),
               ]}
             />
           </div>

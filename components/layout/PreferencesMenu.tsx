@@ -21,6 +21,10 @@ const LOCALE_NAMES: Record<AppLocale, string> = {
  * header-də dayanırdı — mobil ekranda axtarış düyməsi ilə birlikdə üç
  * düymə sıxlıq yaradırdı. İndi ikisi tək "tune" düyməsinin altında,
  * açılan kiçik paneldə birləşib — header-də bir yer azalır.
+ *
+ * Yalnız dil dəstəyi aktiv olanda işlədilir (bax: `SiteHeader.tsx`) — RU
+ * söndürülübsə seçəcək ikinci dil qalmır, header birbaşa `ThemeToggle`
+ * göstərir, bu komponent heç render olunmur.
  */
 export function PreferencesMenu() {
   const t = useTranslations("nav");

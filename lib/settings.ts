@@ -20,6 +20,12 @@ export interface SiteSettings {
   commentsEnabled: boolean;
   commentsRequireApproval: boolean;
   newsletterEnabled: boolean;
+  /**
+   * Söndürülsə RU saytı (`/ru/...`) bağlanır — hər sorğu `/az`-a
+   * yönləndirilir, dil seçimi (`PreferencesMenu`) də gizlənir. RU
+   * məzmun silinmir, sadəcə əlçatmaz olur — istənilən vaxt geri açıla bilər.
+   */
+  multiLanguageEnabled: boolean;
   loadingText: string;
   loadingLogo: string;
   /** Açılış ekranında mətn göstərilsin */
@@ -66,6 +72,7 @@ export const DEFAULT_SETTINGS: SiteSettings = {
   commentsEnabled: true,
   commentsRequireApproval: true,
   newsletterEnabled: true,
+  multiLanguageEnabled: true,
   loadingText: "DR.NARMIN",
   loadingLogo: "",
   loadingShowText: true,

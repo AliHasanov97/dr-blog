@@ -2,6 +2,7 @@ import { Button, FLAGS, Icon, TextAreaField, TextField } from "@/components/ui";
 import { AdminCard } from "../AdminCard";
 import { ChoiceGroup } from "../ChoiceGroup";
 import { ImagePicker } from "../ImagePicker";
+import { useLanguageSupport } from "../LanguageSupportContext";
 import type { MediaScope } from "@/lib/admin/storage/scope";
 import type { Category } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -49,13 +50,19 @@ export function InfoStep({
   coverScope,
   onNext,
 }: InfoStepProps) {
+  const languageSupport = useLanguageSupport();
+
   return (
     <div className="flex flex-col gap-space-md">
       {/*
         * Dil məqalənin ən önəmli parametridir — bir dəfə seçilir və bütün
         * saytda (siyahı, filtr, URL) həmin məqaləni müəyyənləşdirir, ona
         * görə ayrıca, gözə çarpan bir kart kimi ən başda göstərilir.
+        *
+        * RU dili söndürülübsə (bax: /admin/parametrler) bu kart tamam
+        * gizlənir — yeni məqalələr avtomatik AZ dilində yaranır.
         */}
+      {languageSupport && (
       <AdminCard title="Dil" description="Tərcümə eyni yazı deyil — hər dil üçün ayrı məqalə yaradılır">
         <div className="grid gap-space-sm sm:grid-cols-2">
           {(
@@ -104,6 +111,7 @@ export function InfoStep({
           })}
         </div>
       </AdminCard>
+      )}
 
       <AdminCard title="Əsas məlumatlar">
         <div className="grid gap-space-md sm:grid-cols-2">

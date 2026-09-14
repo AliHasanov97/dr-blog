@@ -7,6 +7,7 @@ import { Logo } from "./Logo";
 import { Container } from "./Container";
 import { PreferencesMenu } from "./PreferencesMenu";
 import { SearchDialog } from "./SearchDialog";
+import { ThemeToggle } from "./ThemeToggle";
 import { Link, usePathname } from "@/i18n/navigation";
 import { navItems } from "@/lib/site";
 import type { DoctorProfile, SearchIndexItem } from "@/lib/types";
@@ -21,13 +22,15 @@ export interface SiteHeaderProps {
   /** Axtarış qutusu boş olanda göstərilən təkliflər */
   searchSuggestions: SearchIndexItem[];
   doctor: DoctorProfile;
+  /** Admin RU dilini söndürübsə (bax: /admin/parametrler) dil seçimi gizlənir */
+  showLanguageSwitch: boolean;
 }
 
 /**
  * Sabit üst panel.
  * Mobil: loqo + axtarış. Desktop: əlavə olaraq üfüqi naviqasiya və ⌘K göstəricisi.
  */
-export function SiteHeader({ searchSuggestions, doctor }: SiteHeaderProps) {
+export function SiteHeader({ searchSuggestions, doctor, showLanguageSwitch }: SiteHeaderProps) {
   const t = useTranslations("nav");
   const pathname = usePathname();
   const [searchOpen, setSearchOpen] = useState(false);
@@ -108,17 +111,23 @@ export function SiteHeader({ searchSuggestions, doctor }: SiteHeaderProps) {
               <Icon name="search" size={22} />
             </button>
 
-            {/*
-              `PreferencesMenu` `useSearchParams()` işlədir — Suspense
-              olmadan bu, `generateStaticParams`-lı səhifələrdə (məqalə
-              detalı) statik qurulma cəhdini dayandırıb
-              `DYNAMIC_SERVER_USAGE` atırdı (production-da müşahidə
-              olundu, digər səhifələr bundan təsirlənmirdi, çünki
-              onlarda `generateStaticParams` yoxdur).
-            */}
-            <Suspense fallback={<div className="w-11 h-11 shrink-0" />}>
-              <PreferencesMenu />
-            </Suspense>
+            {showLanguageSwitch ? (
+              /*
+                `PreferencesMenu` `useSearchParams()` işlədir — Suspense
+                olmadan bu, `generateStaticParams`-lı səhifələrdə (məqalə
+                detalı) statik qurulma cəhdini dayandırıb
+                `DYNAMIC_SERVER_USAGE` atırdı (production-da müşahidə
+                olundu, digər səhifələr bundan təsirlənmirdi, çünki
+                onlarda `generateStaticParams` yoxdur).
+              */
+              <Suspense fallback={<div className="w-11 h-11 shrink-0" />}>
+                <PreferencesMenu />
+              </Suspense>
+            ) : (
+              /* Dil dəstəyi söndürülübsə seçəcək ikinci dil qalmır —
+               * panel açmağa ehtiyac yoxdur, tema açarı birbaşa navbar-da */
+              <ThemeToggle />
+            )}
           </div>
         </Container>
       </header>

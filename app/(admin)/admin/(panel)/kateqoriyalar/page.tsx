@@ -1,5 +1,5 @@
 import { AdminPageHeader, HelpNote, ResourceManager } from "@/components/admin";
-import { listCategories } from "@/lib/admin/queries";
+import { getSiteSettings, listCategories } from "@/lib/admin/queries";
 import {
   createResource,
   deleteResource,
@@ -9,12 +9,13 @@ import {
 export const metadata = { title: "Kateqoriyalar" };
 
 export default async function AdminCategoriesPage() {
-  const categories = await listCategories();
+  const [categories, settings] = await Promise.all([listCategories(), getSiteSettings()]);
+  const { multiLanguageEnabled } = settings;
   const rows = categories.map((c) => ({
     id: c.id,
     name: c.name,
     nameRu: c.nameRu ?? "",
-    nameRuLabel: c.nameRu ? `RU: ${c.nameRu}` : "",
+    nameRuLabel: multiLanguageEnabled && c.nameRu ? `RU: ${c.nameRu}` : "",
     slug: c.slug,
     icon: c.icon ?? "sell",
     count: c.articleCount,
@@ -54,20 +55,24 @@ export default async function AdminCategoriesPage() {
         fields={[
           {
             name: "name",
-            label: "Mövzunun adı (Azərbaycan dili)",
+            label: multiLanguageEnabled ? "Mövzunun adı (Azərbaycan dili)" : "Mövzunun adı",
             type: "text",
             required: true,
             placeholder: "Kardiologiya",
             colSpan: 2,
           },
-          {
-            name: "nameRu",
-            label: "Mövzunun adı (Rus dili)",
-            type: "text",
-            placeholder: "Кардиология",
-            hint: "Boş qalsa RU saytda Azərbaycanca ad göstərilir",
-            colSpan: 2,
-          },
+          ...(multiLanguageEnabled
+            ? [
+                {
+                  name: "nameRu",
+                  label: "Mövzunun adı (Rus dili)",
+                  type: "text" as const,
+                  placeholder: "Кардиология",
+                  hint: "Boş qalsa RU saytda Azərbaycanca ad göstərilir",
+                  colSpan: 2 as const,
+                },
+              ]
+            : []),
           {
             name: "icon",
             label: "İkon",
