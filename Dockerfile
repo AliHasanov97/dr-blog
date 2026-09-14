@@ -66,6 +66,14 @@ COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 # Prisma sxemi ve klienti — miqrasiya emrleri ucun lazimdir.
 COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
 
+# MAINTENANCE_MODE `NEXT_PUBLIC_` deyil — koda bişmir, `middleware.ts`
+# server işə düşəndə `process.env`-dən hər sorğuda oxuyur. Burada YALNIZ
+# defolt qiymət kimi yazılır (Dokploy-un "Environment Settings"-i işə
+# salınanda bunu əvəz edir) — açıq-aşkar görünsün və rebuild-siz, sadəcə
+# konteyner restartı ilə dəyişdirilə bilsin deyə.
+ARG MAINTENANCE_MODE=false
+ENV MAINTENANCE_MODE=$MAINTENANCE_MODE
+
 USER nextjs
 EXPOSE 3000
 ENV PORT=3000 HOSTNAME=0.0.0.0
